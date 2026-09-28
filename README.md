@@ -1,0 +1,2 @@
+# perdida
+juego_web
