@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="Señal Perdida: un robot de mantenimiento investiga una estación espacial abandonada.">
+  <title>Señal Perdida</title>
+
+  <!-- Un archivo por responsabilidad; el orden importa: de lo general a lo específico. -->
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/world.css">
+  <link rel="stylesheet" href="css/entities.css">
+  <link rel="stylesheet" href="css/debug.css">
+
+  <!-- type="module" habilita import/export y se ejecuta al terminar de leer el HTML. -->
+  <script type="module" src="js/main.js"></script>
+</head>
+<body>
+  <!-- data-ref = ganchos para JavaScript · class = estilos. Nunca se mezclan. -->
+  <main class="game" data-ref="game">
+
+    <div class="viewport" data-ref="viewport">
+      <div class="world" data-ref="world">
+        <div class="scene" data-ref="scene"></div>
+        <div class="layer layer--entities" data-ref="entities"></div>
+        <div class="layer layer--debug" data-ref="debug-layer"></div>
+      </div>
+    </div>
+
+    <pre class="debug-panel" data-ref="debug-panel" aria-hidden="true"></pre>
+
+    <!-- Se oculta sola cuando el juego arranca (el CSS mira data-state).
+         Si sigue visible, el JavaScript no cargó: casi siempre es por abrir
+         el archivo con doble clic en lugar de usar un servidor local. -->
+    <p class="boot-message">
+      Buscando señal…
+      <span class="boot-message__hint">Si este mensaje no desaparece, abrí el juego con Live Server (clic derecho en index.html → Open with Live Server).</span>
+    </p>
+  </main>
+</body>
+</html>

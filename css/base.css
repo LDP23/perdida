@@ -1,0 +1,85 @@
+/* Base: fuentes, paleta y reglas globales. Todos los colores del juego salen de aquí. */
+
+@font-face {
+  font-family: 'VT323';
+  src: url('../assets/fonts/vt323.woff2') format('woff2');
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Silkscreen';
+  src: url('../assets/fonts/silkscreen.woff2') format('woff2');
+  font-display: swap;
+}
+
+:root {
+  /* Paleta: fondo de espacio, luz del robot y alarmas (documento de concepto). */
+  --color-void: #02040b;
+  --color-deep: #0a1531;
+  --color-signal: #3ef0ff;
+  --color-signal-dim: rgb(62 240 255 / 0.45);
+  --color-alarm: #ff2b3f;
+  --color-amber: #ffb03a;
+  --color-acid: #86ff4f;
+  --color-text: #cfe9f2;
+  --color-text-dim: #6f8ea3;
+
+  /* Terminal para textos (bitácoras, HUD); pixel para títulos y botones. */
+  --font-terminal: 'VT323', 'Courier New', monospace;
+  --font-display: 'Silkscreen', 'Courier New', monospace;
+
+  --text-small: 1.125rem;
+  --text-body: 1.5rem;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: var(--color-void);
+  color: var(--color-text);
+  font-family: var(--font-terminal);
+  font-size: var(--text-body);
+  line-height: 1.2;
+  overflow: hidden;
+  /* En celular: sin rebote de scroll, sin zoom por doble toque, sin selección accidental. */
+  overscroll-behavior: none;
+  touch-action: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Mensaje de arranque: visible hasta que el JS asigna un estado al juego. */
+.boot-message {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  gap: 1rem;
+  padding: 2rem;
+  text-align: center;
+  font-family: var(--font-display);
+  color: var(--color-signal);
+  background: var(--color-void);
+}
+
+.boot-message__hint {
+  max-width: 34ch;
+  font-family: var(--font-terminal);
+  font-size: var(--text-small);
+  color: var(--color-text-dim);
+}
+
+.game[data-state] .boot-message {
+  display: none;
+}

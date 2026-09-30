@@ -1,0 +1,44 @@
+/* Mundo del juego. JavaScript solo escribe variables (--world-scale, --camera-x,
+   --scene-image); aquí se decide cómo se aplican. */
+
+.game {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: radial-gradient(ellipse at 50% 40%, var(--color-deep), var(--color-void) 70%);
+}
+
+.viewport {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+/* El mundo mide lo mismo que la imagen (2172 × 724) y se escala para llenar
+   el alto de la pantalla. transform no provoca recálculo de layout: es lo más
+   barato para mover todo el escenario en cada frame. */
+.world {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: calc(var(--world-width) * 1px);
+  height: calc(var(--world-height) * 1px);
+  transform-origin: 0 0;
+  /* Se lee de derecha a izquierda: primero se desplaza la cámara, luego se escala. */
+  transform: scale(var(--world-scale, 1)) translate3d(calc(var(--camera-x, 0) * -1px), 0, 0);
+  will-change: transform;
+}
+
+.scene {
+  position: absolute;
+  inset: 0;
+  background: var(--scene-image) 0 0 / 100% 100% no-repeat;
+  /* Al ampliar, cada píxel del arte queda nítido en lugar de difuminarse. */
+  image-rendering: pixelated;
+}
+
+.layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}

@@ -1,0 +1,127 @@
+/* Modo de depuración. Todo lo de aquí solo se ve con la clase .is-debug en .game. */
+
+:root {
+  --debug-grid: rgb(255 255 255 / 0.08);
+  --debug-solid: #3ef0ff;
+  --debug-wall: #7a8699;
+  --debug-player: #ff4fd8;
+  --debug-hazard: #ff2b3f;
+  --debug-label-bg: rgb(2 4 11 / 0.8);
+}
+
+.game:not(.is-debug) .layer--debug,
+.game:not(.is-debug) .debug-panel {
+  display: none;
+}
+
+/* Rejilla dibujada solo con degradados: una línea cada --ruler-step px. */
+.layer--debug {
+  --step: calc(var(--ruler-step) * 1px);
+  background-image:
+    linear-gradient(to right, var(--debug-grid) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--debug-grid) 1px, transparent 1px);
+  background-size: var(--step) var(--step);
+  font-family: var(--font-terminal);
+  font-size: 14px;
+}
+
+.debug-scene {
+  position: absolute;
+  inset: 0;
+}
+
+.debug-rect {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: calc(var(--w) * 1px);
+  height: calc(var(--h) * 1px);
+  transform: translate(calc(var(--x) * 1px), calc(var(--y) * 1px));
+  border: 2px solid var(--debug-color);
+  background: color-mix(in srgb, var(--debug-color) 12%, transparent);
+}
+
+.debug-rect--solid { --debug-color: var(--debug-solid); }
+.debug-rect--wall { --debug-color: var(--debug-wall); }
+.debug-rect--player { --debug-color: var(--debug-player); }
+.debug-rect--hazard { --debug-color: var(--debug-hazard); }
+
+/* La etiqueta con las medidas va arriba del rectángulo, como en los datos del nivel. */
+.debug-rect[data-label]::before {
+  content: attr(data-label);
+  position: absolute;
+  left: -2px;
+  bottom: 100%;
+  padding: 0 4px;
+  white-space: nowrap;
+  color: var(--debug-color);
+  background: var(--debug-label-bg);
+}
+
+.debug-ruler__x,
+.debug-ruler__y {
+  position: absolute;
+  left: 0;
+  top: 0;
+  padding: 0 3px;
+  color: var(--color-text);
+  background: var(--debug-label-bg);
+  transform: translate(calc(var(--x) * 1px), calc(var(--y) * 1px));
+}
+
+.debug-ruler__y {
+  translate: 0 -50%;
+}
+
+.debug-cursor {
+  position: absolute;
+  inset: 0;
+}
+
+.debug-cursor.is-hidden {
+  display: none;
+}
+
+.debug-cursor__line {
+  position: absolute;
+  background: var(--color-amber);
+  opacity: 0.7;
+}
+
+.debug-cursor__line--v {
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  left: calc(var(--x) * 1px);
+}
+
+.debug-cursor__line--h {
+  left: 0;
+  right: 0;
+  height: 1px;
+  top: calc(var(--y) * 1px);
+}
+
+.debug-cursor__label {
+  position: absolute;
+  left: calc(var(--x) * 1px + 8px);
+  top: calc(var(--y) * 1px + 8px);
+  padding: 0 4px;
+  font-size: 18px;
+  color: var(--color-void);
+  background: var(--color-amber);
+}
+
+.debug-panel {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  font-family: var(--font-terminal);
+  font-size: var(--text-small);
+  line-height: 1.15;
+  color: var(--color-text);
+  background: var(--debug-label-bg);
+  border-left: 3px solid var(--debug-player);
+  pointer-events: none;
+}

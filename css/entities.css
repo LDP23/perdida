@@ -1,0 +1,41 @@
+/* Entidades. La caja .entity mide lo mismo que la hitbox (config.js); el sprite
+   es más grande y se apoya en su borde inferior, centrado. Las medidas visuales
+   viven aquí porque no afectan la jugabilidad. */
+
+:root {
+  /* Robot: 1/6 del alto de la escena. Ancho según la proporción del sprite recortado. */
+  --robot-width: 96px;
+  --robot-height: 120px;
+}
+
+.entity {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: calc(var(--w) * 1px);
+  height: calc(var(--h) * 1px);
+  transform: translate3d(calc(var(--x) * 1px), calc(var(--y) * 1px), 0);
+}
+
+.entity__sprite {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  background: center bottom / contain no-repeat;
+  /* scaleX(-1) voltea el dibujo sin necesitar una segunda imagen. */
+  transform: translateX(-50%) scaleX(var(--facing, 1));
+}
+
+.entity.is-facing-left {
+  --facing: -1;
+}
+
+.entity--player .entity__sprite {
+  width: var(--robot-width);
+  height: var(--robot-height);
+  background-image: url('../assets/sprites/robo.webp');
+  /* Contorno cian: separa al robot del fondo oscuro sin editar el sprite. */
+  filter:
+    drop-shadow(0 0 1px var(--color-signal))
+    drop-shadow(0 0 4px var(--color-signal-dim));
+}
