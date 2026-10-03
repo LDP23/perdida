@@ -1,4 +1,4 @@
-import { BATTERY, PICKUP, PLAYER, SCENE, SCORE } from '../config.js';
+import { BATTERY, PICKUP, PLAYER, PLAYER_FEEDBACK, SCENE, SCORE } from '../config.js';
 import { GameSession } from '../core/session.js';
 import { EntityCollection } from '../entities/entity-collection.js';
 import { Pickup } from '../entities/pickup.js';
@@ -11,6 +11,7 @@ import { LEVEL_1 } from '../levels/level1.js';
 import { loadScene } from '../levels/level-loader.js';
 import { CrewLogPanel } from '../ui/crew-log-panel.js';
 import { Hud } from '../ui/hud.js';
+import { saveHighScore } from '../ui/screens.js';
 import { Tutorial } from '../ui/tutorial.js';
 import { HudView } from '../view/hud-view.js';
 import { PlayerView } from '../view/player-view.js';
@@ -35,19 +36,30 @@ export class PlayingState {
   #hud = null;
   #hudView = null;
   #crewPanel = null;
-  #paused = false;
+  #panelPaused = false;
   #unsubscribes = [];
   #loadId = 0;
+  #visibilityHandler = null;
+  #shakeTimer = null;
 
   constructor(context) {
     this.#context = context;
   }
 
   enter(params) {
+    this.#context.input.setGameplayEnabled(true);
     this.#session = params?.session ?? new GameSession(this.#context.events);
+    this.#context.playingSession = this.#session;
     this.#hud = new Hud();
     this.#hudView = new HudView(this.#context.layers.hud);
     this.#crewPanel = new CrewLogPanel(this.#context.layers.panels);
+
+    this.#visibilityHandler = () => {
+      if (document.hidden) this.#autoPause();
+    };
+    document.addEventListener('visibilitychange', this.#visibilityHandler);
+    window.addEventListener('blur', this.#visibilityHandler);
+
     this.#loadCurrentScene();
   }
 
@@ -60,20 +72,70 @@ export class PlayingState {
     this.#hudView = null;
     this.#hud = null;
     this.#session = null;
+    this.#context.playingSession = null;
+    this.#stopShake();
+
+    if (this.#visibilityHandler) {
+      document.removeEventListener('visibilitychange', this.#visibilityHandler);
+      window.removeEventListener('blur', this.#visibilityHandler);
+      this.#visibilityHandler = null;
+    }
+  }
+
+  pause() {
+    this.#context.input.setGameplayEnabled(false);
+  }
+
+  resume() {
+    // No rehabilitar input si el robot está en respawn o muriendo
+    const blocked = this.#player?.isRespawning || this.#player?.isDying || this.#player?.isDead;
+    this.#context.input.setGameplayEnabled(!blocked);
+    this.#context.loop.resetTime();
   }
 
   update(deltaTime) {
     if (!this.#scene) return;
     const { input, camera, debugView } = this.#context;
 
-    if (this.#paused) {
-      this.#crewPanel.update(deltaTime, input);
-      if (!this.#crewPanel.isOpen) this.#paused = false;
+    // Pausa funciona incluso durante la muerte
+    if (input.consumePress('pause')) {
+      this.#context.states.push('paused');
       return;
     }
 
+    if (this.#panelPaused) {
+      this.#crewPanel.update(deltaTime, input);
+      if (!this.#crewPanel.isOpen) this.#panelPaused = false;
+      return;
+    }
+
+    // Debug H: dano con knockback (opuesto a la direccion que mira)
     if (debugView.isEnabled && input.consumePress('debugHurt')) {
-      this.#player.takeHit(BATTERY.hitCost);
+      const playerCx = this.#player.body.x + this.#player.body.width / 2;
+      const fakeOriginX = playerCx + this.#player.facing * 10;
+      this.#player.takeHitWithOrigin(BATTERY.hitCost, fakeOriginX);
+      this.#triggerShake();
+    }
+
+    // Si el robot esta muriendo o muerto, solo actualizar al jugador (temporizadores)
+    if (this.#player.isDying) {
+      this.#player.update(deltaTime, input, this.#scene.solids);
+      this.#hud.update(deltaTime);
+      camera.follow(this.#player.body, this.#scene.width, deltaTime);
+      return;
+    }
+
+    // Robot muerto: la secuencia termino, decidir que sigue
+    if (this.#player.isDead) {
+      this.#onDeathSequenceEnd();
+      return;
+    }
+
+    // Respawn en curso: solo actualizar temporizadores del jugador
+    if (this.#player.isRespawning) {
+      this.#player.update(deltaTime, input, this.#scene.solids);
+      this.#hud.update(deltaTime);
+      return;
     }
 
     this.#player.update(deltaTime, input, this.#scene.solids);
@@ -121,20 +183,18 @@ export class PlayingState {
 
   #showScene(scene) {
     this.#cleanupScene();
-    const { camera, worldView, debugView, layers, events } = this.#context;
+    const { camera, worldView, debugView, layers, events, settings } = this.#context;
     this.#scene = scene;
     this.#player = new Player(scene.spawn, events);
     this.#playerView = new PlayerView(layers.entities);
     this.#projectiles = new EntityCollection(layers.entities, 'projectile');
     this.#safePoint = new SafePointTracker(scene.spawn, scene.solids, scene.hazards);
 
-    // Celdas de energía
     this.#energyCells = new EntityCollection(layers.entities, 'energy-cell');
     for (const data of scene.energyCells) {
       this.#energyCells.add(new Pickup({ type: 'energy-cell', ...data }));
     }
 
-    // IDs de tripulante (no crear si ya fue encontrado)
     this.#crewIdPickups = new EntityCollection(layers.entities, 'crew-id');
     for (const data of scene.crewIds) {
       if (!this.#session.hasFoundCrewId(data.crewId)) {
@@ -142,7 +202,6 @@ export class PlayingState {
       }
     }
 
-    // Maniquís
     this.#dummies = [];
     this.#dummyViews = [];
     this.#shootables = [];
@@ -154,24 +213,27 @@ export class PlayingState {
       this.#shootables.push(dummy);
     }
 
-    // Suscripciones
     const unShoot = events.on('player:shoot', (data) => {
       this.#projectiles.add(new Projectile(data));
     });
     const unEmpty = events.on('player:battery-empty', () => this.#onBatteryEmpty());
-    this.#unsubscribes.push(unShoot, unEmpty);
+    const unHurt = events.on('player:hurt', ({ knockback }) => {
+      if (knockback) this.#triggerShake();
+    });
+    const unDeathEnd = events.on('player:death-end', () => {});
+    const unRespawnEnd = events.on('player:respawn-end', () => {
+      this.#context.input.setGameplayEnabled(true);
+    });
+    this.#unsubscribes.push(unShoot, unEmpty, unHurt, unDeathEnd, unRespawnEnd);
 
-    // Tutorial
-    if (scene.tutorial.length > 0) {
+    if (scene.tutorial.length > 0 && settings.get('showTutorial')) {
       this.#tutorial = new Tutorial(scene.tutorial, events);
       this.#tutorialView = new TutorialView(layers.world, scene.tutorial);
     }
 
-    // HUD
     this.#hud.levelName = `Nivel ${LEVEL_1.id} · ${LEVEL_1.name}`;
     this.#hud.lives = this.#session.lives;
 
-    // Vistas de escena y depuración
     worldView.showScene(scene);
     debugView.showScene(scene);
     for (const h of scene.hazards) {
@@ -186,13 +248,19 @@ export class PlayingState {
       }
     }
     camera.jumpTo(this.#player.body, scene.width);
+
+    // Iniciar secuencia de reaparicion
+    this.#player.startRespawn();
+    this.#context.input.setGameplayEnabled(false);
   }
 
   // --- Reglas ---
 
   #checkHazards() {
+    if (this.#player.isDying || this.#player.isDead || this.#player.isRespawning) return;
     for (const hazard of this.#scene.hazards) {
       if (rectsOverlap(this.#player.body, hazard)) {
+        // Peligros NUNCA empujan: volver al punto seguro
         this.#player.takeHit(BATTERY.hitCost);
         this.#returnToSafePoint();
         this.#context.events.emit('player:hazard');
@@ -202,6 +270,7 @@ export class PlayingState {
   }
 
   #handleFall() {
+    if (this.#player.isDying || this.#player.isDead || this.#player.isRespawning) return;
     if (this.#player.body.y > this.#scene.height + SCENE.fallMargin) {
       this.#player.takeHit(BATTERY.hitCost);
       this.#returnToSafePoint();
@@ -240,7 +309,7 @@ export class PlayingState {
         if (this.#session.collectCrewId(pickup.crewId)) {
           this.#session.addScore(SCORE.crewId);
           this.#context.events.emit('pickup:crew-id', { crewId: pickup.crewId });
-          this.#paused = true;
+          this.#panelPaused = true;
           this.#crewPanel.open(pickup.crewId);
         }
       }
@@ -250,16 +319,44 @@ export class PlayingState {
   }
 
   #onBatteryEmpty() {
+    // Iniciar secuencia de muerte en vez de cambiar estado inmediatamente
+    this.#player.die();
+    this.#context.input.setGameplayEnabled(false);
+  }
+
+  #onDeathSequenceEnd() {
     const remaining = this.#session.loseLife();
     if (this.#session.isGameOver) {
-      // Provisional: pantalla de Game Over en la etapa 4
-      console.info('[game] Game Over');
-      this.#session = new GameSession(this.#context.events);
-      this.#hud.showToast('Game Over');
-    } else {
-      this.#hud.showToast(`Batería agotada · Intentos: ${remaining}`);
+      saveHighScore(this.#session.score);
+      this.#context.states.change('game-over', { session: this.#session });
+      return;
     }
+    this.#hud.showToast(`Batería agotada · Intentos: ${remaining}`);
     this.#loadCurrentScene();
+  }
+
+  #triggerShake() {
+    if (!this.#context.settings.get('screenShake')) return;
+    const gameEl = this.#context.refs.game;
+    gameEl.classList.remove('is-shaking');
+    // Forzar reflow para reiniciar la animacion
+    void gameEl.offsetWidth;
+    gameEl.classList.add('is-shaking');
+    clearTimeout(this.#shakeTimer);
+    this.#shakeTimer = setTimeout(() => {
+      gameEl.classList.remove('is-shaking');
+    }, PLAYER_FEEDBACK.shakeDuration * 1000);
+  }
+
+  #stopShake() {
+    clearTimeout(this.#shakeTimer);
+    this.#context.refs.game.classList.remove('is-shaking');
+  }
+
+  #autoPause() {
+    if (this.#context.states.currentName === 'playing') {
+      this.#context.states.push('paused');
+    }
   }
 
   #syncHudData() {
@@ -295,7 +392,7 @@ export class PlayingState {
     this.#safePoint = null;
     this.#player = null;
     this.#scene = null;
-    this.#paused = false;
+    this.#panelPaused = false;
     this.#crewPanel?.close();
   }
 
@@ -320,6 +417,7 @@ export class PlayingState {
       'robot (pies)': `x ${Math.round(body.x + body.width / 2)}  y ${Math.round(body.y + body.height)}`,
       velocidad: `vx ${Math.round(body.vx)}  vy ${Math.round(body.vy)}`,
       estado: `${this.#player.isGrounded ? 'suelo' : 'aire'}  saltos ${jumpsUsed}/${PLAYER.maxJumps}  mira ${facing > 0 ? '→' : '←'}`,
+      visual: this.#player.visualState,
       'batería': `${battery.value.toFixed(1)} ${battery.isLow ? '⚠ BAJA' : ''}`,
       intentos: `${this.#session.lives}/3`,
       puntos: this.#session.score,
@@ -327,6 +425,7 @@ export class PlayingState {
       disparos: this.#projectiles?.count ?? 0,
       invulnerable: this.#player.isInvulnerable ? 'sí' : 'no',
       'punto seguro': `x ${Math.round(sp.x)}  y ${Math.round(sp.y)}`,
+      listeners: this.#context.events.listenerCount,
       tutorial: tutorialStates,
     });
 

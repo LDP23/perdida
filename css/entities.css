@@ -1,12 +1,6 @@
 /* Entidades. La caja .entity mide lo mismo que la hitbox (config.js); el sprite
-   es más grande y se apoya en su borde inferior, centrado. Las medidas visuales
-   viven aquí porque no afectan la jugabilidad. */
-
-:root {
-  /* Robot: 1/6 del alto de la escena. Ancho según la proporción del sprite recortado. */
-  --robot-width: 96px;
-  --robot-height: 120px;
-}
+   es mas grande y se apoya en su borde inferior, centrado. Las duraciones CSS
+   vienen de variables que game.js escribe una vez desde config.js. */
 
 .entity {
   position: absolute;
@@ -30,43 +24,64 @@
   --facing: -1;
 }
 
-.entity--player .entity__sprite {
-  --walk-duration: 0.28s;
-  --land-duration: 0.12s;
-  --shoot-duration: 0.12s;
-  --hurt-duration: 1s;
+/* ===== Robot: hoja de sprites 3x3 ===== */
 
-  width: var(--robot-width);
-  height: var(--robot-height);
-  background-image: url('../assets/sprites/robo.webp');
+/* Clase compartida para cualquier elemento que muestre un frame del robot */
+.robot-sprite {
+  background-image: url('../assets/sprites/robot.png');
+  background-size: 300% 300%;
+  background-repeat: no-repeat;
+  /* Frame 1 (reposo): columna 0, fila 0 */
+  background-position: 0% 0%;
+}
+
+.entity--player .entity__sprite {
+  width: calc(var(--robot-frame-w) * 1px);
+  height: calc(var(--robot-frame-h) * 1px);
   filter:
     drop-shadow(0 0 1px var(--color-signal))
     drop-shadow(0 0 4px var(--color-signal-dim));
   transform-origin: center bottom;
 }
 
-/* --- Caminar: balanceo vertical y rotación --- */
-.entity--player.is-walking .entity__sprite {
-  animation: player-walk var(--walk-duration) ease-in-out infinite;
+/* --- Frames en uso de robot.png (grilla 3x3) ---
+   Frame 1 reposo      (0,0) -> 0%   0%
+   Frame 4 subiendo    (0,1) -> 0%   50%
+   Frame 5 cayendo     (1,1) -> 50%  50%
+   Frame 6 ataque      (2,1) -> 100% 50%
+   Frame 7 dano        (0,2) -> 0%   100%
+   Frame 8 arrodillado (1,2) -> 50%  100%
+   Frame 9 tirado      (2,2) -> 100% 100%
+   Frames 2-3 (correr) ya no se usan: la corrida usa robot_correr.png */
+
+/* Reposo: frame 1 (default, ya puesto en .robot-sprite) */
+
+/* --- Correr: tira dedicada robot_correr.png (3 frames en fila) --- */
+.entity--player.is-running .entity__sprite {
+  background-image: url('../assets/sprites/robot_correr.png');
+  background-size: 300% 100%;
+  animation: player-run-frames var(--run-cycle) steps(1) infinite;
 }
 
-@keyframes player-walk {
-  0%, 100% { translate: 0 0; rotate: 0deg; }
-  25% { translate: 0 -2px; rotate: 2deg; }
-  75% { translate: 0 -3px; rotate: -2deg; }
+@keyframes player-run-frames {
+  0%, 33.2% { background-position: 0% 0%; }
+  33.3%, 66.5% { background-position: 50% 0%; }
+  66.6%, 100% { background-position: 100% 0%; }
 }
 
-/* --- Saltar: estirar hacia arriba --- */
-.entity--player.is-jumping .entity__sprite {
+/* --- Subiendo: frame 4 + estirar --- */
+.entity--player.is-rising .entity__sprite {
+  background-position: 0% 50%;
   scale: 0.9 1.1;
 }
 
-/* --- Caer --- */
+/* --- Cayendo: frame 5 --- */
 .entity--player.is-falling .entity__sprite {
+  background-position: 50% 50%;
   scale: 0.95 1.05;
 }
 
-/* --- Aterrizar: aplastamiento que vuelve a 1 --- */
+/* --- Aterrizar: aplastamiento --- */
 .entity--player.is-landing .entity__sprite {
   animation: player-land var(--land-duration) ease-out forwards;
 }
@@ -76,37 +91,200 @@
   100% { scale: 1 1; }
 }
 
-/* --- Disparar: retroceso breve --- */
-.entity--player.is-shooting .entity__sprite {
+/* --- Ataque en el suelo: frame 6 + retroceso --- */
+.entity--player.is-attacking .entity__sprite {
+  background-position: 100% 50%;
   translate: calc(var(--facing, 1) * -4px) 0;
 }
 
-/* --- Daño: parpadeo de opacidad + contorno rojo --- */
-.entity--player.is-hurt .entity__sprite {
-  animation: player-hurt 0.12s steps(2) calc(var(--hurt-duration) / 0.12) forwards;
+/* Fogonazo del canon: pseudo-elemento en la boca */
+.entity--player.is-attacking .entity__sprite::after,
+.entity--player.is-muzzle-flash .entity__sprite::after {
+  content: '';
+  position: absolute;
+  top: calc(var(--muzzle-y) * 1px);
+  /* Lado hacia donde mira; scaleX lo voltea junto con el sprite */
+  right: -12px;
+  width: 18px;
+  height: 10px;
+  background: radial-gradient(ellipse, #fff 20%, var(--color-signal) 60%, transparent 100%);
+  border-radius: 50%;
+  animation: muzzle-flash 0.1s ease-out forwards;
+}
+
+@keyframes muzzle-flash {
+  0% { opacity: 1; scale: 0.5; }
+  50% { opacity: 1; scale: 1.2; }
+  100% { opacity: 0; scale: 1.5; }
+}
+
+/* --- Aura roja de dano: en el padre para no pisar la animacion del sprite --- */
+.entity--player.has-hurt-aura:not(.is-dying):not(.is-respawning) {
+  animation: hurt-aura-pulse var(--hurt-aura-duration) ease-in-out forwards;
+}
+
+@keyframes hurt-aura-pulse {
+  0% { filter: drop-shadow(0 0 8px var(--color-alarm)) drop-shadow(0 0 14px var(--color-alarm)); }
+  15% { filter: drop-shadow(0 0 5px var(--color-alarm)) drop-shadow(0 0 10px var(--color-alarm)); }
+  30% { filter: drop-shadow(0 0 7px var(--color-alarm)) drop-shadow(0 0 12px var(--color-alarm)); }
+  50% { filter: drop-shadow(0 0 4px var(--color-alarm)) drop-shadow(0 0 8px var(--color-alarm)); }
+  70% { filter: drop-shadow(0 0 5px var(--color-alarm)) drop-shadow(0 0 9px var(--color-alarm)); }
+  100% { filter: none; }
+}
+
+/* --- Dano: frame 7 + parpadeo rojo/blanco --- */
+.entity--player.is-hurt-frame .entity__sprite {
+  background-position: 0% 100%;
   filter:
     drop-shadow(0 0 1px var(--color-signal))
     drop-shadow(0 0 4px var(--color-signal-dim))
     drop-shadow(0 0 6px var(--color-alarm));
+  animation: player-hurt-blink 0.1s steps(2) infinite;
 }
 
-@keyframes player-hurt {
+@keyframes player-hurt-blink {
+  0% { filter: brightness(1) drop-shadow(0 0 6px var(--color-alarm)); }
+  50% { filter: brightness(2.5) drop-shadow(0 0 8px #fff); }
+  100% { filter: brightness(1) drop-shadow(0 0 6px var(--color-alarm)); }
+}
+
+/* --- Invulnerabilidad: parpadeo de opacidad (despues del frame de dano) --- */
+.entity--player.is-invulnerable .entity__sprite {
+  animation: player-invuln 0.12s steps(2) infinite;
+}
+
+@keyframes player-invuln {
   0% { opacity: 1; }
   50% { opacity: 0.3; }
   100% { opacity: 1; }
 }
 
+/* --- Muerte: frames 8 y 9 + efectos --- */
+.entity--player.is-dying .entity__sprite {
+  animation: player-death var(--death-duration) steps(1, end) forwards;
+}
+
+@keyframes player-death {
+  0%, 39% { background-position: 50% 100%; }
+  40%, 100% { background-position: 100% 100%; }
+}
+
+/* Chispas durante la muerte */
+.entity--player.is-dying .entity__sprite::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  background: radial-gradient(circle at 30% 50%, var(--color-signal) 0%, transparent 40%),
+              radial-gradient(circle at 70% 30%, var(--color-alarm) 0%, transparent 35%);
+  animation: death-sparks var(--death-duration) ease-out forwards;
+}
+
+@keyframes death-sparks {
+  0% { opacity: 1; scale: 0.8; }
+  40% { opacity: 0.8; scale: 1.2; }
+  70% { opacity: 0.3; scale: 1.5; }
+  100% { opacity: 0; scale: 1.8; }
+}
+
+/* Humo */
+.entity--player.is-dying .entity__sprite::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 60px;
+  height: 40px;
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse, rgb(100 120 140 / 0.6) 0%, transparent 70%);
+  animation: death-smoke var(--death-duration) ease-out forwards;
+}
+
+@keyframes death-smoke {
+  0% { opacity: 0; translate: 0 0; }
+  30% { opacity: 0.7; translate: 0 -10px; }
+  100% { opacity: 0; translate: 0 -30px; }
+}
+
+/* Visor apagandose */
+.entity--player.is-dying {
+  filter: brightness(1);
+  animation: death-visor-off var(--death-duration) ease-in forwards;
+}
+
+@keyframes death-visor-off {
+  0%, 60% { filter: brightness(1); }
+  100% { filter: brightness(0.3) grayscale(0.8); }
+}
+
+/* --- Reaparecer: frame 8 con lineas cian de abajo hacia arriba --- */
+.entity--player.is-respawning .entity__sprite {
+  background-position: 50% 100%;
+  animation: respawn-materialize var(--respawn-duration) ease-out forwards;
+  /* Lineas horizontales como efecto de materializacion */
+  -webkit-mask-image: repeating-linear-gradient(
+    0deg, #000 0px, #000 2px, transparent 2px, transparent 4px
+  );
+  mask-image: repeating-linear-gradient(
+    0deg, #000 0px, #000 2px, transparent 2px, transparent 4px
+  );
+}
+
+@keyframes respawn-materialize {
+  0% {
+    clip-path: inset(100% 0 0 0);
+    opacity: 0.3;
+    filter: brightness(2) drop-shadow(0 0 12px var(--color-signal));
+  }
+  70% {
+    clip-path: inset(0 0 0 0);
+    opacity: 0.8;
+  }
+  85% {
+    -webkit-mask-image: none;
+    mask-image: none;
+    filter: brightness(1.5) drop-shadow(0 0 6px var(--color-signal));
+  }
+  100% {
+    clip-path: inset(0 0 0 0);
+    opacity: 1;
+    -webkit-mask-image: none;
+    mask-image: none;
+    filter:
+      drop-shadow(0 0 1px var(--color-signal))
+      drop-shadow(0 0 4px var(--color-signal-dim));
+  }
+}
+
+/* --- Sacudida de pantalla: animacion en el viewport --- */
+.game.is-shaking .viewport {
+  animation: screen-shake var(--shake-duration) ease-out;
+}
+
+@keyframes screen-shake {
+  0% { translate: calc(var(--shake-intensity) * -1px) calc(var(--shake-intensity) * 1px); }
+  20% { translate: calc(var(--shake-intensity) * 1px) calc(var(--shake-intensity) * -0.5px); }
+  40% { translate: calc(var(--shake-intensity) * -0.5px) calc(var(--shake-intensity) * 0.8px); }
+  60% { translate: calc(var(--shake-intensity) * 0.8px) calc(var(--shake-intensity) * -0.3px); }
+  80% { translate: calc(var(--shake-intensity) * -0.3px) calc(var(--shake-intensity) * 0.2px); }
+  100% { translate: 0 0; }
+}
+
+/* Desactivar sacudida si el jugador lo eligio */
+.game.no-shake .viewport { animation: none !important; }
+
 /* --- Movimiento reducido --- */
 @media (prefers-reduced-motion: reduce) {
-  .entity--player.is-walking .entity__sprite { animation: none; }
-  .entity--player.is-jumping .entity__sprite,
+  .entity--player.is-rising .entity__sprite,
   .entity--player.is-falling .entity__sprite { scale: 1 1; }
   .entity--player.is-landing .entity__sprite { animation: none; }
-  .entity--player.is-shooting .entity__sprite { translate: 0 0; }
-  /* El parpadeo de daño se mantiene (comunica invulnerabilidad) pero más lento. */
-  .entity--player.is-hurt .entity__sprite {
-    animation-duration: 0.3s;
+  .entity--player.is-attacking .entity__sprite { translate: 0 0; }
+  .entity--player.is-invulnerable .entity__sprite { animation-duration: 0.3s; }
+  .entity--player.has-hurt-aura:not(.is-dying):not(.is-respawning) {
+    filter: drop-shadow(0 0 6px var(--color-alarm));
+    animation: none;
   }
+  .game.is-shaking .viewport { animation: none; }
+  .entity--player.is-dying .entity__sprite::before { display: none; }
 }
 
 /* ===== Disparo ===== */
@@ -182,7 +360,7 @@
   to { filter: drop-shadow(0 0 8px var(--color-signal)) drop-shadow(0 0 16px var(--color-signal-dim)); }
 }
 
-/* Recogido: destello y desaparición */
+/* Recogido: destello y desaparicion */
 .entity--crew-id.is-collected .entity__sprite,
 .entity--energy-cell.is-collected .entity__sprite {
   animation: pickup-collect var(--collect-duration) ease-out forwards;
@@ -194,32 +372,29 @@
   100% { scale: 1.6; opacity: 0; filter: brightness(3); translate: 0 -16px; }
 }
 
-/* ===== Maniquí de práctica ===== */
+/* ===== Espantapajaros ===== */
 .entity--training-dummy .entity__sprite {
-  width: 100%;
-  height: 100%;
-  left: 0;
-  bottom: auto;
-  top: 0;
-  transform: none;
-  /* Poste metálico gris con base */
-  background:
-    linear-gradient(180deg, transparent 0%, transparent 10%,
-      var(--color-text-dim) 10%, var(--color-text-dim) 14%,
-      var(--color-alarm) 14%, var(--color-alarm) 24%,
-      var(--color-text) 24%, var(--color-text) 34%,
-      var(--color-alarm) 34%, var(--color-alarm) 44%,
-      var(--color-text-dim) 44%, var(--color-text-dim) 48%,
-      transparent 48%, transparent 54%,
-      #5a6070 54%, #5a6070 90%,
-      #3a4050 90%, #3a4050 94%,
-      #6a7080 94%, #6a7080 100%);
-  border-radius: 4px 4px 0 0;
+  width: calc(var(--dummy-sprite-w) * 1px);
+  height: calc(var(--dummy-sprite-h) * 1px);
+  /* El sprite es mas alto que la hitbox: su base va debajo de la hitbox */
+  bottom: calc(var(--dummy-bottom-offset) * -1px);
+  background-image: url('../assets/sprites/espantapajaros.png');
+  background-size: contain;
+  background-repeat: no-repeat;
 }
 
 .entity--training-dummy.is-hit .entity__sprite {
   filter: brightness(3);
   transition: filter 0.08s;
+  animation: dummy-shake 0.15s ease-out;
+}
+
+@keyframes dummy-shake {
+  0% { translate: -3px 0; }
+  25% { translate: 3px 0; }
+  50% { translate: -2px 0; }
+  75% { translate: 1px 0; }
+  100% { translate: 0 0; }
 }
 
 .entity--training-dummy .entity__hit-count {

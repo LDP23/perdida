@@ -1,12 +1,13 @@
 import { KEY_BINDINGS } from '../config.js';
 
 // El juego no pregunta por teclas sino por ACCIONES ('left', 'jump'...).
-// Así el teclado y los botones táctiles (etapa 7) alimentan el mismo estado
+// Así el teclado y los botones táctiles (etapa 8) alimentan el mismo estado
 // y el resto del código no sabe de dónde vino la orden.
 export class Input {
   #actionByCode;
   #held = new Set();
   #pressed = new Set();
+  #gameplayEnabled = false;
   #listeners;
 
   constructor(target = window) {
@@ -19,6 +20,15 @@ export class Input {
       [target, 'blur', () => this.releaseAll()],
     ];
     for (const [element, type, handler] of this.#listeners) element.addEventListener(type, handler);
+  }
+
+  get gameplayEnabled() {
+    return this.#gameplayEnabled;
+  }
+
+  setGameplayEnabled(enabled) {
+    this.#gameplayEnabled = enabled;
+    if (!enabled) this.releaseAll();
   }
 
   isHeld(action) {
@@ -58,8 +68,14 @@ export class Input {
   #onKey(event, isDown) {
     const action = this.#actionByCode.get(event.code);
     if (!action || event.ctrlKey || event.metaKey || event.altKey) return;
-    // Evita que Espacio y las flechas desplacen la página.
-    event.preventDefault();
+
+    // Acciones que funcionan siempre (debug, pause), sin bloquear teclas nativas.
+    const alwaysActive = action === 'debug' || action === 'pause';
+    if (!this.#gameplayEnabled && !alwaysActive) return;
+
+    // En modo gameplay se previene el comportamiento nativo (scroll por Espacio, etc.).
+    if (this.#gameplayEnabled) event.preventDefault();
+
     if (isDown) this.press(action);
     else this.release(action);
   }

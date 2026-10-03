@@ -22,6 +22,15 @@ export class Player {
   #landTimer = new Timer();
   #shootPoseTimer = new Timer();
   #hurtTimer = new Timer();
+  #hurtFrameTimer = new Timer();
+  #deathTimer = new Timer();
+  #respawnTimer = new Timer();
+  #hurtAuraTimer = new Timer();
+
+  #isDying = false;
+  #isDead = false;
+  #isRespawning = false;
+  #hurtAuraCount = 0;
 
   constructor(spawn, events) {
     this.#events = events;
@@ -43,6 +52,24 @@ export class Player {
   get isShooting() { return this.#shootPoseTimer.active; }
   get isHurt() { return this.#hurtTimer.active; }
   get isInvulnerable() { return this.#hurtTimer.active; }
+  get isHurtFrame() { return this.#hurtFrameTimer.active; }
+  get isDying() { return this.#isDying; }
+  get isDead() { return this.#isDead; }
+  get isRespawning() { return this.#isRespawning; }
+  get hasHurtAura() { return this.#hurtAuraTimer.active; }
+  get hurtAuraCount() { return this.#hurtAuraCount; }
+
+  // Prioridad de estados visuales (de mayor a menor).
+  get visualState() {
+    if (this.#isDying) return 'dying';
+    if (this.#isRespawning) return 'respawning';
+    if (this.#hurtFrameTimer.active) return 'hurt-frame';
+    if (this.#shootPoseTimer.active && this.isGrounded) return 'attacking';
+    if (this.body.vy < 0) return 'rising';
+    if (this.body.vy > 0 && !this.isGrounded) return 'falling';
+    if (this.isWalking) return 'running';
+    return 'idle';
+  }
 
   placeAt({ x, y }) {
     this.body.x = x - this.body.width / 2;
@@ -54,8 +81,43 @@ export class Player {
     this.jumpBufferTimer = 0;
   }
 
+  // Inicia la secuencia de reaparicion (bloquea input hasta que termine).
+  startRespawn() {
+    this.#isRespawning = true;
+    this.#respawnTimer.start(PLAYER_FEEDBACK.respawnDuration);
+    this.#events.emit('player:respawn-start');
+  }
+
   update(deltaTime, input, solids) {
     this.#updateTimers(deltaTime);
+
+    // Durante la muerte no se procesa nada mas
+    if (this.#isDying) {
+      if (!this.#deathTimer.active) {
+        this.#isDying = false;
+        this.#isDead = true;
+        this.#events.emit('player:death-end');
+      }
+      return;
+    }
+
+    // Durante el respawn solo avanzar temporizadores
+    if (this.#isRespawning) {
+      if (!this.#respawnTimer.active) {
+        this.#isRespawning = false;
+        this.#events.emit('player:respawn-end');
+      }
+      return;
+    }
+
+    // Durante el frame de dano, bloquear movimiento horizontal
+    if (this.#hurtFrameTimer.active) {
+      this.#applyKnockback(deltaTime);
+      stepBody(this.body, solids, deltaTime);
+      this.#updateBattery(deltaTime);
+      return;
+    }
+
     this.#updateRun(deltaTime, input);
     this.#updateJump(deltaTime, input);
     this.#updateShoot(input);
@@ -65,14 +127,41 @@ export class Player {
     this.#updateBattery(deltaTime);
   }
 
-  takeHit(amount) {
-    if (this.isInvulnerable) return;
+  // Dano con origen (enemigo/proyectil): aplica knockback y sacudida.
+  takeHitWithOrigin(amount, originX) {
+    if (this.isInvulnerable || this.#isDying || this.#isDead || this.#isRespawning) return;
     this.battery.drain(amount);
     this.#hurtTimer.start(PLAYER_FEEDBACK.hurtInvulnerability);
-    this.#events.emit('player:hurt');
+    this.#hurtFrameTimer.start(PLAYER_FEEDBACK.hurtFrameDuration);
+    this.#hurtAuraTimer.start(PLAYER_FEEDBACK.hurtAuraDuration);
+    this.#hurtAuraCount++;
+    const playerCx = this.body.x + this.body.width / 2;
+    const dir = originX < playerCx ? 1 : -1;
+    this.body.vx = dir * PLAYER_FEEDBACK.knockbackSpeed;
+    this.#events.emit('player:hurt', { knockback: true });
   }
 
-  // --- métodos privados ---
+  // Dano sin origen (peligros): sin knockback, sin sacudida.
+  takeHit(amount) {
+    if (this.isInvulnerable || this.#isDying || this.#isDead || this.#isRespawning) return;
+    this.battery.drain(amount);
+    this.#hurtTimer.start(PLAYER_FEEDBACK.hurtInvulnerability);
+    this.#hurtAuraTimer.start(PLAYER_FEEDBACK.hurtAuraDuration);
+    this.#hurtAuraCount++;
+    this.#events.emit('player:hurt', { knockback: false });
+  }
+
+  // Inicia la secuencia de muerte (congela jugabilidad).
+  die() {
+    if (this.#isDying || this.#isDead) return;
+    this.#isDying = true;
+    this.body.vx = 0;
+    this.body.vy = 0;
+    this.#deathTimer.start(PLAYER_FEEDBACK.deathSequenceDuration);
+    this.#events.emit('player:death-start');
+  }
+
+  // --- metodos privados ---
 
   #wasInAir = false;
 
@@ -81,6 +170,14 @@ export class Player {
     this.#landTimer.update(deltaTime);
     this.#shootPoseTimer.update(deltaTime);
     this.#hurtTimer.update(deltaTime);
+    this.#hurtFrameTimer.update(deltaTime);
+    this.#deathTimer.update(deltaTime);
+    this.#respawnTimer.update(deltaTime);
+    this.#hurtAuraTimer.update(deltaTime);
+  }
+
+  #applyKnockback(deltaTime) {
+    this.body.vx = approach(this.body.vx, 0, PLAYER.groundDeceleration * deltaTime);
   }
 
   #updateRun(deltaTime, input) {

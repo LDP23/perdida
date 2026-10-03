@@ -24,6 +24,11 @@ export class GameLoop {
     this.#frameId = requestAnimationFrame(this.#tick);
   }
 
+  // Resetea el reloj para que el próximo frame no acumule el tiempo de la pausa.
+  resetTime() {
+    this.#lastTime = performance.now();
+  }
+
   stop() {
     this.#running = false;
     if (this.#frameId !== null) cancelAnimationFrame(this.#frameId);

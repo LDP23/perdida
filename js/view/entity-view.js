@@ -5,12 +5,16 @@ import { createElement, setPosition, setSize } from './dom-utils.js';
 // El robot, los enemigos y los disparos usan esta misma clase.
 export class EntityView {
   #element;
+  #sprite;
 
   constructor(layer, modifier, { width, height }) {
     this.#element = createElement(`entity entity--${modifier}`, layer);
-    createElement('entity__sprite', this.#element);
+    this.#sprite = createElement('entity__sprite', this.#element);
     setSize(this.#element, width, height);
   }
+
+  get element() { return this.#element; }
+  get sprite() { return this.#sprite; }
 
   // flags: { 'is-facing-left': true, ... } -> clases CSS que activan estilos/animaciones.
   sync(body, flags = {}) {

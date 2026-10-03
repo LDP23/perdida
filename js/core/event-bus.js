@@ -4,6 +4,12 @@
 export class EventBus {
   #listeners = new Map();
 
+  get listenerCount() {
+    let count = 0;
+    for (const set of this.#listeners.values()) count += set.size;
+    return count;
+  }
+
   on(name, handler) {
     if (!this.#listeners.has(name)) this.#listeners.set(name, new Set());
     const set = this.#listeners.get(name);

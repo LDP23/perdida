@@ -5,19 +5,24 @@ import { PLAYER, LOOP } from '../js/config.js';
 import { EventBus } from '../js/core/event-bus.js';
 import { Player } from '../js/entities/player.js';
 
-// --- Requisitos del CLAUDE.md (datos de los niveles, no del motor) ---
+// --- Huecos de los niveles (medida total del hueco en px) ---
+const GAPS = Object.freeze({
+  pinchosN1E1: 228,
+  acidoN2E1: 233,
+  fosoN1E3: 290,
+  huecoN2E3: 250,       // con subida de 70 px
+  huecoN2E3Rise: 70,
+});
+
+// Crossable = recorrido >= hueco - PLAYER.width
+// Imposible = recorrido < hueco - PLAYER.width
 const REQ_SIMPLE_HEIGHT = 100;
 const REQ_SIMPLE_HORIZ_MIN = 110;
-const REQ_DOUBLE_JUMP_MIN = 180;
-const REQ_DOUBLE_JUMP_COYOTE_MIN = 185;
-const REQ_DOUBLE_JUMP_MAX = 242;
-const REQ_DOUBLE_JUMP_70_MAX = 202;
 
 const STEP_SIZES = [1 / 120, 1 / 144, 1 / 30];
 const FLOOR_Y = 500;
 const FLOOR = { x: -10000, y: FLOOR_Y, width: 30000, height: 200, kind: 'solid' };
 
-// Input falso: permite controlar qué acciones están activas paso a paso.
 class FakeInput {
   #held = new Set();
   #pressed = new Set();
@@ -42,7 +47,6 @@ function simulate(rawDt, { jumpAtStep = 1, secondJumpDelay, startY = FLOOR_Y }) 
   const solids = [FLOOR];
   input.hold('right');
 
-  // Un frame sobre el piso para asegurar contacto
   for (let s = 0; s < stepsPerFrame; s++) player.update(dt, input, solids);
   input.endFrame();
 
@@ -125,6 +129,7 @@ function checkReq(label, actual, test) {
 function renderResults() {
   const output = document.getElementById('output');
   const results = runTests();
+  const pw = PLAYER.width;
 
   let html = '<table><tr><th>FPS</th><th>Simple alto</th><th>Simple horiz.</th>'
     + '<th>Doble alto</th><th>Doble horiz.</th>'
@@ -137,16 +142,30 @@ function renderResults() {
   }
   html += '</table>';
 
-  html += '<h2>Verificación de requisitos</h2><table><tr><th>Requisito</th><th>Valor</th><th></th></tr>';
+  html += '<h2>Verificacion de requisitos</h2><table><tr><th>Requisito</th><th>Valor</th><th></th></tr>';
 
   const ref = results[0];
   const checks = [
-    checkReq(`Salto simple = ${REQ_SIMPLE_HEIGHT} px alto`, ref.simpleHeight, (v) => v >= REQ_SIMPLE_HEIGHT - 2 && v <= REQ_SIMPLE_HEIGHT + 2),
-    checkReq(`Salto simple ≥ ${REQ_SIMPLE_HORIZ_MIN} px horiz.`, ref.simpleHoriz, (v) => v >= REQ_SIMPLE_HORIZ_MIN),
-    checkReq(`Doble salto ≥ ${REQ_DOUBLE_JUMP_MIN} (pinchos N1E1)`, ref.doubleJumpHeight, (v) => v >= REQ_DOUBLE_JUMP_MIN),
-    checkReq(`Doble salto + coyote ≥ ${REQ_DOUBLE_JUMP_COYOTE_MIN} (ácido N2E1)`, ref.doubleJumpWithCoyoteHoriz, (v) => v >= REQ_DOUBLE_JUMP_COYOTE_MIN),
-    checkReq(`Doble salto < ${REQ_DOUBLE_JUMP_MAX} (foso N1E3 imposible)`, ref.doubleJumpHeight, (v) => v < REQ_DOUBLE_JUMP_MAX),
-    checkReq(`Doble +70 < ${REQ_DOUBLE_JUMP_70_MAX} (hueco N2E3 imposible)`, ref.doubleJump70Height, (v) => v < REQ_DOUBLE_JUMP_70_MAX),
+    checkReq(`Salto simple = ${REQ_SIMPLE_HEIGHT} px alto`, ref.simpleHeight,
+      (v) => v >= REQ_SIMPLE_HEIGHT - 2 && v <= REQ_SIMPLE_HEIGHT + 2),
+    checkReq(`Salto simple >= ${REQ_SIMPLE_HORIZ_MIN} px horiz.`, ref.simpleHoriz,
+      (v) => v >= REQ_SIMPLE_HORIZ_MIN),
+    // Puas N1E1: cruzable si horiz >= gap - width
+    checkReq(`Puas N1E1 (${GAPS.pinchosN1E1}): horiz >= ${GAPS.pinchosN1E1 - pw}`,
+      ref.doubleJumpWithCoyoteHoriz,
+      (v) => v >= GAPS.pinchosN1E1 - pw),
+    // Acido N2E1: cruzable
+    checkReq(`Acido N2E1 (${GAPS.acidoN2E1}): horiz >= ${GAPS.acidoN2E1 - pw}`,
+      ref.doubleJumpWithCoyoteHoriz,
+      (v) => v >= GAPS.acidoN2E1 - pw),
+    // Foso N1E3: imposible
+    checkReq(`Foso N1E3 (${GAPS.fosoN1E3}): horiz < ${GAPS.fosoN1E3 - pw}`,
+      ref.doubleJumpWithCoyoteHoriz,
+      (v) => v < GAPS.fosoN1E3 - pw),
+    // Hueco N2E3 con subida de 70: imposible
+    checkReq(`Hueco N2E3 (${GAPS.huecoN2E3} +${GAPS.huecoN2E3Rise}): horiz < ${GAPS.huecoN2E3 - pw}`,
+      ref.doubleJump70Height,
+      (v) => v < GAPS.huecoN2E3 - pw),
   ];
 
   for (const c of checks) {

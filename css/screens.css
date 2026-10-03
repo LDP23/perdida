@@ -1,0 +1,600 @@
+/* Pantallas de menú: inicio, pausa, game over, opciones, créditos, apagado.
+   Se muestran según data-state y data-overlay; JS nunca escribe display. */
+
+/* === Base de pantalla === */
+.screen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.35s ease;
+}
+
+.screen__content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.2rem;
+  padding: 1.5rem 1rem;
+  text-align: center;
+  z-index: 1;
+  max-height: 100%;
+  overflow-y: auto;
+}
+
+.screen__content--narrow {
+  max-width: 40ch;
+}
+
+.screen__title {
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  color: var(--color-signal);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.screen__subtitle {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  color: var(--color-amber);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 0.5rem;
+}
+
+.screen__flavor {
+  font-family: var(--font-terminal);
+  font-size: var(--text-small);
+  color: var(--color-text-dim);
+}
+
+.screen__record {
+  font-family: var(--font-terminal);
+  font-size: var(--text-small);
+  color: var(--color-text-dim);
+  margin-top: 0.5rem;
+}
+
+/* === Visibilidad por estado === */
+.game[data-state="menu"] .screen--menu,
+.game[data-state="game-over"] .screen--game-over,
+.game[data-state="off"] .screen--off,
+.game[data-overlay="paused"] .screen--paused {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Subpantallas del menú (cómo jugar, opciones, créditos) */
+.game[data-sub="how-to-play"] .screen--how-to-play,
+.game[data-sub="options"] .screen--options,
+.game[data-sub="credits"] .screen--credits {
+  opacity: 1;
+  pointer-events: auto;
+  z-index: 25;
+}
+
+/* Ocultar el menú principal cuando hay subpantalla */
+.game[data-state="menu"][data-sub] .screen--menu {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Ocultar HUD fuera de playing */
+.game:not([data-state="playing"]) .hud {
+  display: none;
+}
+
+/* === Botones de menú === */
+.menu-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.menu-buttons button,
+.option-toggle {
+  font-family: var(--font-terminal);
+  font-size: clamp(1.25rem, 3vw, 1.6rem);
+  color: var(--color-text);
+  background: transparent;
+  border: none;
+  padding: 0.3em 1.2em;
+  cursor: pointer;
+  transition: color 0.15s ease, text-shadow 0.15s ease;
+  position: relative;
+  text-align: center;
+  line-height: 1.4;
+}
+
+.menu-buttons button:hover,
+.menu-buttons button:focus-visible,
+.option-toggle:hover,
+.option-toggle:focus-visible {
+  color: var(--color-signal);
+  text-shadow: 0 0 8px var(--color-signal-dim);
+  outline: none;
+}
+
+/* Cursor ">" parpadeante a la izquierda al recibir foco */
+.menu-buttons button:focus-visible::before,
+.option-toggle:focus-visible::before {
+  content: '>';
+  position: absolute;
+  left: 0;
+  color: var(--color-signal);
+  animation: cursor-blink 0.8s step-end infinite;
+}
+
+@keyframes cursor-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* === Opciones: interruptores === */
+.options-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  align-items: center;
+  width: 100%;
+}
+
+.option-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 30ch;
+}
+
+.option-toggle[aria-pressed]::after {
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  margin-left: 1em;
+}
+
+.option-toggle[aria-pressed="true"]::after {
+  content: '[ON]';
+  color: var(--color-signal);
+}
+
+.option-toggle[aria-pressed="false"]::after {
+  content: '[OFF]';
+  color: var(--color-text-dim);
+}
+
+/* === Tabla de controles === */
+.controls-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-terminal);
+  font-size: var(--text-small);
+  margin: 0.5rem 0;
+}
+
+.controls-table th,
+.controls-table td {
+  padding: 0.3em 0.6em;
+  text-align: left;
+  border-bottom: 1px solid rgb(62 240 255 / 0.15);
+}
+
+.controls-table th {
+  color: var(--color-signal);
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+}
+
+/* === Reglas === */
+.screen__rules {
+  text-align: left;
+  font-size: var(--text-small);
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.screen__rules li::before {
+  content: '> ';
+  color: var(--color-signal);
+}
+
+.screen__rules strong {
+  color: var(--color-amber);
+}
+
+/* === Créditos === */
+.credits__game-title {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  color: var(--color-signal);
+}
+
+.credits__institution {
+  font-size: var(--text-small);
+  color: var(--color-text-dim);
+}
+
+.credits__team {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  font-size: var(--text-small);
+}
+
+.credits__team li {
+  color: var(--color-text);
+}
+
+/* === Confirmación === */
+.confirm-dialog {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.confirm-dialog__text {
+  font-family: var(--font-terminal);
+  font-size: var(--text-body);
+  color: var(--color-alarm);
+}
+
+/* ============================================================
+   PANTALLA DE INICIO: campo de estrellas + glitch + onda
+   ============================================================ */
+.screen--menu {
+  background: var(--color-void);
+  overflow: hidden;
+}
+
+/* --- Campo de estrellas --- */
+.screen__starfield {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(1px 1px at 10% 20%, rgb(255 255 255 / 0.7), transparent),
+    radial-gradient(1px 1px at 30% 70%, rgb(255 255 255 / 0.5), transparent),
+    radial-gradient(1px 1px at 50% 30%, rgb(255 255 255 / 0.6), transparent),
+    radial-gradient(1px 1px at 70% 80%, rgb(255 255 255 / 0.4), transparent),
+    radial-gradient(1px 1px at 90% 10%, rgb(255 255 255 / 0.5), transparent),
+    radial-gradient(1px 1px at 15% 85%, rgb(255 255 255 / 0.6), transparent),
+    radial-gradient(1px 1px at 80% 45%, rgb(255 255 255 / 0.5), transparent);
+  background-size:
+    200px 200px,
+    300px 300px,
+    250px 250px,
+    350px 350px,
+    180px 180px,
+    280px 280px,
+    320px 320px;
+  animation: starfield-drift 60s linear infinite;
+}
+
+@keyframes starfield-drift {
+  from { background-position: 0 0, 0 0, 0 0, 0 0, 0 0, 0 0, 0 0; }
+  to   { background-position: 200px 100px, -300px 150px, 250px -125px, -175px 350px, 180px -90px, -140px 280px, 320px 160px; }
+}
+
+/* Líneas CRT sutiles sobre el menú */
+.screen--menu::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent 0px,
+    transparent 2px,
+    rgb(0 0 0 / 0.08) 2px,
+    rgb(0 0 0 / 0.08) 4px
+  );
+  pointer-events: none;
+}
+
+/* --- Título con glitch --- */
+.title-glitch {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 7vw, 3.5rem);
+  color: var(--color-text);
+  text-transform: uppercase;
+  letter-spacing: 4px;
+  position: relative;
+  padding: 0 0.2em;
+}
+
+.title-glitch--small {
+  font-size: clamp(1.4rem, 5vw, 2.4rem);
+}
+
+.title-glitch::before,
+.title-glitch::after {
+  content: attr(data-text);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.title-glitch::before {
+  color: var(--color-signal);
+  animation: glitch-top 4s step-end infinite;
+  clip-path: inset(0 0 65% 0);
+}
+
+.title-glitch::after {
+  color: var(--color-alarm);
+  animation: glitch-bottom 4s step-end infinite 0.5s;
+  clip-path: inset(60% 0 0 0);
+}
+
+@keyframes glitch-top {
+  0%, 8% { transform: translate(0); }
+  2% { transform: translate(-3px, -1px); }
+  4% { transform: translate(2px, 1px); }
+  6% { transform: translate(-1px, 0); }
+  20%, 28% { transform: translate(0); }
+  22% { transform: translate(3px, 1px); }
+  24% { transform: translate(-2px, -1px); }
+  60%, 68% { transform: translate(0); }
+  62% { transform: translate(2px, -1px); }
+  64% { transform: translate(-3px, 1px); }
+}
+
+@keyframes glitch-bottom {
+  0%, 12% { transform: translate(0); }
+  3% { transform: translate(2px, 1px); }
+  6% { transform: translate(-4px, 0); }
+  9% { transform: translate(1px, -1px); }
+  40%, 48% { transform: translate(0); }
+  42% { transform: translate(-2px, 1px); }
+  44% { transform: translate(3px, -1px); }
+  75%, 83% { transform: translate(0); }
+  77% { transform: translate(-3px, 0); }
+  79% { transform: translate(2px, 1px); }
+}
+
+/* --- Onda de señal débil --- */
+.signal-wave {
+  width: min(280px, 70vw);
+  height: 40px;
+  position: relative;
+  overflow: hidden;
+  margin: 0.3rem 0;
+}
+
+.signal-wave__line {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 4px 18px at 50% 50%, var(--color-signal) 0%, transparent 100%);
+  background-size: 100% 100%;
+  opacity: 0;
+  animation: signal-pulse 5s ease-in-out infinite;
+}
+
+.signal-wave__line::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--color-signal-dim) 20%,
+    var(--color-signal) 50%,
+    var(--color-signal-dim) 80%,
+    transparent 100%
+  );
+  transform: translateY(-50%);
+}
+
+@keyframes signal-pulse {
+  0%, 100% { opacity: 0.15; transform: scaleX(0.6); }
+  15% { opacity: 0.8; transform: scaleX(1); }
+  30% { opacity: 0.15; transform: scaleX(0.6); }
+  35%, 100% { opacity: 0.15; transform: scaleX(0.6); }
+}
+
+/* ============================================================
+   PAUSA: fondo oscurecido
+   ============================================================ */
+.screen--paused {
+  background: rgb(2 4 11 / 0.85);
+}
+
+/* ============================================================
+   GAME OVER: estática de TV + resumen
+   ============================================================ */
+.screen--game-over {
+  background: var(--color-void);
+}
+
+.screen__static {
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgb(255 255 255 / 0.03) 2px,
+      rgb(255 255 255 / 0.03) 4px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 3px,
+      rgb(255 255 255 / 0.02) 3px,
+      rgb(255 255 255 / 0.02) 6px
+    );
+  animation: static-noise 0.15s steps(3) infinite, static-fade 2s ease-out forwards;
+  z-index: 0;
+}
+
+@keyframes static-noise {
+  0% { background-position: 0 0, 0 0; }
+  33% { background-position: -2px 1px, 1px -1px; }
+  66% { background-position: 1px -2px, -1px 2px; }
+}
+
+@keyframes static-fade {
+  0% { opacity: 1; }
+  60% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.game-over-summary {
+  font-family: var(--font-terminal);
+  font-size: var(--text-body);
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin: 1rem 0;
+}
+
+.new-record {
+  color: var(--color-amber);
+  animation: record-flash 0.6s ease-in-out 3;
+}
+
+@keyframes record-flash {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+/* ============================================================
+   SUBPANTALLAS (how-to-play, options, credits)
+   ============================================================ */
+.screen--how-to-play,
+.screen--options,
+.screen--credits {
+  background: var(--color-void);
+}
+
+/* ============================================================
+   APAGADO: animación CRT
+   ============================================================ */
+.screen--off {
+  background: var(--color-void);
+  animation: crt-shutdown 0.8s ease-out forwards;
+}
+
+@keyframes crt-shutdown {
+  0% {
+    clip-path: inset(0);
+    filter: brightness(1.5);
+  }
+  40% {
+    clip-path: inset(45% 0);
+    filter: brightness(2);
+  }
+  70% {
+    clip-path: inset(48% 20%);
+    filter: brightness(3);
+  }
+  85% {
+    clip-path: inset(49% 40%);
+    filter: brightness(4);
+  }
+  100% {
+    clip-path: inset(49.5% 49.5%);
+    filter: brightness(0);
+  }
+}
+
+.off__text {
+  font-family: var(--font-terminal);
+  font-size: var(--text-body);
+  color: var(--color-text-dim);
+  animation: off-text-appear 0.5s ease 1s forwards;
+  opacity: 0;
+}
+
+@keyframes off-text-appear {
+  to { opacity: 1; }
+}
+
+.screen--off .menu-buttons {
+  animation: off-text-appear 0.5s ease 1.2s forwards;
+  opacity: 0;
+}
+
+/* ============================================================
+   MOVIMIENTO REDUCIDO: sin animaciones decorativas
+   ============================================================ */
+.game.reduced-motion .screen__starfield {
+  animation: none;
+}
+
+.game.reduced-motion .title-glitch::before,
+.game.reduced-motion .title-glitch::after {
+  animation: none;
+  transform: none;
+}
+
+.game.reduced-motion .signal-wave__line {
+  animation: none;
+  opacity: 0.4;
+  transform: scaleX(1);
+}
+
+.game.reduced-motion .screen__static {
+  animation: static-fade 2s ease-out forwards;
+}
+
+.game.reduced-motion .screen--off {
+  animation: none;
+}
+
+.game.reduced-motion .new-record {
+  animation: none;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-height: 420px) {
+  .screen__content {
+    gap: 0.6rem;
+    padding: 0.8rem 1rem;
+  }
+
+  .title-glitch {
+    font-size: clamp(1.2rem, 5vw, 2rem);
+  }
+
+  .signal-wave {
+    height: 24px;
+  }
+
+  .menu-buttons button,
+  .option-toggle {
+    font-size: 1.1rem;
+    padding: 0.15em 1em;
+  }
+}
+
+@media (max-width: 500px) {
+  .screen__content--narrow {
+    max-width: 100%;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .controls-table {
+    font-size: 1rem;
+  }
+}

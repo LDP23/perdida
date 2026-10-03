@@ -83,3 +83,7 @@ body {
 .game[data-state] .boot-message {
   display: none;
 }
+
+/* Opciones del jugador: el CSS decide qué apagar. */
+.game.no-crt .screen--menu::after { display: none; }
+.game.no-crt .screen__static { display: none; }

@@ -52,6 +52,23 @@ export const BATTERY = Object.freeze({
   lowThreshold: 25,      // bajo este valor el HUD avisa al jugador
 });
 
+// Hoja de sprites del robot: 3×3 celdas exportadas al doble, se muestran a la mitad.
+export const ROBOT_SPRITE = Object.freeze({
+  sheetCols: 3,
+  sheetRows: 3,
+  frameWidth: 138,
+  frameHeight: 122,
+});
+
+// Espantapájaros: sprite y hitbox separados (el sprite es más grande que la hitbox).
+export const TRAINING_DUMMY = Object.freeze({
+  spriteWidth: 114,
+  spriteHeight: 132,
+  hitboxWidth: 100,
+  hitboxHeight: 90,
+  hitboxTopOffset: 6, // borde superior de la hitbox respecto al borde superior del sprite
+});
+
 // Disparo: rayo horizontal que viaja recto (sin gravedad).
 export const SHOOT = Object.freeze({
   cooldown: 0.3,         // evita ametrallar sin pensar
@@ -60,15 +77,23 @@ export const SHOOT = Object.freeze({
   height: 6,
   maxDistance: 900,       // desaparece antes de llegar al borde de la escena
   // Desde el centro de la hitbox hacia donde mira (x) y desde el borde superior (y).
-  muzzleOffset: { x: 40, y: 65 },
+  muzzleOffset: { x: 58, y: 49 },
 });
 
 // Duraciones de las animaciones de retroalimentación al jugador.
 export const PLAYER_FEEDBACK = Object.freeze({
-  walkSpeedThreshold: 20, // vx mínimo para que la animación de caminar se active
-  landDuration: 0.12,     // aplastamiento al aterrizar
-  shootPoseDuration: 0.12,// retroceso del disparo
-  hurtInvulnerability: 1, // parpadeo de invulnerabilidad
+  walkSpeedThreshold: 20,   // vx mínimo para que la animación de caminar se active
+  landDuration: 0.12,       // aplastamiento al aterrizar
+  shootPoseDuration: 0.15,  // frame de ataque en el suelo + retroceso del disparo
+  hurtInvulnerability: 1,   // parpadeo de invulnerabilidad
+  hurtFrameDuration: 0.3,   // frame de daño antes del parpadeo
+  deathSequenceDuration: 1.5,
+  respawnDuration: 1.0,
+  runFps: 8,                // frames por segundo de la animación de correr
+  hurtAuraDuration: 2,       // aura roja visible tras recibir daño
+  knockbackSpeed: 200,      // velocidad horizontal del empuje
+  shakeIntensity: 4,        // px de desplazamiento de la sacudida
+  shakeDuration: 0.25,
 });
 
 // Carteles de instrucciones que aparecen cerca del jugador.
@@ -135,8 +160,16 @@ export const KEY_BINDINGS = Object.freeze({
   jump: ['Space', 'KeyW', 'ArrowUp'],
   shoot: ['KeyJ'],
   confirm: ['Enter', 'KeyE'], // cierra paneles de lectura (ID de tripulante)
+  pause: ['Escape', 'KeyP'],
   debug: ['Backquote', 'F2'],
   debugHurt: ['KeyH'],      // solo con depuración activa: prueba el parpadeo de daño
+});
+
+export const SETTINGS_DEFAULTS = Object.freeze({
+  showTutorial: true,
+  screenShake: true,
+  crtEffect: true,
+  reducedMotion: null, // null = seguir la preferencia del sistema
 });
 
 export const DEBUG = Object.freeze({

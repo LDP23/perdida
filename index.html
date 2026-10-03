@@ -6,20 +6,18 @@
   <meta name="description" content="Señal Perdida: un robot de mantenimiento investiga una estación espacial abandonada.">
   <title>Señal Perdida</title>
 
-  <!-- Un archivo por responsabilidad; el orden importa: de lo general a lo específico. -->
   <link rel="stylesheet" href="css/base.css">
   <link rel="stylesheet" href="css/world.css">
   <link rel="stylesheet" href="css/entities.css">
   <link rel="stylesheet" href="css/tutorial.css">
   <link rel="stylesheet" href="css/hud.css">
   <link rel="stylesheet" href="css/panels.css">
+  <link rel="stylesheet" href="css/screens.css">
   <link rel="stylesheet" href="css/debug.css">
 
-  <!-- type="module" habilita import/export y se ejecuta al terminar de leer el HTML. -->
   <script type="module" src="js/main.js"></script>
 </head>
 <body>
-  <!-- data-ref = ganchos para JavaScript · class = estilos. Nunca se mezclan. -->
   <main class="game" data-ref="game">
 
     <div class="viewport" data-ref="viewport">
@@ -32,11 +30,157 @@
 
     <div class="hud" data-ref="hud"></div>
     <div class="panel-layer" data-ref="panels"></div>
+
+    <!-- === Pantallas de menú === -->
+
+    <!-- Inicio -->
+    <section class="screen screen--menu" data-ref="screen-menu">
+      <div class="screen__starfield"></div>
+      <div class="screen__content">
+        <h1 class="title-glitch" data-text="Señal Perdida">Señal Perdida</h1>
+        <div class="signal-wave" aria-hidden="true">
+          <div class="signal-wave__line"></div>
+        </div>
+        <nav class="menu-buttons" data-ref="menu-buttons">
+          <button data-ref="btn-new-game">Nueva partida</button>
+          <button data-ref="btn-how-to-play">Cómo jugar</button>
+          <button data-ref="btn-options">Opciones</button>
+          <button data-ref="btn-credits">Créditos</button>
+          <button data-ref="btn-exit">Salir</button>
+        </nav>
+        <p class="screen__record" data-ref="menu-record">Récord: 000000</p>
+      </div>
+    </section>
+
+    <!-- Cómo jugar -->
+    <section class="screen screen--how-to-play" data-ref="screen-how-to-play">
+      <div class="screen__content screen__content--narrow">
+        <h2 class="screen__title">Cómo jugar</h2>
+
+        <h3 class="screen__subtitle">Objetivo</h3>
+        <p>Descubrir qué pasó con la tripulación y escapar de la estación.</p>
+
+        <h3 class="screen__subtitle">Controles</h3>
+        <table class="controls-table">
+          <thead>
+            <tr><th>Acción</th><th>Teclado</th><th>Táctil</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Mover</td><td>A / D o ← →</td><td>◀ ▶</td></tr>
+            <tr><td>Saltar</td><td>Espacio / W / ↑</td><td>SALTAR</td></tr>
+            <tr><td>Disparar</td><td>J</td><td>DISPARAR</td></tr>
+            <tr><td>Pausa</td><td>Escape / P</td><td>—</td></tr>
+          </tbody>
+        </table>
+
+        <h3 class="screen__subtitle">Reglas</h3>
+        <ul class="screen__rules">
+          <li>La <strong>batería</strong> baja con el tiempo, los golpes y los disparos.</li>
+          <li>Recogé <strong>celdas de energía</strong> para recargar.</li>
+          <li>Tenés <strong>3 intentos</strong>. Al agotar la batería perdés uno.</li>
+          <li>Encontrá los <strong>9 IDs de tripulante</strong> ocultos en la estación.</li>
+          <li>Las <strong>púas y peligros</strong> te devuelven al último lugar seguro.</li>
+        </ul>
+
+        <nav class="menu-buttons" data-ref="how-to-play-buttons">
+          <button data-ref="btn-back-how-to-play">Volver</button>
+        </nav>
+      </div>
+    </section>
+
+    <!-- Opciones -->
+    <section class="screen screen--options" data-ref="screen-options">
+      <div class="screen__content screen__content--narrow">
+        <h2 class="screen__title">Opciones</h2>
+
+        <div class="options-list" data-ref="options-list">
+          <button class="option-toggle" data-option="showTutorial" aria-pressed="true">Tutorial</button>
+          <button class="option-toggle" data-option="screenShake" aria-pressed="true">Vibración de pantalla</button>
+          <button class="option-toggle" data-option="crtEffect" aria-pressed="true">Efecto CRT</button>
+          <button class="option-toggle" data-option="reducedMotion" aria-pressed="false">Movimiento reducido</button>
+          <button class="option-toggle" data-ref="btn-fullscreen">Pantalla completa</button>
+        </div>
+
+        <nav class="menu-buttons" data-ref="options-buttons">
+          <button data-ref="btn-back-options">Volver</button>
+        </nav>
+      </div>
+    </section>
+
+    <!-- Créditos -->
+    <section class="screen screen--credits" data-ref="screen-credits">
+      <div class="screen__content screen__content--narrow">
+        <h2 class="screen__title">Créditos</h2>
+        <p class="credits__game-title">Señal Perdida</p>
+        <p class="credits__institution">Universidad José Cecilio del Valle, 2026</p>
+        <h3 class="screen__subtitle">Equipo</h3>
+        <ul class="credits__team">
+          <li>Jafet Antonio Sevilla Ayala</li>
+          <li>Roy David Urtecho</li>
+          <li>Luis David Palomo</li>
+        </ul>
+        <h3 class="screen__subtitle">Fuentes</h3>
+        <p>VT323 y Silkscreen — SIL Open Font License</p>
+        <nav class="menu-buttons" data-ref="credits-buttons">
+          <button data-ref="btn-back-credits">Volver</button>
+        </nav>
+      </div>
+    </section>
+
+    <!-- Pausa (superpuesto) -->
+    <section class="screen screen--paused" data-ref="screen-paused">
+      <div class="screen__content screen__content--narrow">
+        <h2 class="screen__title">Pausa</h2>
+        <nav class="menu-buttons" data-ref="paused-buttons">
+          <button data-ref="btn-resume">Continuar</button>
+          <button data-ref="btn-restart-level">Reiniciar nivel</button>
+          <button data-ref="btn-pause-how-to-play">Cómo jugar</button>
+          <button data-ref="btn-pause-options">Opciones</button>
+          <button data-ref="btn-exit-to-menu">Salir al menú</button>
+        </nav>
+        <!-- Confirmación (oculta por defecto) -->
+        <div class="confirm-dialog" data-ref="confirm-dialog" hidden>
+          <p class="confirm-dialog__text">¿Seguro? Se pierde el progreso del nivel.</p>
+          <nav class="menu-buttons">
+            <button data-ref="btn-confirm-yes">Sí</button>
+            <button data-ref="btn-confirm-no">No</button>
+          </nav>
+        </div>
+      </div>
+    </section>
+
+    <!-- Game Over -->
+    <section class="screen screen--game-over" data-ref="screen-game-over">
+      <div class="screen__static" aria-hidden="true"></div>
+      <div class="screen__content">
+        <h2 class="title-glitch title-glitch--small" data-text="Señal perdida">Señal perdida</h2>
+        <p class="screen__flavor">La batería del robot se agotó por última vez.</p>
+
+        <div class="game-over-summary" data-ref="game-over-summary">
+          <p>Puntos: <span data-ref="go-score">0</span></p>
+          <p>IDs encontrados: <span data-ref="go-crew">0</span>/9</p>
+          <p>Récord: <span data-ref="go-record">0</span> <span class="new-record" data-ref="go-new-record" hidden>¡Nuevo récord!</span></p>
+        </div>
+
+        <nav class="menu-buttons" data-ref="game-over-buttons">
+          <button data-ref="btn-restart">Reiniciar</button>
+          <button data-ref="btn-go-menu">Salir al menú</button>
+        </nav>
+      </div>
+    </section>
+
+    <!-- Apagado (pantalla de salida) -->
+    <section class="screen screen--off" data-ref="screen-off">
+      <div class="screen__content">
+        <p class="off__text">Sistema apagado. Ya podés cerrar esta pestaña.</p>
+        <nav class="menu-buttons">
+          <button data-ref="btn-power-on">Encender</button>
+        </nav>
+      </div>
+    </section>
+
     <pre class="debug-panel" data-ref="debug-panel" aria-hidden="true"></pre>
 
-    <!-- Se oculta sola cuando el juego arranca (el CSS mira data-state).
-         Si sigue visible, el JavaScript no cargó: casi siempre es por abrir
-         el archivo con doble clic en lugar de usar un servidor local. -->
     <p class="boot-message">
       Buscando señal…
       <span class="boot-message__hint">Si este mensaje no desaparece, abrí el juego con Live Server (clic derecho en index.html → Open with Live Server).</span>

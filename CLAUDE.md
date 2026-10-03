@@ -19,7 +19,9 @@ Solo HTML, CSS y JavaScript puro: sin frameworks, sin librerías, sin `<canvas>`
 1. ✅ Motor: bucle, entrada, física, colisiones, cámara, depuración (N1E1). Incluye doble salto, coyote time y buffer de salto.
 2. ✅ Robot completo: batería, disparo, animaciones CSS, tutorial.
 3. ✅ Sistemas de juego en N1E1: sesión (vidas, puntos), peligros, punto seguro, coleccionables (celdas + IDs), maniquí de práctica, HUD, panel de bitácoras, tutorial secuencial con tiempos.
-4. Pantallas y menús.
+4. ✅ Pantallas y menús: inicio, pausa, opciones, cómo jugar, créditos, game over, apagado. Máquina de estados con pila (push/pop), preferencias con localStorage, récord.
+4.1. ✅ Sprites nuevos (robot.png 3×3 hoja, espantapajaros.png), sistema de animaciones por frames CSS, estados de muerte/respawn/knockback, sacudida de pantalla, limpieza total de robo.webp.
+4.2. ✅ Tira de correr dedicada (robot_correr.png), espantapájaros alineado al piso, doble salto sin giro (frames 4/5), aura roja de daño.
 5. Cargador de niveles y escenas.
 6. Trampas y plataformas.
 7. Enemigos (cuando lleguen los sprites de movimiento).
@@ -29,47 +31,56 @@ Solo HTML, CSS y JavaScript puro: sin frameworks, sin librerías, sin `<canvas>`
 ## Arquitectura (qué hace cada archivo)
 
 ```
-index.html                 capas: [data-ref] game > viewport > world > scene, entities, debug-layer; debug-panel; boot-message
+index.html                 capas: game > viewport > world > scene, entities, debug-layer; hud; panels; pantallas (screen--*); debug-panel; boot-message
 css/base.css               tokens (--color-*, --font-*), fuentes locales, reset, mensaje de arranque
 css/world.css              escala (--world-scale) y cámara (--camera-x) con transform; fondo (--scene-image)
-css/entities.css           .entity, .entity__sprite, animaciones de robot/disparo/coleccionables/maniquí
+css/entities.css           .entity, .entity__sprite, .robot-sprite (clase compartida), animaciones del robot (frames, correr con robot_correr.png, salto, ataque, daño, aura roja, muerte, respawn), sacudida de pantalla, disparo, coleccionables, espantapájaros (alineado al piso)
 css/hud.css                HUD: batería (--ratio, is-low), vidas, nivel, puntos, IDs, toast
 css/panels.css             panel de ID de tripulante (CRT, ámbar, barra --ratio, scanlines)
 css/tutorial.css           carteles del tutorial: appear/dismiss, teclado vs táctil
+css/screens.css            pantallas de menú: visibilidad por data-state/data-overlay/data-sub, glitch, estrellas, estática TV, CRT off
 css/debug.css              modo depuración (solo visible con .game.is-debug); safe-point, hazard, trigger
 js/main.js                 arranque: new Game(document).start()
 js/config.js               TODAS las constantes de jugabilidad
 js/core/game.js            raíz de composición: crea Input, Camera, vistas, StateMachine, GameLoop; destroy() limpia todo
 js/core/game-loop.js       rAF + delta time repartido en subpasos (LOOP.maxSubstep); hooks update(step), render(frame), endFrame()
-js/core/input.js           acciones, no teclas: isHeld, consumePress, press, release, releaseAll, endFrame, dispose
+js/core/input.js           acciones, no teclas: isHeld, consumePress, setGameplayEnabled; pause/debug activos siempre
 js/core/camera.js          escala = alto de pantalla / 724; follow(), jumpTo(), snappedX, screenToWorld()
-js/core/state-machine.js   estados con enter/exit/update/render; onChange escribe data-state en .game
+js/core/state-machine.js   pila de estados: change (vacía pila), push/pop (overlay), data-state + data-overlay en .game
 js/core/assets.js          loadImage(url) con caché y decode()
 js/core/math-utils.js      clamp, approach, damp (suavizado independiente de FPS)
 js/physics/collision.js    rectsOverlap (ÚNICA prueba de colisión), rectFromSpan
 js/physics/physics.js      createBody, velocityForHeight, stepBody (gravedad exacta + resolución por eje, contactos)
-js/core/event-bus.js       EventBus: on(name, handler) → unsub, emit(name, payload), clear()
+js/core/event-bus.js       EventBus: on → unsub, emit, clear; getter listenerCount para prueba de fugas
+js/core/storage.js         load(key, fallback) y save(key, value) sobre localStorage con try/catch
+js/core/settings.js        Settings: showTutorial, screenShake, crtEffect, reducedMotion; clases en .game
 js/core/timer.js           Timer reutilizable de cuenta regresiva (active, start, reset, update)
 js/core/device.js          setupDeviceClass: pone is-touch en .game según pointer: coarse
-js/entities/player.js      lógica del robot: correr, salto, batería, disparo, daño, estados de animación
+js/entities/player.js      lógica del robot: correr, salto, batería, disparo, daño (con/sin knockback, aura roja), muerte, respawn, visualState
 js/entities/battery.js     Battery(max): drain, spend, recharge, refill; getters value, ratio, isEmpty, isLow
 js/entities/projectile.js  Projectile: cuerpo sin gravedad, se destruye al chocar o recorrer maxDistance
 js/entities/entity-collection.js  EntityCollection: pares {entity, view}, limpieza automática de isDead, forEach
 js/entities/pickup.js      Pickup(type, x, y, crewId?): collect() → isCollected → isDead tras collectDuration
 js/entities/safe-point.js  SafePointTracker: grounded + ambos pies + lejos de hazards → guarda punto seguro
-js/entities/training-dummy.js  TrainingDummy: hitbox 40×100, hitCount, onShot (interfaz shootable)
+js/entities/training-dummy.js  TrainingDummy: hitbox TRAINING_DUMMY (100×90), hitCount, onShot (interfaz shootable)
 js/levels/level1.js        datos de escenas: solids, hazards, crewIds, energyCells, trainingDummies, tutorial
 js/levels/level-loader.js  datos -> escena del motor; convierte hazards con rectFromSpan; copia arrays
 js/levels/crew-logs.js     CREW_LOGS[9]: id, sceneId, name, role, log; VICTORY_MESSAGE
 js/core/session.js         GameSession: score, lives, foundCrewIds; emite session:* events
-js/states/playing-state.js estado "jugando": sesión, hazards, punto seguro, pickups, maniquís, shootables, HUD, panel, tutorial, vidas/retry, debug completo
+js/states/menu-state.js    menú principal: nueva partida, subpantallas, récord
+js/states/playing-state.js estado "jugando": sesión, pausa automática, muerte/respawn/sacudida, debug H con knockback
+js/states/paused-state.js  pausa superpuesta: continuar, reiniciar nivel (con confirmación), subpantallas
+js/states/game-over-state.js  resumen final: puntos, IDs, récord, reiniciar o salir al menú
+js/states/off-state.js     pantalla de apagado: intenta window.close(), muestra "sistema apagado" con CRT
+js/ui/menu-navigator.js    navegación por teclado en menús: flechas/WS mueven foco circular, Escape = volver
+js/ui/screens.js           utilidades: getHighScore, saveHighScore, formatScore, fullscreen
 js/ui/tutorial.js          Tutorial secuencial: de a uno, minVisible, linger, pendingDismiss, passX
 js/ui/hud.js               Hud: datos para la vista (battery, lives, score, crew, toast con Timer)
 js/ui/crew-log-panel.js    CrewLogPanel: abre panel de ID, pausa juego, cierra con confirm tras closeDelay
 js/view/dom-utils.js       createElement, setPosition, setSize, setRect, queryRefs
 js/view/entity-view.js     EntityView(layer, modifier, {width,height}).sync(body, flags) / destroy()
-js/view/player-view.js     PlayerView: traduce estado del Player a clases CSS
-js/view/training-dummy-view.js  TrainingDummyView: sprite CSS + etiqueta de impactos, is-hit, has-hits
+js/view/player-view.js     PlayerView: traduce Player.visualState a una clase is-*, aplica robot-sprite al sprite, has-hurt-aura
+js/view/training-dummy-view.js  TrainingDummyView: sprite de imagen (centrado, mayor que hitbox, alineado al piso) + etiqueta de impactos
 js/view/hud-view.js        HudView: dibuja HUD, solo toca DOM cuando un valor cambia
 js/view/tutorial-view.js   TutorialView: crea carteles en capa tutorial, alterna is-visible/is-dismissed
 js/view/world-view.js      showScene(), applyScale(), render(camera)
@@ -79,7 +90,7 @@ tools/physics-check.html   verificador de física: simula saltos a 30/120/144 FP
 tools/physics-check.js     lógica del verificador, importa Player y physics reales
 ```
 
-Contexto compartido que reciben los estados: `{ input, camera, events, worldView, debugView, layers: { entities, world, hud, panels } }`.
+Contexto compartido que reciben los estados: `{ input, camera, events, settings, worldView, debugView, loop, layers: { entities, world, hud, panels }, refs, states }`.
 Carpetas previstas: `js/traps/` (clase base + una por trampa).
 
 ## Convenciones obligatorias
@@ -100,7 +111,16 @@ Carpetas previstas: `js/traps/` (clase base + una por trampa).
 - Coordenadas del mundo = píxeles de la imagen de escena (2172 × 724), "y" hacia abajo, `top` = borde superior.
 - Variables CSS `--ratio` para barras de progreso (0–1); `--collect-duration` para sincronizar CSS con config.js.
 - Entidades "shootable": tienen `body` (rect) y `onShot(projectile)`. PlayingState itera shootables y prueba `rectsOverlap` con cada proyectil.
-- No hay animaciones de movimiento del sprite (caminar/saltar) hasta que los sprites finales lleguen: las animaciones actuales son de retroalimentación (aplastamiento, parpadeo, retroceso).
+- Hoja de sprites del robot (`assets/sprites/robot.png`): 3×3 celdas de 276×244 px (exportadas al doble), se muestran a 138×122 en el mundo. `background-size: 300% 300%`, selección de frame con `background-position` en porcentajes (0%, 50%, 100%). Frames en uso: 1 reposo, 4 subiendo, 5 cayendo, 6 ataque, 7 daño, 8 arrodillado, 9 tirado. Frames 2-3 ya no se usan (la corrida usa tira dedicada).
+- Tira de correr (`assets/sprites/robot_correr.png`): 828×244, 3 frames en fila de 276×244 cada uno (misma escala que `robot.png`). `background-size: 300% 100%`, animación de 3 frames con `steps(1)` y `--run-cycle = 3 / runFps`.
+- Doble salto: usa los mismos frames 4 (subiendo) y 5 (cayendo) del salto normal. Sin giro ni destello.
+- Aura roja de daño: `has-hurt-aura` en el elemento `.entity--player` (no el sprite), `drop-shadow` rojo que pulsa y se desvanece en `hurtAuraDuration` (2 s). Se reinicia con cada golpe. Con `reduced-motion`: aura fija sin pulso.
+- Prioridad de estados visuales del robot (de mayor a menor): `dying > respawning > hurt-frame > attacking > rising > falling > running > idle`. Una sola clase `is-*` activa a la vez; la decide `Player.visualState`.
+- Espantapájaros (`assets/sprites/espantapajaros.png`): 114×132 en el mundo, hitbox 100×90 con offset 6 px desde arriba. Sprite alineado al piso (`bottom: calc(--dummy-bottom-offset * -1px)`), no a la hitbox. Medidas en `config.js` como `TRAINING_DUMMY`.
+- `SHOOT.muzzleOffset = { x: 58, y: 49 }`: medido en el frame 6 de la hoja nueva. Fogonazo CSS en `::after` del sprite.
+- Los menús usan `<button>` reales y foco nativo; `Input` solo captura durante el juego (`setGameplayEnabled`). Las acciones `debug` y `pause` funcionan siempre.
+- Máquina de estados con pila: `change()` vacía la pila, `push()` superpone (pausa), `pop()` vuelve al anterior. `data-state` = base, `data-overlay` = superpuesto.
+- Pantallas: `<section class="screen screen--X">` controladas por CSS según `data-state`/`data-overlay`/`data-sub`. JS nunca escribe `display`.
 
 ## Física: restricciones verificadas (NO romper)
 

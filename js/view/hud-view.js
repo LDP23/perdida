@@ -27,7 +27,7 @@ export class HudView {
     this.#batteryNum = this.#div('hud__battery-num', batteryGroup);
     const livesGroup = this.#div('hud__lives', left);
     for (let i = 0; i < 3; i++) {
-      const icon = this.#div('hud__life-icon', livesGroup);
+      const icon = this.#div('hud__life-icon robot-sprite', livesGroup);
       this.#livesIcons.push(icon);
     }
 

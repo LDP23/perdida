@@ -1,6 +1,8 @@
+import { TRAINING_DUMMY } from '../config.js';
 import { createElement, setPosition, setSize } from './dom-utils.js';
 
-// Vista del maniquí: incluye el sprite CSS y la etiqueta de impactos.
+// Vista del maniqui: el sprite es mas grande que la hitbox.
+// La caja .entity mide como la hitbox; el sprite queda centrado y alineado abajo.
 export class TrainingDummyView {
   #element;
   #hitLabel;
@@ -9,7 +11,9 @@ export class TrainingDummyView {
 
   constructor(layer, body) {
     this.#element = createElement('entity entity--training-dummy', layer);
-    createElement('entity__sprite', this.#element);
+    const sprite = createElement('entity__sprite', this.#element);
+    sprite.style.setProperty('--dummy-sprite-w', TRAINING_DUMMY.spriteWidth);
+    sprite.style.setProperty('--dummy-sprite-h', TRAINING_DUMMY.spriteHeight);
     this.#hitLabel = createElement('entity__hit-count', this.#element);
     setSize(this.#element, body.width, body.height);
     setPosition(this.#element, body.x, body.y);

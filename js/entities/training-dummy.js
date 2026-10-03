@@ -1,6 +1,7 @@
+import { TRAINING_DUMMY } from '../config.js';
 import { Timer } from '../core/timer.js';
 
-// Maniquí de práctica: no es sólido, cuenta impactos, destella al recibir un disparo.
+// Maniqui de practica: no es solido, cuenta impactos, destella al recibir un disparo.
 // Implementa la interfaz "shootable": tiene body y onShot(projectile).
 export class TrainingDummy {
   body;
@@ -9,7 +10,15 @@ export class TrainingDummy {
   #hitFlash = new Timer();
 
   constructor({ x, y }) {
-    this.body = { x: x - 20, y: y - 100, width: 40, height: 100 };
+    // Hitbox centrada dentro del sprite, con offset desde arriba
+    const hw = TRAINING_DUMMY.hitboxWidth;
+    const hh = TRAINING_DUMMY.hitboxHeight;
+    this.body = {
+      x: x - hw / 2,
+      y: y - TRAINING_DUMMY.spriteHeight + TRAINING_DUMMY.hitboxTopOffset,
+      width: hw,
+      height: hh,
+    };
   }
 
   get isHit() { return this.#hitFlash.active; }

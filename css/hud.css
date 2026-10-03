@@ -16,8 +16,10 @@
   z-index: 10;
 }
 
-/* Ocultar el HUD antes de que haya un estado activo */
-.game:not([data-state]) .hud { display: none; }
+/* Mostrar el HUD solo cuando el estado base es playing */
+.game:not([data-state="playing"]) .hud { display: none; }
+/* Atenuar detrás de la pausa */
+.game[data-overlay="paused"] .hud { opacity: 0.3; }
 
 /* --- Izquierda: batería + intentos --- */
 .hud__left {
@@ -97,9 +99,9 @@
 .hud__life-icon {
   width: 20px;
   height: 24px;
-  background: url('../assets/sprites/robo.webp') center / contain no-repeat;
   filter: drop-shadow(0 0 2px var(--color-signal));
 }
+
 
 .hud__life-icon.is-lost {
   filter: grayscale(1);
