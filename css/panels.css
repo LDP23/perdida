@@ -1,0 +1,94 @@
+/* Capa de paneles (fuera del mundo, no se mueve con la cámara). */
+
+.panel-layer {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 20;
+  pointer-events: none;
+}
+
+.panel-layer:empty {
+  display: none;
+}
+
+/* ===== Panel de ID de tripulante ===== */
+.crew-panel {
+  --panel-border: var(--color-amber);
+  max-width: 420px;
+  width: 90%;
+  padding: 20px 24px;
+  background:
+    repeating-linear-gradient(
+      180deg,
+      rgb(2 4 11 / 0.92) 0px,
+      rgb(2 4 11 / 0.92) 3px,
+      rgb(10 21 49 / 0.92) 3px,
+      rgb(10 21 49 / 0.92) 4px
+    );
+  border: 2px solid var(--panel-border);
+  border-radius: 6px;
+  font-family: var(--font-terminal);
+  color: var(--color-text);
+  pointer-events: auto;
+  animation: panel-appear 0.25s ease-out;
+}
+
+@keyframes panel-appear {
+  from { opacity: 0; scale: 0.95; }
+  to { opacity: 1; scale: 1; }
+}
+
+.crew-panel__header {
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.crew-panel__name {
+  font-size: 22px;
+  color: var(--color-amber);
+  font-weight: bold;
+}
+
+.crew-panel__role {
+  font-size: 16px;
+  color: var(--color-text-dim);
+}
+
+.crew-panel__label {
+  font-size: 14px;
+  color: var(--color-text-dim);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.crew-panel__log {
+  font-size: 18px;
+  line-height: 1.4;
+  margin-bottom: 16px;
+}
+
+.crew-panel__bar {
+  --ratio: 1;
+  height: 3px;
+  background:
+    linear-gradient(
+      90deg,
+      var(--panel-border) 0%,
+      var(--panel-border) calc(var(--ratio) * 100%),
+      rgb(255 255 255 / 0.1) calc(var(--ratio) * 100%),
+      rgb(255 255 255 / 0.1) 100%
+    );
+  border-radius: 2px;
+  margin-bottom: 8px;
+}
+
+.crew-panel__hint {
+  font-size: 14px;
+  color: var(--color-text-dim);
+  text-align: center;
+}

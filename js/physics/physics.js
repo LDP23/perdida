@@ -7,11 +7,12 @@ const AXES = Object.freeze({
   y: { size: 'height', velocity: 'vy', negativeContact: 'ceiling', positiveContact: 'ground' },
 });
 
-export function createBody({ x = 0, y = 0, width, height }) {
+export function createBody({ x = 0, y = 0, width, height, gravityScale = 1 }) {
   return {
     x, y, width, height,
     vx: 0,
     vy: 0,
+    gravityScale,
     contacts: { left: false, right: false, ground: false, ceiling: false },
   };
 }
@@ -36,7 +37,8 @@ function resetContacts(contacts) {
 // Promediar la velocidad antes y después del paso es la fórmula exacta con
 // gravedad constante: el salto mide lo mismo a 30, 60 o 144 FPS.
 function integrateGravity(body, deltaTime) {
-  const nextVy = Math.min(body.vy + PHYSICS.gravity * deltaTime, PHYSICS.maxFallSpeed);
+  const gravity = PHYSICS.gravity * body.gravityScale;
+  const nextVy = Math.min(body.vy + gravity * deltaTime, PHYSICS.maxFallSpeed);
   const distance = (body.vy + nextVy) * 0.5 * deltaTime;
   body.vy = nextVy;
   return distance;

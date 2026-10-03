@@ -1,0 +1,165 @@
+/* HUD: fuera del mundo, no se mueve con la cámara.
+   Estilo terminal CRT discreto: el escenario es el protagonista. */
+
+.hud {
+  position: absolute;
+  inset: 0;
+  padding: env(safe-area-inset-top, 10px) env(safe-area-inset-right, 10px)
+           env(safe-area-inset-bottom, 10px) env(safe-area-inset-left, 10px);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  pointer-events: none;
+  font-family: var(--font-terminal);
+  font-size: var(--text-small);
+  color: var(--color-text);
+  z-index: 10;
+}
+
+/* Ocultar el HUD antes de que haya un estado activo */
+.game:not([data-state]) .hud { display: none; }
+
+/* --- Izquierda: batería + intentos --- */
+.hud__left {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.hud__battery {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  background: rgb(2 4 11 / 0.7);
+  border: 1px solid var(--color-signal);
+  border-radius: 3px;
+}
+
+.hud__battery-bar {
+  --ratio: 1;
+  width: 100px;
+  height: 14px;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0px,
+      transparent 9px,
+      rgb(2 4 11 / 0.6) 9px,
+      rgb(2 4 11 / 0.6) 10px
+    ),
+    linear-gradient(
+      90deg,
+      var(--color-signal) 0%,
+      var(--color-signal) calc(var(--ratio) * 100%),
+      rgb(255 255 255 / 0.08) calc(var(--ratio) * 100%),
+      rgb(255 255 255 / 0.08) 100%
+    );
+  border-radius: 2px;
+}
+
+.hud__battery-bar.is-low {
+  --bar-color: var(--color-alarm);
+  background:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0px,
+      transparent 9px,
+      rgb(2 4 11 / 0.6) 9px,
+      rgb(2 4 11 / 0.6) 10px
+    ),
+    linear-gradient(
+      90deg,
+      var(--color-alarm) 0%,
+      var(--color-alarm) calc(var(--ratio) * 100%),
+      rgb(255 255 255 / 0.08) calc(var(--ratio) * 100%),
+      rgb(255 255 255 / 0.08) 100%
+    );
+  animation: hud-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes hud-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.hud__battery-num {
+  min-width: 3.2ch;
+  text-align: right;
+}
+
+.hud__lives {
+  display: flex;
+  gap: 4px;
+  padding: 2px 8px;
+}
+
+.hud__life-icon {
+  width: 20px;
+  height: 24px;
+  background: url('../assets/sprites/robo.webp') center / contain no-repeat;
+  filter: drop-shadow(0 0 2px var(--color-signal));
+}
+
+.hud__life-icon.is-lost {
+  filter: grayscale(1);
+  opacity: 0.3;
+}
+
+/* --- Centro: nivel --- */
+.hud__level {
+  padding: 4px 12px;
+  background: rgb(2 4 11 / 0.7);
+  border: 1px solid var(--color-signal);
+  border-radius: 3px;
+  font-size: 16px;
+  color: var(--color-text-dim);
+}
+
+/* --- Derecha: puntos + IDs --- */
+.hud__right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.hud__score {
+  padding: 4px 8px;
+  background: rgb(2 4 11 / 0.7);
+  border: 1px solid var(--color-signal);
+  border-radius: 3px;
+  font-family: var(--font-display);
+  font-size: 18px;
+  letter-spacing: 2px;
+}
+
+.hud__crew {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px;
+  font-size: 16px;
+  color: var(--color-amber);
+}
+
+/* --- Toast --- */
+.hud__toast {
+  position: absolute;
+  bottom: calc(env(safe-area-inset-bottom, 10px) + 48px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 6px 16px;
+  background: rgb(2 4 11 / 0.85);
+  border: 1px solid var(--color-signal);
+  border-radius: 4px;
+  font-size: 18px;
+  color: var(--color-text);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.hud__toast.is-visible {
+  opacity: 1;
+}

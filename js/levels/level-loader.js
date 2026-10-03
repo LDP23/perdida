@@ -4,7 +4,6 @@ import { rectFromSpan } from '../physics/collision.js';
 
 // Traductor entre los datos de diseño (level1.js…) y el motor. El motor solo
 // conoce rectángulos; los niveles solo conocen medidas de la imagen.
-// En la etapa 3 este archivo también manejará el cambio de escenas y niveles.
 
 export async function loadScene(sceneData) {
   await loadImage(sceneData.background);
@@ -20,6 +19,11 @@ export function buildScene(sceneData) {
     height: WORLD.height,
     spawn: { ...sceneData.spawn },
     solids: [...sceneData.solids.map(toSolid), ...createEdgeWalls()],
+    hazards: sceneData.hazards ? sceneData.hazards.map(toHazard) : [],
+    tutorial: sceneData.tutorial ? [...sceneData.tutorial] : [],
+    crewIds: sceneData.crewIds ? [...sceneData.crewIds] : [],
+    energyCells: sceneData.energyCells ? [...sceneData.energyCells] : [],
+    trainingDummies: sceneData.trainingDummies ? [...sceneData.trainingDummies] : [],
   };
 }
 
@@ -27,8 +31,10 @@ function toSolid(span) {
   return { ...rectFromSpan({ bottom: WORLD.height, ...span }), kind: 'solid' };
 }
 
-// Paredes invisibles a ambos lados. Son más altas que la escena para que
-// tampoco se puedan saltar por encima.
+function toHazard(span) {
+  return { ...rectFromSpan(span), kind: 'hazard', type: span.type };
+}
+
 function createEdgeWalls() {
   const wall = { y: -WORLD.height, width: SCENE.wallThickness, height: WORLD.height * 3, kind: 'wall' };
   return [

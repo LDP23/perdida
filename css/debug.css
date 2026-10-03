@@ -6,6 +6,8 @@
   --debug-wall: #7a8699;
   --debug-player: #ff4fd8;
   --debug-hazard: #ff2b3f;
+  --debug-trigger: #ffb03a;
+  --debug-safe-point: #00ff88;
   --debug-label-bg: rgb(2 4 11 / 0.8);
 }
 
@@ -45,6 +47,8 @@
 .debug-rect--wall { --debug-color: var(--debug-wall); }
 .debug-rect--player { --debug-color: var(--debug-player); }
 .debug-rect--hazard { --debug-color: var(--debug-hazard); }
+.debug-rect--trigger { --debug-color: var(--debug-trigger); }
+.debug-rect--safe-point { --debug-color: var(--debug-safe-point); }
 
 /* La etiqueta con las medidas va arriba del rectángulo, como en los datos del nivel. */
 .debug-rect[data-label]::before {
