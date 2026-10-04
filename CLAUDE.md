@@ -22,11 +22,11 @@ Solo HTML, CSS y JavaScript puro: sin frameworks, sin librerías, sin `<canvas>`
 4. ✅ Pantallas y menús: inicio, pausa, opciones, cómo jugar, créditos, game over, apagado. Máquina de estados con pila (push/pop), preferencias con localStorage, récord.
 4.1. ✅ Sprites nuevos (robot.png 3×3 hoja, espantapajaros.png), sistema de animaciones por frames CSS, estados de muerte/respawn/knockback, sacudida de pantalla, limpieza total de robo.webp.
 4.2. ✅ Tira de correr dedicada (robot_correr.png), espantapájaros alineado al piso, doble salto sin giro (frames 4/5), aura roja de daño.
-5. Cargador de niveles y escenas.
-6. Trampas y plataformas.
-7. Enemigos (cuando lleguen los sprites de movimiento).
-8. Táctil y responsive.
-9. Niveles 2 y 3, victoria y pulido.
+5. ✅ Nivel 1 completo y plataformas: 3 escenas, transiciones por borde, puerta de salida, nivel completado, reinicio coherente (snapshot/restore), plataformas móviles y que caen, precarga de imágenes.
+6. ✅ Enemigos: criatura con patrulla/persecución/zarpazo, hoja 4×2, sistema de hojas generalizado, herramienta de escena por número.
+7. Trampas.
+8. Niveles 2 y 3.
+9. Táctil, responsive y pulido.
 
 ## Arquitectura (qué hace cada archivo)
 
@@ -34,12 +34,13 @@ Solo HTML, CSS y JavaScript puro: sin frameworks, sin librerías, sin `<canvas>`
 index.html                 capas: game > viewport > world > scene, entities, debug-layer; hud; panels; pantallas (screen--*); debug-panel; boot-message
 css/base.css               tokens (--color-*, --font-*), fuentes locales, reset, mensaje de arranque
 css/world.css              escala (--world-scale) y cámara (--camera-x) con transform; fondo (--scene-image)
-css/entities.css           .entity, .entity__sprite, .robot-sprite (clase compartida), animaciones del robot (frames, correr con robot_correr.png, salto, ataque, daño, aura roja, muerte, respawn), sacudida de pantalla, disparo, coleccionables, espantapájaros (alineado al piso)
+css/entities.css           .entity, .entity__sprite, .sprite-sheet (hojas genéricas con --sheet-cols/--sheet-rows/--frame-col/--frame-row), .robot-sprite, .creature-sprite, animaciones del robot y la criatura, sacudida de pantalla, disparo, coleccionables, espantapájaros
 css/hud.css                HUD: batería (--ratio, is-low), vidas, nivel, puntos, IDs, toast
 css/panels.css             panel de ID de tripulante (CRT, ámbar, barra --ratio, scanlines)
 css/tutorial.css           carteles del tutorial: appear/dismiss, teclado vs táctil
-css/screens.css            pantallas de menú: visibilidad por data-state/data-overlay/data-sub, glitch, estrellas, estática TV, CRT off
-css/debug.css              modo depuración (solo visible con .game.is-debug); safe-point, hazard, trigger
+css/platforms.css          plataformas: móvil (franja ámbar + propulsor cian), que cae (grietas + borde rojo + temblor + fundido)
+css/screens.css            pantallas de menú: visibilidad por data-state/data-overlay/data-sub, glitch, estrellas, estática TV, CRT off; nivel completado; fundido de transición; decoración pit-shadow
+css/debug.css              modo depuración (solo visible con .game.is-debug); safe-point, hazard, trigger, platform
 js/main.js                 arranque: new Game(document).start()
 js/config.js               TODAS las constantes de jugabilidad
 js/core/game.js            raíz de composición: crea Input, Camera, vistas, StateMachine, GameLoop; destroy() limpia todo
@@ -50,7 +51,7 @@ js/core/state-machine.js   pila de estados: change (vacía pila), push/pop (over
 js/core/assets.js          loadImage(url) con caché y decode()
 js/core/math-utils.js      clamp, approach, damp (suavizado independiente de FPS)
 js/physics/collision.js    rectsOverlap (ÚNICA prueba de colisión), rectFromSpan
-js/physics/physics.js      createBody, velocityForHeight, stepBody (gravedad exacta + resolución por eje, contactos)
+js/physics/physics.js      createBody, velocityForHeight, stepBody (gravedad + resolución por eje + groundSolid), moveAxis (exportada), carryByPlatform
 js/core/event-bus.js       EventBus: on → unsub, emit, clear; getter listenerCount para prueba de fugas
 js/core/storage.js         load(key, fallback) y save(key, value) sobre localStorage con try/catch
 js/core/settings.js        Settings: showTutorial, screenShake, crtEffect, reducedMotion; clases en .game
@@ -61,15 +62,21 @@ js/entities/battery.js     Battery(max): drain, spend, recharge, refill; getters
 js/entities/projectile.js  Projectile: cuerpo sin gravedad, se destruye al chocar o recorrer maxDistance
 js/entities/entity-collection.js  EntityCollection: pares {entity, view}, limpieza automática de isDead, forEach
 js/entities/pickup.js      Pickup(type, x, y, crewId?): collect() → isCollected → isDead tras collectDuration
+js/entities/platform.js    Platform (base): body rect, dx/dy del último paso, isSolid, savePrevious()
+js/entities/moving-platform.js  MovingPlatform: interpola entre from y to, pausa en extremos
+js/entities/falling-platform.js  FallingPlatform: idle → shaking → falling → hidden → respawning → idle; onStepped(), isBlockedByBody()
 js/entities/safe-point.js  SafePointTracker: grounded + ambos pies + lejos de hazards → guarda punto seguro
+js/entities/enemy.js       Enemy: patrulla/persecución/zarpazo, interfaz shootable, estados patrol→chase→windup→strike→recover (+hurt, dying, dead)
 js/entities/training-dummy.js  TrainingDummy: hitbox TRAINING_DUMMY (100×90), hitCount, onShot (interfaz shootable)
-js/levels/level1.js        datos de escenas: solids, hazards, crewIds, energyCells, trainingDummies, tutorial
-js/levels/level-loader.js  datos -> escena del motor; convierte hazards con rectFromSpan; copia arrays
+js/levels/level1.js        datos de las 3 escenas del nivel 1: solids, hazards, crewIds, energyCells, enemies, exit, movingPlatforms, fallingPlatforms, decorations
+js/levels/levels.js        LEVELS = [LEVEL_1]: único lugar que conoce todos los niveles
+js/levels/level-loader.js  datos -> escena del motor; convierte hazards, exit (sin pared derecha si edge), door (rectFromSpan), plataformas, decoraciones
 js/levels/crew-logs.js     CREW_LOGS[9]: id, sceneId, name, role, log; VICTORY_MESSAGE
-js/core/session.js         GameSession: score, lives, foundCrewIds; emite session:* events
+js/core/session.js         GameSession: score, lives, foundCrewIds; snapshotLevelStart/restoreLevelStart; emite session:* events
 js/states/menu-state.js    menú principal: nueva partida, subpantallas, récord
-js/states/playing-state.js estado "jugando": sesión, pausa automática, muerte/respawn/sacudida, debug H con knockback
-js/states/paused-state.js  pausa superpuesta: continuar, reiniciar nivel (con confirmación), subpantallas
+js/states/playing-state.js estado "jugando": sesión, escenas, transiciones, plataformas, enemigos (daño contacto/zarpazo, shootables), puerta, reinicio, precarga, salto de escena con Digit1–9
+js/states/paused-state.js  pausa superpuesta: continuar, reiniciar nivel (restoreLevelStart sin perder intento), subpantallas
+js/states/level-complete-state.js  overlay al completar nivel: bono de batería, IDs del nivel, continuar o volver al menú
 js/states/game-over-state.js  resumen final: puntos, IDs, récord, reiniciar o salir al menú
 js/states/off-state.js     pantalla de apagado: intenta window.close(), muestra "sistema apagado" con CRT
 js/ui/menu-navigator.js    navegación por teclado en menús: flechas/WS mueven foco circular, Escape = volver
@@ -80,7 +87,9 @@ js/ui/crew-log-panel.js    CrewLogPanel: abre panel de ID, pausa juego, cierra c
 js/view/dom-utils.js       createElement, setPosition, setSize, setRect, queryRefs
 js/view/entity-view.js     EntityView(layer, modifier, {width,height}).sync(body, flags) / destroy()
 js/view/player-view.js     PlayerView: traduce Player.visualState a una clase is-*, aplica robot-sprite al sprite, has-hurt-aura
+js/view/enemy-view.js      EnemyView: traduce Enemy.visualState a clase is-*, aplica creature-sprite + sprite-sheet, is-fading
 js/view/training-dummy-view.js  TrainingDummyView: sprite de imagen (centrado, mayor que hitbox, alineado al piso) + etiqueta de impactos
+js/view/platform-view.js   PlatformView: posiciona con --x/--y, clases is-* según visualState
 js/view/hud-view.js        HudView: dibuja HUD, solo toca DOM cuando un valor cambia
 js/view/tutorial-view.js   TutorialView: crea carteles en capa tutorial, alterna is-visible/is-dismissed
 js/view/world-view.js      showScene(), applyScale(), render(camera)
@@ -121,6 +130,11 @@ Carpetas previstas: `js/traps/` (clase base + una por trampa).
 - Los menús usan `<button>` reales y foco nativo; `Input` solo captura durante el juego (`setGameplayEnabled`). Las acciones `debug` y `pause` funcionan siempre.
 - Máquina de estados con pila: `change()` vacía la pila, `push()` superpone (pausa), `pop()` vuelve al anterior. `data-state` = base, `data-overlay` = superpuesto.
 - Pantallas: `<section class="screen screen--X">` controladas por CSS según `data-state`/`data-overlay`/`data-sub`. JS nunca escribe `display`.
+- Formato de datos de escena: `id`, `name`, `background`, `spawn`, `solids`, `hazards`, `crewIds`, `energyCells`, `trainingDummies`, `tutorial`, `exit` (`{type:'edge'}` o `{type:'door', x1, x2, top, bottom}`), `movingPlatforms` (`[{from:{x,y}, to:{x,y}, width}]`), `fallingPlatforms` (`[{x, y, width}]`), `decorations` (`[{type, x1, x2, top}]`).
+- Orden de actualización por paso: (1) mover plataformas, (2) arrastrar rider con `carryByPlatform`, (3) paso normal del robot (`player.update` con todos los sólidos + plataformas activas).
+- `body.groundSolid`: referencia al sólido sobre el que descansa el cuerpo. Se usa para detectar plataformas y arrastrar al rider.
+- Transiciones de escena: fundido a negro con `.scene-fade` (clase `is-showing`/`is-hiding`), duraciones `TRANSITION.fadeOut`/`fadeIn`.
+- `GameSession.snapshotLevelStart()` / `restoreLevelStart()`: al morir se restaura al inicio del nivel y se pierde un intento; al reiniciar desde pausa se restaura sin perder intento.
 
 ## Física: restricciones verificadas (NO romper)
 

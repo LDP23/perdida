@@ -72,8 +72,9 @@ export class PausedState {
 
   #executeConfirm() {
     if (this.#pendingAction === 'restart') {
-      // Capturar la sesión ANTES de change(), que vacía la pila y limpia playingSession
+      // Restaurar puntos e IDs al inicio del nivel, sin perder intento
       const session = this.#context.playingSession;
+      session.restoreLevelStart();
       this.#context.states.change('playing', { session });
     } else if (this.#pendingAction === 'exit') {
       this.#context.states.change('menu');

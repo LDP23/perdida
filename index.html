@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="css/base.css">
   <link rel="stylesheet" href="css/world.css">
   <link rel="stylesheet" href="css/entities.css">
+  <link rel="stylesheet" href="css/platforms.css">
   <link rel="stylesheet" href="css/tutorial.css">
   <link rel="stylesheet" href="css/hud.css">
   <link rel="stylesheet" href="css/panels.css">
@@ -146,6 +147,21 @@
             <button data-ref="btn-confirm-no">No</button>
           </nav>
         </div>
+      </div>
+    </section>
+
+    <!-- Nivel completado (superpuesto) -->
+    <section class="screen screen--level-complete" data-ref="screen-level-complete">
+      <div class="screen__content screen__content--narrow">
+        <h2 class="screen__title" data-ref="lc-title">Nivel completado</h2>
+        <div class="level-complete-summary">
+          <p>Bono de batería: <span data-ref="lc-battery-bonus">0</span></p>
+          <p>IDs de este nivel: <span data-ref="lc-crew">0</span></p>
+          <p>Puntos: <span data-ref="lc-score">0</span></p>
+        </div>
+        <nav class="menu-buttons" data-ref="lc-buttons">
+          <button data-ref="btn-lc-continue">Continuar</button>
+        </nav>
       </div>
     </section>
 

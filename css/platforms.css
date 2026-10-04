@@ -1,0 +1,130 @@
+/* Plataformas móviles y que caen: dibujadas solo con CSS, sin imágenes. */
+
+.platform {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: calc(var(--w) * 1px);
+  height: calc(var(--h) * 1px);
+  transform: translate(calc(var(--x) * 1px), calc(var(--y) * 1px));
+  image-rendering: pixelated;
+}
+
+/* === Plataforma móvil ===
+   Placa metálica oscura con franja de advertencia ámbar y propulsor cian debajo. */
+.platform--moving {
+  background:
+    repeating-linear-gradient(
+      -45deg,
+      var(--color-amber) 0px,
+      var(--color-amber) 4px,
+      var(--color-void) 4px,
+      var(--color-void) 8px
+    );
+  border: 2px solid var(--color-amber);
+  box-shadow: 0 0 6px rgb(255 176 58 / 0.3);
+}
+
+/* Propulsor cian debajo */
+.platform--moving::after {
+  content: '';
+  position: absolute;
+  left: 20%;
+  right: 20%;
+  bottom: -8px;
+  height: 6px;
+  background: var(--color-signal);
+  border-radius: 0 0 3px 3px;
+  opacity: 0.6;
+  animation: thruster-pulse 1.2s ease-in-out infinite alternate;
+}
+
+@keyframes thruster-pulse {
+  0% { opacity: 0.3; box-shadow: 0 2px 8px var(--color-signal); }
+  100% { opacity: 0.8; box-shadow: 0 4px 14px var(--color-signal); }
+}
+
+/* === Plataforma que cae ===
+   Placa con grietas sugeridas y borde rojo. */
+.platform--falling {
+  background: var(--color-deep);
+  border: 2px solid var(--color-alarm);
+  box-shadow: inset 0 0 0 1px rgb(255 43 63 / 0.2);
+}
+
+/* Grietas decorativas */
+.platform--falling::before {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  background:
+    linear-gradient(135deg, transparent 30%, rgb(255 43 63 / 0.15) 30%, rgb(255 43 63 / 0.15) 31%, transparent 31%),
+    linear-gradient(-45deg, transparent 60%, rgb(255 43 63 / 0.1) 60%, rgb(255 43 63 / 0.1) 61%, transparent 61%);
+}
+
+/* Temblor antes de caer */
+.platform--falling.is-shaking {
+  animation: platform-shake 0.08s steps(2) infinite;
+}
+
+.platform--falling.is-shaking::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border: 2px solid var(--color-alarm);
+  animation: warning-flash 0.2s step-end infinite;
+}
+
+@keyframes platform-shake {
+  0% { translate: -1px 0; }
+  50% { translate: 1px -1px; }
+}
+
+@keyframes warning-flash {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* Oculta cuando cae fuera de pantalla */
+.platform--falling.is-hidden {
+  visibility: hidden;
+}
+
+/* Reaparición con fundido */
+.platform--falling.is-respawning {
+  animation: platform-respawn 0.5s ease-out forwards;
+}
+
+@keyframes platform-respawn {
+  0% { opacity: 0; transform: translate(calc(var(--x) * 1px), calc(var(--y) * 1px)) scale(0.8); }
+  100% { opacity: 1; transform: translate(calc(var(--x) * 1px), calc(var(--y) * 1px)) scale(1); }
+}
+
+/* === Movimiento reducido === */
+.game.reduced-motion .platform--moving::after {
+  animation: none;
+  opacity: 0.5;
+}
+
+.game.reduced-motion .platform--falling.is-shaking {
+  animation: none;
+  border-color: var(--color-alarm);
+  box-shadow: 0 0 8px var(--color-alarm);
+}
+
+.game.reduced-motion .platform--falling.is-respawning {
+  animation: none;
+  opacity: 1;
+}
+
+/* === Depuración: recorrido de plataforma móvil === */
+.debug-platform-path {
+  position: absolute;
+  left: 0;
+  top: 0;
+  border-top: 2px dashed var(--color-amber);
+  opacity: 0.4;
+  pointer-events: none;
+  transform: translate(calc(var(--x) * 1px), calc(var(--y) * 1px));
+  width: calc(var(--w) * 1px);
+}

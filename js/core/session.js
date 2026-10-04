@@ -9,6 +9,10 @@ export class GameSession {
   levelIndex = 0;
   sceneIndex = 0;
 
+  // Instantánea al empezar un nivel: se restaura al reiniciar
+  #levelStartScore = 0;
+  #levelStartCrewIds = new Set();
+
   constructor(events) {
     this.#events = events;
     this.#lives = SESSION.lives;
@@ -38,5 +42,18 @@ export class GameSession {
     this.#events.emit('session:life-lost', { lives: this.#lives });
     if (this.isGameOver) this.#events.emit('session:game-over');
     return this.#lives;
+  }
+
+  // Guarda puntos e IDs al empezar un nivel; si se reinicia se vuelve a este estado
+  snapshotLevelStart() {
+    this.#levelStartScore = this.#score;
+    this.#levelStartCrewIds = new Set(this.#foundCrewIds);
+  }
+
+  // Restaura al estado del inicio del nivel (sin tocar vidas)
+  restoreLevelStart() {
+    this.#score = this.#levelStartScore;
+    this.#foundCrewIds = new Set(this.#levelStartCrewIds);
+    this.sceneIndex = 0;
   }
 }

@@ -28,13 +28,13 @@ export const LEVEL_1 = {
         { x1: 1000, x2: 1228, top: 570, bottom: 590, type: 'spikes' },
       ],
       crewIds: [
-        { crewId: 'lucia-ferrer', x: 896, y: 400 },  // encima de la pila de dos cajas; premia el doble salto
+        { crewId: 'lucia-ferrer', x: 896, y: 400 },
       ],
       energyCells: [
-        { x: 1640, y: 350 },  // en la plataforma elevada
+        { x: 1640, y: 350 },
       ],
       trainingDummies: [
-        { x: 400, y: 564 },  // pies sobre el piso de llegada
+        { x: 400, y: 564 },
       ],
       tutorial: [
         { id: 'move',        x: 150,  y: 390, keys: { keyboard: 'A / D',              touch: '◀ ▶' },          text: 'Moverse',                                                                       dismiss: { event: 'player:move' } },
@@ -44,6 +44,80 @@ export const LEVEL_1 = {
         { id: 'spikes',      x: 930,  y: 390, keys: { keyboard: null,                  touch: null },                    text: '¡Púas! Saltalas',                                                     dismiss: { passX: 1228 } },
         { id: 'cell',        x: 1640, y: 214, keys: { keyboard: null,                  touch: null },                    text: 'Celda de energía: la batería baja con el tiempo y con cada disparo',   dismiss: { event: 'pickup:energy-cell' } },
       ],
+      exit: { type: 'edge' },
+    },
+
+    {
+      id: 'n1e2',
+      name: 'Bodega de contenedores',
+      background: 'assets/scenes/nivel1_escena2.webp',
+      spawn: { x: 60, y: 378 },
+      solids: [
+        { x1: 0,    x2: 222,  top: 378 },   // piso de entrada
+        { x1: 228,  x2: 347,  top: 398 },   // contenedor bajo
+        { x1: 352,  x2: 463,  top: 484 },   // contenedor aún más bajo
+        { x1: 470,  x2: 599,  top: 452 },   // contenedor medio
+        { x1: 606,  x2: 740,  top: 394 },   // contenedor alto
+        { x1: 748,  x2: 892,  top: 333 },   // pila más alta
+        { x1: 1320, x2: 1762, top: 395 },   // piso tras el foso
+        { x1: 1768, x2: 1890, top: 420 },   // contenedor descendente 1
+        { x1: 1895, x2: 1972, top: 488 },   // contenedor descendente 2
+        { x1: 1975, x2: 2172, top: 546 },   // piso de salida
+      ],
+      hazards: [
+        // Púas en el fondo del foso; puntas en 586, +6 px de margen
+        { x1: 900, x2: 1296, top: 592, bottom: 724, type: 'spikes' },
+      ],
+      movingPlatforms: [
+        { from: { x: 905, y: 440 }, to: { x: 1175, y: 440 }, width: 120 },
+      ],
+      crewIds: [
+        { crewId: 'tomas-arce', x: 820, y: 290 },
+      ],
+      energyCells: [
+        { x: 1100, y: 395 },
+      ],
+      exit: { type: 'edge' },
+    },
+
+    {
+      id: 'n1e3',
+      name: 'Zona de cuarentena',
+      background: 'assets/scenes/nivel1_escena3.webp',
+      spawn: { x: 60, y: 519 },
+      solids: [
+        { x1: 0,    x2: 742,  top: 519 },   // piso izquierdo
+        { x1: 350,  x2: 422,  top: 462 },   // caja baja
+        { x1: 428,  x2: 497,  top: 418 },   // caja alta
+        { x1: 518,  x2: 932,  top: 378 },   // pasarela izquierda
+        { x1: 1222, x2: 1618, top: 378 },   // pasarela derecha
+        { x1: 1655, x2: 1768, top: 366 },   // escalón bajo
+        { x1: 1780, x2: 1890, top: 310 },   // escalón alto
+        { x1: 1922, x2: 2172, top: 269 },   // plataforma de la puerta
+        { x1: 1410, x2: 2172, top: 588 },   // piso inferior derecho
+      ],
+      hazards: [
+        // Púas bajo los escalones; puntas en 545 + 6 px de margen
+        { x1: 1622, x2: 1922, top: 551, bottom: 588, type: 'spikes' },
+      ],
+      decorations: [
+        { type: 'pit-shadow', x1: 935, x2: 1218, top: 420 },
+      ],
+      fallingPlatforms: [
+        { x: 985,  y: 395, width: 80 },
+        { x: 1105, y: 395, width: 80 },
+      ],
+      enemies: [
+        { x: 760, y: 378, patrol: { x1: 560, x2: 900 } },
+      ],
+      crewIds: [
+        // Sobre la caja verde rota del piso izquierdo
+        { crewId: 'ingrid-solano', x: 150, y: 420 },
+      ],
+      energyCells: [
+        { x: 1300, y: 340 },
+      ],
+      exit: { type: 'door', x1: 1985, x2: 2150, top: 109, bottom: 269 },
     },
   ],
 };

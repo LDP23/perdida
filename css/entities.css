@@ -24,15 +24,26 @@
   --facing: -1;
 }
 
+/* ===== Hojas de sprites: regla genérica ===== */
+/* --sheet-cols/--sheet-rows definen la grilla; --frame-col/--frame-row eligen el frame.
+   Robot (3×3), tira de correr (3×1) y criatura (4×2) usan esta misma regla. */
+
+.sprite-sheet {
+  background-size:
+    calc(var(--sheet-cols, 1) * 100%)
+    calc(var(--sheet-rows, 1) * 100%);
+  background-position:
+    calc(100% * var(--frame-col, 0) / max(1, var(--sheet-cols, 1) - 1))
+    calc(100% * var(--frame-row, 0) / max(1, var(--sheet-rows, 1) - 1));
+  background-repeat: no-repeat;
+}
+
 /* ===== Robot: hoja de sprites 3x3 ===== */
 
-/* Clase compartida para cualquier elemento que muestre un frame del robot */
 .robot-sprite {
   background-image: url('../assets/sprites/robot.png');
-  background-size: 300% 300%;
-  background-repeat: no-repeat;
-  /* Frame 1 (reposo): columna 0, fila 0 */
-  background-position: 0% 0%;
+  --sheet-cols: 3;
+  --sheet-rows: 3;
 }
 
 .entity--player .entity__sprite {
@@ -56,10 +67,11 @@
 
 /* Reposo: frame 1 (default, ya puesto en .robot-sprite) */
 
-/* --- Correr: tira dedicada robot_correr.png (3 frames en fila) --- */
+/* --- Correr: tira dedicada robot_correr.png (3 frames en fila, 3×1) --- */
 .entity--player.is-running .entity__sprite {
   background-image: url('../assets/sprites/robot_correr.png');
-  background-size: 300% 100%;
+  --sheet-cols: 3;
+  --sheet-rows: 1;
   animation: player-run-frames var(--run-cycle) steps(1) infinite;
 }
 
@@ -69,15 +81,17 @@
   66.6%, 100% { background-position: 100% 0%; }
 }
 
-/* --- Subiendo: frame 4 + estirar --- */
+/* --- Subiendo: frame 4 (col 0, fila 1) + estirar --- */
 .entity--player.is-rising .entity__sprite {
-  background-position: 0% 50%;
+  --frame-col: 0;
+  --frame-row: 1;
   scale: 0.9 1.1;
 }
 
-/* --- Cayendo: frame 5 --- */
+/* --- Cayendo: frame 5 (col 1, fila 1) --- */
 .entity--player.is-falling .entity__sprite {
-  background-position: 50% 50%;
+  --frame-col: 1;
+  --frame-row: 1;
   scale: 0.95 1.05;
 }
 
@@ -91,9 +105,10 @@
   100% { scale: 1 1; }
 }
 
-/* --- Ataque en el suelo: frame 6 + retroceso --- */
+/* --- Ataque en el suelo: frame 6 (col 2, fila 1) + retroceso --- */
 .entity--player.is-attacking .entity__sprite {
-  background-position: 100% 50%;
+  --frame-col: 2;
+  --frame-row: 1;
   translate: calc(var(--facing, 1) * -4px) 0;
 }
 
@@ -132,9 +147,10 @@
   100% { filter: none; }
 }
 
-/* --- Dano: frame 7 + parpadeo rojo/blanco --- */
+/* --- Dano: frame 7 (col 0, fila 2) + parpadeo rojo/blanco --- */
 .entity--player.is-hurt-frame .entity__sprite {
-  background-position: 0% 100%;
+  --frame-col: 0;
+  --frame-row: 2;
   filter:
     drop-shadow(0 0 1px var(--color-signal))
     drop-shadow(0 0 4px var(--color-signal-dim))
@@ -216,9 +232,10 @@
   100% { filter: brightness(0.3) grayscale(0.8); }
 }
 
-/* --- Reaparecer: frame 8 con lineas cian de abajo hacia arriba --- */
+/* --- Reaparecer: frame 8 (col 1, fila 2) con lineas cian de abajo hacia arriba --- */
 .entity--player.is-respawning .entity__sprite {
-  background-position: 50% 100%;
+  --frame-col: 1;
+  --frame-row: 2;
   animation: respawn-materialize var(--respawn-duration) ease-out forwards;
   /* Lineas horizontales como efecto de materializacion */
   -webkit-mask-image: repeating-linear-gradient(
@@ -285,6 +302,12 @@
   }
   .game.is-shaking .viewport { animation: none; }
   .entity--player.is-dying .entity__sprite::before { display: none; }
+  .entity--enemy.is-windup .entity__sprite {
+    filter:
+      drop-shadow(0 0 8px var(--color-alarm))
+      drop-shadow(0 0 12px rgb(255 50 50 / 0.6));
+    animation: none;
+  }
 }
 
 /* ===== Disparo ===== */
@@ -415,4 +438,90 @@
 
 .entity--training-dummy.has-hits .entity__hit-count {
   opacity: 1;
+}
+
+/* ===== Criatura: hoja de sprites 4x2 ===== */
+
+.creature-sprite {
+  background-image: url('../assets/sprites/criatura.png');
+  --sheet-cols: 4;
+  --sheet-rows: 2;
+}
+
+.entity--enemy .entity__sprite {
+  width: calc(var(--enemy-frame-w) * 1px);
+  height: calc(var(--enemy-frame-h) * 1px);
+  filter:
+    drop-shadow(0 0 2px var(--color-alarm))
+    drop-shadow(0 0 4px rgb(255 50 50 / 0.4));
+}
+
+/* Caminar: frames 2 y 3 (col 1–2, fila 0) */
+.entity--enemy.is-walking .entity__sprite {
+  animation: enemy-walk var(--enemy-walk-cycle) steps(1) infinite;
+}
+
+@keyframes enemy-walk {
+  0%, 49.9% { background-position: 33.33% 0%; }
+  50%, 100% { background-position: 66.67% 0%; }
+}
+
+/* Preparar ataque: frame 4 (col 3, fila 0), pulso rojo intenso como aviso */
+.entity--enemy.is-windup .entity__sprite {
+  --frame-col: 3;
+  --frame-row: 0;
+  animation: enemy-windup-pulse 0.35s ease-in-out infinite;
+}
+
+@keyframes enemy-windup-pulse {
+  0%, 100% {
+    filter:
+      drop-shadow(0 0 4px var(--color-alarm))
+      drop-shadow(0 0 6px rgb(255 50 50 / 0.4));
+  }
+  50% {
+    filter:
+      drop-shadow(0 0 10px var(--color-alarm))
+      drop-shadow(0 0 18px rgb(255 50 50 / 0.7));
+  }
+}
+
+/* Zarpazo: frame 5 (col 0, fila 1) */
+.entity--enemy.is-strike .entity__sprite {
+  --frame-col: 0;
+  --frame-row: 1;
+}
+
+/* Dano recibido: frame 6 (col 1, fila 1), destello blanco breve */
+.entity--enemy.is-hurt .entity__sprite {
+  --frame-col: 1;
+  --frame-row: 1;
+  animation: enemy-hurt-flash var(--enemy-hurt-time) ease-out forwards;
+}
+
+@keyframes enemy-hurt-flash {
+  0% { filter: brightness(3) drop-shadow(0 0 6px #fff); }
+  100% {
+    filter:
+      drop-shadow(0 0 2px var(--color-alarm))
+      drop-shadow(0 0 4px rgb(255 50 50 / 0.4));
+  }
+}
+
+/* Muriendo: frame 7 (col 2, fila 1) */
+.entity--enemy.is-dying .entity__sprite {
+  --frame-col: 2;
+  --frame-row: 1;
+}
+
+/* Muerta: frame 8 (col 3, fila 1) */
+.entity--enemy.is-dead .entity__sprite {
+  --frame-col: 3;
+  --frame-row: 1;
+}
+
+/* Desvanecimiento final */
+.entity--enemy.is-fading {
+  transition: opacity var(--enemy-fade-time) ease-out;
+  opacity: 0;
 }

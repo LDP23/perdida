@@ -20,7 +20,7 @@ SCENE_QUALITY = 90
 SPRITES = {
     # archivo original -> (nombre de salida, alto en el mundo en px)
     # robot.png y espantapajaros.png ya se procesaron externamente (hoja 3x3 y sprite unico)
-    "characters/enemy/main_enemy.png": ("main_enemy.webp", 138),  # 1.15 x robot
+    # criatura.png se procesó externamente (hoja 4x2)
 }
 
 

@@ -49,6 +49,7 @@
 .debug-rect--hazard { --debug-color: var(--debug-hazard); }
 .debug-rect--trigger { --debug-color: var(--debug-trigger); }
 .debug-rect--safe-point { --debug-color: var(--debug-safe-point); }
+.debug-rect--platform { --debug-color: var(--color-amber); }
 
 /* La etiqueta con las medidas va arriba del rectángulo, como en los datos del nivel. */
 .debug-rect[data-label]::before {

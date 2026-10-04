@@ -60,6 +60,28 @@ export const ROBOT_SPRITE = Object.freeze({
   frameHeight: 122,
 });
 
+// Hoja de la criatura: 4×2 celdas exportadas al doble, se muestran a la mitad.
+export const ENEMY_SPRITE = Object.freeze({
+  sheetCols: 4,
+  sheetRows: 2,
+  frameWidth: 249,
+  frameHeight: 155,
+});
+
+// Criatura enemiga: patrulla, persigue, ataca con zarpazo.
+export const ENEMY = Object.freeze({
+  width: 60, height: 125,            // hitbox centrada sobre los pies
+  health: 3,                          // disparos para destruirla
+  patrolSpeed: 55, chaseSpeed: 105,
+  detectRange: 380, detectHeight: 90, // ve al robot si está cerca y a altura similar
+  attackRange: 95,                     // distancia horizontal para empezar el zarpazo
+  windupTime: 0.55, strikeTime: 0.25, recoverTime: 0.6,
+  strikeReach: 110, strikeHeight: 70, // rectángulo del zarpazo delante de la criatura
+  contactDamage: 10, strikeDamage: 20,
+  hurtTime: 0.25, dyingTime: 0.45, corpseTime: 1.2, fadeTime: 0.5,
+  walkFps: 5,
+});
+
 // Espantapájaros: sprite y hitbox separados (el sprite es más grande que la hitbox).
 export const TRAINING_DUMMY = Object.freeze({
   spriteWidth: 114,
@@ -153,6 +175,19 @@ export const SCENE = Object.freeze({
   fallMargin: 80,
 });
 
+// Transiciones entre escenas y niveles.
+export const TRANSITION = Object.freeze({
+  fadeOut: 0.4,
+  fadeIn: 0.5,
+});
+
+// Plataformas móviles y que caen.
+export const PLATFORMS = Object.freeze({
+  thickness: 20,
+  moving: Object.freeze({ speed: 90, endPause: 0.6 }),
+  falling: Object.freeze({ shakeTime: 0.5, respawnTime: 3, fallGravityScale: 1 }),
+});
+
 // event.code identifica la tecla física: funciona igual con teclado en español o inglés.
 export const KEY_BINDINGS = Object.freeze({
   left: ['KeyA', 'ArrowLeft'],
@@ -163,6 +198,9 @@ export const KEY_BINDINGS = Object.freeze({
   pause: ['Escape', 'KeyP'],
   debug: ['Backquote', 'F2'],
   debugHurt: ['KeyH'],      // solo con depuración activa: prueba el parpadeo de daño
+  scene1: ['Digit1'], scene2: ['Digit2'], scene3: ['Digit3'],
+  scene4: ['Digit4'], scene5: ['Digit5'], scene6: ['Digit6'],
+  scene7: ['Digit7'], scene8: ['Digit8'], scene9: ['Digit9'],
 });
 
 export const SETTINGS_DEFAULTS = Object.freeze({

@@ -64,7 +64,8 @@
 .game[data-state="menu"] .screen--menu,
 .game[data-state="game-over"] .screen--game-over,
 .game[data-state="off"] .screen--off,
-.game[data-overlay="paused"] .screen--paused {
+.game[data-overlay="paused"] .screen--paused,
+.game[data-overlay="level-complete"] .screen--level-complete {
   opacity: 1;
   pointer-events: auto;
 }
@@ -530,6 +531,70 @@
 .screen--off .menu-buttons {
   animation: off-text-appear 0.5s ease 1.2s forwards;
   opacity: 0;
+}
+
+/* ============================================================
+   NIVEL COMPLETADO (superpuesto como la pausa)
+   ============================================================ */
+.screen--level-complete {
+  background: rgb(2 4 11 / 0.85);
+}
+
+.level-complete-summary {
+  font-family: var(--font-terminal);
+  font-size: var(--text-body);
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin: 1rem 0;
+}
+
+.level-complete-summary span {
+  color: var(--color-amber);
+}
+
+/* ============================================================
+   FUNDIDO DE TRANSICIÓN ENTRE ESCENAS
+   ============================================================ */
+.scene-fade {
+  position: absolute;
+  inset: 0;
+  z-index: 15;
+  background: var(--color-void);
+  pointer-events: none;
+  opacity: 0;
+}
+
+.scene-fade.is-showing {
+  animation: fade-to-black var(--fade-out) ease-in forwards;
+}
+
+.scene-fade.is-hiding {
+  animation: fade-from-black var(--fade-in) ease-out forwards;
+}
+
+@keyframes fade-to-black {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes fade-from-black {
+  0% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* ============================================================
+   DECORACIONES DEL MUNDO
+   ============================================================ */
+.decoration--pit-shadow {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: calc(var(--w) * 1px);
+  height: 304px;
+  transform: translate(calc(var(--x) * 1px), calc(var(--y) * 1px));
+  background: linear-gradient(to bottom, transparent 0%, var(--color-void) 80%);
+  pointer-events: none;
 }
 
 /* ============================================================

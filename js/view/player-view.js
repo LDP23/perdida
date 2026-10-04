@@ -20,7 +20,7 @@ export class PlayerView {
     this.#view = new EntityView(layer, 'player', PLAYER);
     this.#element = this.#view.element;
     this.#sprite = this.#view.sprite;
-    this.#sprite.classList.add('robot-sprite');
+    this.#sprite.classList.add('sprite-sheet', 'robot-sprite');
   }
 
   sync(player) {

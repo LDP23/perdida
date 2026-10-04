@@ -1,5 +1,6 @@
-import { DEBUG, PICKUP, PLAYER, PLAYER_FEEDBACK, ROBOT_SPRITE, SHOOT, TRAINING_DUMMY } from '../config.js';
+import { DEBUG, ENEMY, ENEMY_SPRITE, PICKUP, PLATFORMS, PLAYER, PLAYER_FEEDBACK, ROBOT_SPRITE, SHOOT, TRAINING_DUMMY, TRANSITION } from '../config.js';
 import { GameOverState } from '../states/game-over-state.js';
+import { LevelCompleteState } from '../states/level-complete-state.js';
 import { MenuState } from '../states/menu-state.js';
 import { OffState } from '../states/off-state.js';
 import { PausedState } from '../states/paused-state.js';
@@ -66,6 +67,7 @@ export class Game {
         menu: new MenuState(context),
         playing: new PlayingState(context),
         paused: new PausedState(context),
+        'level-complete': new LevelCompleteState(context),
         'game-over': new GameOverState(context),
         off: new OffState(context),
       },
@@ -93,6 +95,16 @@ export class Game {
     const dummyBottomOffset = TRAINING_DUMMY.spriteHeight
       - TRAINING_DUMMY.hitboxTopOffset - TRAINING_DUMMY.hitboxHeight;
     s.setProperty('--dummy-bottom-offset', dummyBottomOffset);
+    s.setProperty('--fade-out', `${TRANSITION.fadeOut}s`);
+    s.setProperty('--fade-in', `${TRANSITION.fadeIn}s`);
+    s.setProperty('--platform-shake-time', `${PLATFORMS.falling.shakeTime}s`);
+    s.setProperty('--enemy-frame-w', ENEMY_SPRITE.frameWidth);
+    s.setProperty('--enemy-frame-h', ENEMY_SPRITE.frameHeight);
+    s.setProperty('--enemy-walk-cycle', `${2 / ENEMY.walkFps}s`);
+    s.setProperty('--enemy-windup-time', `${ENEMY.windupTime}s`);
+    s.setProperty('--enemy-hurt-time', `${ENEMY.hurtTime}s`);
+    s.setProperty('--enemy-dying-time', `${ENEMY.dyingTime}s`);
+    s.setProperty('--enemy-fade-time', `${ENEMY.fadeTime}s`);
 
     this.#disposeDevice = setupDeviceClass(refs.game);
     this.#resizeObserver = new ResizeObserver(([entry]) => this.#onResize(entry.contentRect));

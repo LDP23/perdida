@@ -14,6 +14,8 @@ export function createBody({ x = 0, y = 0, width, height, gravityScale = 1 }) {
     vy: 0,
     gravityScale,
     contacts: { left: false, right: false, ground: false, ceiling: false },
+    // Referencia al sólido sobre el que descansa (para arrastre de plataformas)
+    groundSolid: null,
   };
 }
 
@@ -25,6 +27,7 @@ export function velocityForHeight(height) {
 // Un paso de simulación: gravedad, movimiento y choque contra los sólidos.
 export function stepBody(body, solids, deltaTime) {
   resetContacts(body.contacts);
+  body.groundSolid = null;
   const fallDistance = integrateGravity(body, deltaTime);
   moveAxis(body, 'x', body.vx * deltaTime, solids);
   moveAxis(body, 'y', fallDistance, solids);
@@ -46,7 +49,7 @@ function integrateGravity(body, deltaTime) {
 
 // Mover un eje a la vez permite saber de qué lado fue el choque
 // (piso, techo o pared) y deslizarse por las superficies.
-function moveAxis(body, axis, delta, solids) {
+export function moveAxis(body, axis, delta, solids) {
   if (delta === 0) return;
   const { size, velocity, negativeContact, positiveContact } = AXES[axis];
   body[axis] += delta;
@@ -56,10 +59,18 @@ function moveAxis(body, axis, delta, solids) {
     if (delta > 0) {
       body[axis] = solid[axis] - body[size];
       body.contacts[positiveContact] = true;
+      // Rastrear sobre qué sólido aterrizó (para arrastre de plataformas)
+      if (axis === 'y') body.groundSolid = solid;
     } else {
       body[axis] = solid[axis] + solid[size];
       body.contacts[negativeContact] = true;
     }
     body[velocity] = 0;
   }
+}
+
+// Arrastra un cuerpo con su plataforma, resolviendo colisiones normales
+export function carryByPlatform(body, dx, dy, solids) {
+  if (dx !== 0) moveAxis(body, 'x', dx, solids);
+  if (dy !== 0) moveAxis(body, 'y', dy, solids);
 }
