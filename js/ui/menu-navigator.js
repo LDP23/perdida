@@ -1,5 +1,20 @@
-// Navegación por teclado para pantallas de menú.
-// Flechas arriba/abajo (y W/S) mueven el foco entre los botones visibles; Escape ejecuta "volver".
+/**
+ * @module menu-navigator
+ *
+ * Navegación por teclado para pantallas de menú. Las flechas arriba/abajo (y W/S)
+ * mueven el foco circularmente entre los botones visibles; Escape ejecuta "volver".
+ * Los menús usan <button> reales con foco nativo — este módulo solo agrega
+ * la navegación con las teclas de juego.
+ *
+ * Usado por: MenuState, PausedState, LevelCompleteState, GameOverState, OffState.
+ * Depende de: nada.
+ */
+
+/**
+ * Navegador de teclado para menús.
+ *
+ * Ciclo de vida: el estado lo crea en enter() y llama dispose() en exit().
+ */
 export class MenuNavigator {
   #container;
   #onBack;

@@ -1,4 +1,18 @@
-/* Modo de depuración. Todo lo de aquí solo se ve con la clase .is-debug en .game. */
+/*
+ * debug.css — Modo de depuración visual (solo visible con .is-debug en .game).
+ *
+ * Dibuja:
+ * - Rejilla de coordenadas cada --ruler-step px (dos linear-gradient cruzados).
+ * - Rectángulos de colisión coloreados por tipo (solid, wall, player, hazard,
+ *   trigger, safe-point, platform) con borde + fondo semitransparente via color-mix().
+ * - Etiquetas con las medidas del nivel (data-label, ::before) para comparar con
+ *   los datos de level1.js.
+ * - Cursor con coordenadas del mundo (líneas cruzadas + etiqueta ámbar).
+ * - Panel de métricas (fps, posición, estado, batería, etc.) con borde magenta.
+ *
+ * Técnica: color-mix(in srgb, var(--debug-color) 12%, transparent) genera el
+ * fondo semitransparente a partir del color del borde sin repetir el valor.
+ */
 
 :root {
   --debug-grid: rgb(255 255 255 / 0.08);
@@ -8,6 +22,7 @@
   --debug-hazard: #ff2b3f;
   --debug-trigger: #ffb03a;
   --debug-safe-point: #00ff88;
+  --debug-trap: #ff8c00;
   --debug-label-bg: rgb(2 4 11 / 0.8);
 }
 
@@ -49,6 +64,7 @@
 .debug-rect--hazard { --debug-color: var(--debug-hazard); }
 .debug-rect--trigger { --debug-color: var(--debug-trigger); }
 .debug-rect--safe-point { --debug-color: var(--debug-safe-point); }
+.debug-rect--trap { --debug-color: var(--debug-trap); }
 .debug-rect--platform { --debug-color: var(--color-amber); }
 
 /* La etiqueta con las medidas va arriba del rectángulo, como en los datos del nivel. */

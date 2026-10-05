@@ -1,6 +1,19 @@
+/**
+ * @module platform-view
+ *
+ * Vista genérica de una plataforma (móvil o que cae): caja CSS posicionada con
+ * --x/--y, con clase is-* según el estado visual de la plataforma.
+ *
+ * Usado por: SceneWorld (la crea vía EntityCollection con viewFactory).
+ * Depende de: dom-utils.js.
+ */
 import { createElement, setPosition, setSize } from './dom-utils.js';
 
-// Vista genérica de una plataforma: caja CSS posicionada con --x/--y.
+/**
+ * Vista de plataforma.
+ *
+ * Ciclo de vida: EntityCollection la crea vía viewFactory; destroy() remueve del DOM.
+ */
 export class PlatformView {
   #element;
   #lastState = '';

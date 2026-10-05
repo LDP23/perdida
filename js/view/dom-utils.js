@@ -1,6 +1,23 @@
-// Únicos puntos donde el JavaScript escribe estilos: solo variables CSS de
-// geometría (--x, --y, --w, --h). El aspecto visual siempre lo decide el CSS.
+/**
+ * @module dom-utils
+ *
+ * Utilidades de DOM: crear elementos, posicionar con variables CSS de geometría
+ * (--x, --y, --w, --h), y buscar elementos por data-ref.
+ *
+ * Convención: el JavaScript solo escribe variables CSS de geometría. El aspecto
+ * visual lo decide el CSS. Las clases son para CSS; data-ref para JS — renombrar
+ * un estilo nunca rompe la lógica.
+ *
+ * Usado por: todas las vistas (EntityView, PlayerView, HudView, etc.).
+ * Depende de: nada.
+ */
 
+/**
+ * Crea un div con la clase dada y lo agrega al padre.
+ * @param {string} className
+ * @param {HTMLElement|null} parent
+ * @returns {HTMLElement}
+ */
 export function createElement(className, parent) {
   const element = document.createElement('div');
   element.className = className;

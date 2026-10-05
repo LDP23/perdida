@@ -1,3 +1,12 @@
+/**
+ * @module level-complete-state
+ *
+ * Overlay al completar un nivel: muestra bono de batería, IDs encontrados en el nivel,
+ * puntuación total y botón para continuar al siguiente nivel o volver al menú.
+ *
+ * Usado por: StateMachine (estado 'level-complete', superpuesto con push sobre 'playing').
+ * Depende de: MenuNavigator, screens.js, dom-utils.js, levels.js.
+ */
 import { MenuNavigator } from '../ui/menu-navigator.js';
 import { formatScore, saveHighScore } from '../ui/screens.js';
 import { queryRefs } from '../view/dom-utils.js';
@@ -8,6 +17,11 @@ const REFS = [
   'lc-score', 'lc-buttons', 'btn-lc-continue',
 ];
 
+/**
+ * Estado de nivel completado.
+ *
+ * Ciclo de vida: se apila sobre PlayingState; el jugador decide continuar o salir.
+ */
 export class LevelCompleteState {
   #context;
   #refs;

@@ -1,4 +1,25 @@
-/* Base: fuentes, paleta y reglas globales. Todos los colores del juego salen de aquí. */
+/*
+ * base.css — Tokens de diseño, fuentes locales, reset y mensaje de arranque.
+ *
+ * Paleta: todos los colores del juego se definen aquí como custom properties.
+ *   --color-void / --color-deep: fondos de espacio profundo.
+ *   --color-signal / --color-signal-dim: cian del robot y la tecnología.
+ *   --color-alarm: rojo de peligro, daño y alertas.
+ *   --color-amber: nivel 1, IDs de tripulante, advertencias.
+ *   --color-acid: nivel 2 (ácido).
+ *
+ * Fuentes: locales (woff2) para evitar carga de red.
+ *   --font-terminal (VT323): textos de juego, bitácoras, HUD.
+ *   --font-display (Silkscreen): títulos y botones de menú.
+ *
+ * Técnicas:
+ * - font-display: swap para que el texto se muestre inmediatamente con la fuente del sistema
+ *   y se reemplace cuando la fuente personalizada cargue, evitando texto invisible.
+ * - touch-action: none y overscroll-behavior: none previenen gestos del navegador
+ *   (scroll, zoom, rebote) que interfieren con el juego en dispositivos táctiles.
+ * - El mensaje de arranque se oculta con .game[data-state], que JS asigna al iniciar:
+ *   si el JS falla, el jugador ve el mensaje en vez de una pantalla negra.
+ */
 
 @font-face {
   font-family: 'VT323';

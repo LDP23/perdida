@@ -1,4 +1,18 @@
-/* Plataformas móviles y que caen: dibujadas solo con CSS, sin imágenes. */
+/*
+ * platforms.css — Plataformas móviles y que caen, dibujadas solo con CSS.
+ *
+ * Plataforma móvil:
+ * - Franja de advertencia ámbar con repeating-linear-gradient a -45deg.
+ * - Propulsor cian debajo (::after) con pulso de opacidad y box-shadow.
+ *
+ * Plataforma que cae:
+ * - Grietas decorativas con linear-gradient superpuestos (::before).
+ * - is-shaking: temblor rápido con steps(2) + borde intermitente (::after).
+ * - is-hidden: visibility: hidden cuando cae fuera de pantalla.
+ * - is-respawning: fundido con scale(0.8→1) para el efecto de materialización.
+ *
+ * Movimiento reducido: sin animaciones de pulso ni temblor; indicadores estáticos.
+ */
 
 .platform {
   position: absolute;

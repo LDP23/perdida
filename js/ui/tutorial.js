@@ -1,10 +1,24 @@
+/**
+ * @module tutorial
+ *
+ * Lógica de los carteles del tutorial: cuándo mostrarlos, cuándo descartarlos.
+ * Reglas: se muestran de a uno (el siguiente solo aparece cuando todos los anteriores
+ * fueron descartados). Cada cartel tiene permanencia mínima, linger al alejarse,
+ * y se descarta por evento (p.ej. player:jump) o por posición (passX).
+ *
+ * Usado por: PlayingState (llama update en cada frame), SceneWorld (lo crea).
+ * Depende de: config.js (MESSAGES, TUTORIAL), timer.js.
+ */
 import { MESSAGES, TUTORIAL } from '../config.js';
 import { Timer } from '../core/timer.js';
 
-// Lógica de los carteles del tutorial.
-// De a uno: un cartel solo aparece cuando todos los anteriores fueron descartados o quedaron atrás.
-// Tiempos: permanencia mínima, linger al alejarse, descarte por evento o posición.
-
+/**
+ * Lógica de carteles del tutorial.
+ *
+ * Ciclo de vida: SceneWorld lo crea si hay carteles y el tutorial está habilitado;
+ * PlayingState llama update(); dispose() limpia suscripciones.
+ * Colabora con: TutorialView (lee signs para mostrar/ocultar carteles en el DOM).
+ */
 export class Tutorial {
   #signs;
   #events;

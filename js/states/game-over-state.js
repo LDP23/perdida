@@ -1,3 +1,12 @@
+/**
+ * @module game-over-state
+ *
+ * Resumen de fin de partida: puntuación, IDs encontrados, récord (con marcador de
+ * nuevo récord), botones para reiniciar o salir al menú.
+ *
+ * Usado por: StateMachine (estado 'game-over').
+ * Depende de: GameSession, MenuNavigator, screens.js, dom-utils.js.
+ */
 import { GameSession } from '../core/session.js';
 import { MenuNavigator } from '../ui/menu-navigator.js';
 import { formatScore, getHighScore, saveHighScore } from '../ui/screens.js';
@@ -9,6 +18,11 @@ const REFS = [
   'btn-restart', 'btn-go-menu',
 ];
 
+/**
+ * Estado de game over.
+ *
+ * Ciclo de vida: StateMachine lo activa con change('game-over') al perder todos los intentos.
+ */
 export class GameOverState {
   #context;
   #refs;

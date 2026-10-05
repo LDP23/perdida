@@ -1,8 +1,21 @@
+/**
+ * @module training-dummy-view
+ *
+ * Vista del maniquí de práctica (espantapájaros). El sprite es más grande que la
+ * hitbox: la caja .entity mide como la hitbox; el sprite queda centrado y alineado
+ * al piso (bottom, no a la hitbox). Muestra un contador de impactos.
+ *
+ * Usado por: SceneWorld (la crea vía EntityCollection con viewFactory).
+ * Depende de: config.js (TRAINING_DUMMY), dom-utils.js.
+ */
 import { TRAINING_DUMMY } from '../config.js';
 import { createElement, setPosition, setSize } from './dom-utils.js';
 
-// Vista del maniqui: el sprite es mas grande que la hitbox.
-// La caja .entity mide como la hitbox; el sprite queda centrado y alineado abajo.
+/**
+ * Vista del maniquí de práctica.
+ *
+ * Ciclo de vida: EntityCollection la crea vía viewFactory; destroy() remueve del DOM.
+ */
 export class TrainingDummyView {
   #element;
   #hitLabel;

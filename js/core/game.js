@@ -1,4 +1,15 @@
-import { DEBUG, ENEMY, ENEMY_SPRITE, PICKUP, PLATFORMS, PLAYER, PLAYER_FEEDBACK, ROBOT_SPRITE, SHOOT, TRAINING_DUMMY, TRANSITION } from '../config.js';
+/**
+ * @module game
+ *
+ * Raíz de composición del juego. Crea cada pieza una sola vez (Input, Camera,
+ * EventBus, Settings, vistas, bucle, máquina de estados) y la inyecta a quien
+ * la necesita a través del objeto `context`. Nada es global.
+ *
+ * Usado por: main.js (punto de entrada).
+ * Depende de: todos los módulos core, todos los estados, las vistas y config.js.
+ * Participa en: orquesta el arranque y la destrucción del juego completo.
+ */
+import { DEBUG, ENEMY, ENEMY_SPRITE, PICKUP, PLATFORMS, PLAYER, PLAYER_FEEDBACK, ROBOT_SPRITE, SHOOT, TRAINING_DUMMY, TRANSITION, TRAPS } from '../config.js';
 import { GameOverState } from '../states/game-over-state.js';
 import { LevelCompleteState } from '../states/level-complete-state.js';
 import { MenuState } from '../states/menu-state.js';
@@ -16,13 +27,21 @@ import { Input } from './input.js';
 import { Settings } from './settings.js';
 import { StateMachine } from './state-machine.js';
 
+/** Nombres de data-ref que se buscan en el DOM para inyectar en el context */
 const REFS = [
   'game', 'viewport', 'world', 'scene', 'entities',
   'debug-layer', 'debug-panel', 'hud', 'panels',
 ];
 
-// Raíz de composición: crea cada pieza UNA vez y se la pasa a quien la necesita.
-// Nada es global; los estados reciben todo por el objeto "context".
+/**
+ * Raíz de composición del juego.
+ *
+ * Ciclo de vida: main.js hace `new Game(document).start()`. Al cerrar, se llama destroy().
+ * Colabora con: todos los módulos del juego a través del objeto `context`.
+ *
+ * El constructor también sincroniza variables CSS con config.js (una sola vez),
+ * para que las animaciones CSS (duraciones, tamaños de sprite) coincidan con la lógica.
+ */
 export class Game {
   #input;
   #camera;
@@ -35,6 +54,9 @@ export class Game {
   #resizeObserver;
   #disposeDevice;
 
+  /**
+   * @param {Document|HTMLElement} [scope=document] — raíz DOM donde buscar los data-ref.
+   */
   constructor(scope = document) {
     const refs = queryRefs(scope, REFS);
     this.#input = new Input();
@@ -105,6 +127,7 @@ export class Game {
     s.setProperty('--enemy-hurt-time', `${ENEMY.hurtTime}s`);
     s.setProperty('--enemy-dying-time', `${ENEMY.dyingTime}s`);
     s.setProperty('--enemy-fade-time', `${ENEMY.fadeTime}s`);
+    s.setProperty('--press-block-h', TRAPS.press.blockHeight);
 
     this.#disposeDevice = setupDeviceClass(refs.game);
     this.#resizeObserver = new ResizeObserver(([entry]) => this.#onResize(entry.contentRect));
@@ -112,12 +135,20 @@ export class Game {
     this.#onResize(refs.viewport.getBoundingClientRect());
   }
 
+  /**
+   * Arranca el juego: activa la depuración si está configurada, cambia al menú
+   * principal e inicia el bucle de frames.
+   */
   start() {
     this.#debugView.setEnabled(DEBUG.enabledOnStart);
     this.#states.change('menu');
     this.#loop.start();
   }
 
+  /**
+   * Destruye el juego: detiene el bucle, sale de todos los estados, desconecta
+   * el observer de tamaño, libera Input, EventBus, dispositivo y depuración.
+   */
   destroy() {
     this.#loop.stop();
     this.#states.dispose();
@@ -128,11 +159,13 @@ export class Game {
     this.#debugView.dispose();
   }
 
+  /** @param {number} deltaTime — segundos del subpaso actual */
   #update(deltaTime) {
     if (this.#input.consumePress('debug')) this.#debugView.toggle();
     this.#states.update(deltaTime);
   }
 
+  /** @param {number} frameDelta — delta total del frame, en segundos */
   #render(frameDelta) {
     this.#states.render(frameDelta);
     if (this.#states.baseName === 'playing') {
@@ -141,6 +174,7 @@ export class Game {
     this.#debugView.render(frameDelta);
   }
 
+  /** Recalcula escala y vista al cambiar el tamaño del viewport */
   #onResize({ width, height }) {
     this.#camera.resize(width, height);
     this.#worldView.applyScale(this.#camera);

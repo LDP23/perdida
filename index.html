@@ -1,3 +1,26 @@
+<!--
+  index.html — Señal Perdida
+  Estructura de capas (de fondo a frente):
+
+  .game                     Raíz del juego. Recibe data-state, data-overlay, data-sub.
+    .viewport               Clip del mundo visible. Recibe la sacudida de pantalla.
+      .world                Contenedor escalado (transform: scale + translate3d).
+        .scene              Fondo de la escena (--scene-image).
+        .layer--entities    Entidades: robot, enemigos, proyectiles, pickups, plataformas.
+        .layer--tutorial    Carteles del tutorial (creados dinámicamente por TutorialView).
+        .layer--debug       Rejilla, rectángulos de colisión, cursor (solo con .is-debug).
+    .hud                    HUD: batería, vidas, nivel, puntos, IDs, toast.
+    .panel-layer            Panel de registro de tripulante (modal, pausa el juego).
+    .screen--*              Pantallas de menú (visibilidad por CSS según data-state/overlay/sub).
+    .debug-panel            Panel de texto de depuración (solo con .is-debug).
+    .boot-message           Mensaje de arranque (visible hasta que JS asigna un estado).
+
+  Convenciones:
+  - data-ref="nombre" identifica elementos para JS (nunca clases).
+  - Clases para CSS, data-ref para JS: renombrar un estilo nunca rompe la lógica.
+  - <button> reales con foco nativo para accesibilidad y navegación por teclado.
+  - viewport-fit=cover para pantallas con notch (safe-area-inset-* en el CSS).
+-->
 <!doctype html>
 <html lang="es">
 <head>
@@ -6,6 +29,8 @@
   <meta name="description" content="Señal Perdida: un robot de mantenimiento investiga una estación espacial abandonada.">
   <title>Señal Perdida</title>
 
+  <!-- CSS dividido por responsabilidad: base, mundo, entidades, plataformas,
+       tutorial, HUD, paneles, pantallas de menú, depuración. -->
   <link rel="stylesheet" href="css/base.css">
   <link rel="stylesheet" href="css/world.css">
   <link rel="stylesheet" href="css/entities.css">
@@ -14,13 +39,16 @@
   <link rel="stylesheet" href="css/hud.css">
   <link rel="stylesheet" href="css/panels.css">
   <link rel="stylesheet" href="css/screens.css">
+  <link rel="stylesheet" href="css/traps.css">
   <link rel="stylesheet" href="css/debug.css">
 
+  <!-- Punto de entrada: type="module" se ejecuta después de parsear el HTML. -->
   <script type="module" src="js/main.js"></script>
 </head>
 <body>
   <main class="game" data-ref="game">
 
+    <!-- Capa del mundo: viewport > world > scene + entities + debug -->
     <div class="viewport" data-ref="viewport">
       <div class="world" data-ref="world">
         <div class="scene" data-ref="scene"></div>
@@ -29,6 +57,7 @@
       </div>
     </div>
 
+    <!-- Capas de UI (fuera del mundo, no se mueven con la cámara) -->
     <div class="hud" data-ref="hud"></div>
     <div class="panel-layer" data-ref="panels"></div>
 
@@ -139,9 +168,8 @@
           <button data-ref="btn-pause-options">Opciones</button>
           <button data-ref="btn-exit-to-menu">Salir al menú</button>
         </nav>
-        <!-- Confirmación (oculta por defecto) -->
-        <div class="confirm-dialog" data-ref="confirm-dialog" hidden>
-          <p class="confirm-dialog__text">¿Seguro? Se pierde el progreso del nivel.</p>
+        <div class="confirm-dialog" data-ref="confirm-dialog">
+          <p class="confirm-dialog__text" data-ref="confirm-text"></p>
           <nav class="menu-buttons">
             <button data-ref="btn-confirm-yes">Sí</button>
             <button data-ref="btn-confirm-no">No</button>

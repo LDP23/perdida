@@ -1,10 +1,24 @@
+/**
+ * @module crew-log-panel
+ *
+ * Panel que muestra el registro de un tripulante encontrado. Mientras está abierto,
+ * el juego se pausa (PickupSystem consulta isOpen y consume el frame). Una barra
+ * de progreso cuenta la duración de lectura, calculada según la longitud del texto.
+ *
+ * Usado por: PickupSystem (abre el panel al recoger un ID de tripulante).
+ * Depende de: config.js (MESSAGES), math-utils.js, timer.js, crew-logs.js.
+ */
 import { MESSAGES } from '../config.js';
 import { clamp } from '../core/math-utils.js';
 import { Timer } from '../core/timer.js';
 import { CREW_LOGS } from '../levels/crew-logs.js';
 
-// Panel que muestra el registro de un tripulante encontrado.
-// Mientras está abierto el juego se pausa (PlayingState lo consulta).
+/**
+ * Panel de registro de tripulante.
+ *
+ * Ciclo de vida: PickupSystem lo crea una vez; open(crewId) lo muestra; close() o
+ * la expiración lo ocultan; destroy() limpia el DOM.
+ */
 export class CrewLogPanel {
   #panelsLayer;
   #element = null;

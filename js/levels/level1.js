@@ -1,8 +1,22 @@
-// Nivel 1: Bahía de carga. SOLO datos: agregar o corregir una escena no toca el motor.
-// Coordenadas en píxeles de la imagen (2172 × 724). Se usa la misma notación del
-// documento de diseño (x1–x2 y borde superior "top") para copiar las medidas tal cual.
-// "bottom" es opcional: si no se indica, el sólido llega hasta el fondo de la imagen.
-// "spawn" es el punto donde quedan los PIES del robot (centro inferior).
+/**
+ * @module level1
+ *
+ * Datos del Nivel 1 — Bahía de carga. SOLO datos: agregar o corregir una escena
+ * no toca el motor. Coordenadas en píxeles de la imagen (2172 × 724). Se usa la
+ * misma notación del documento de diseño (x1–x2 y borde superior "top") para copiar
+ * las medidas tal cual.
+ *
+ * Convenciones de los datos:
+ * - "bottom" es opcional: si no se indica, el sólido llega hasta el fondo (724).
+ * - "spawn" es el punto donde quedan los PIES del robot (centro inferior).
+ * - "enemies[].x/y": posición de los pies de la criatura.
+ * - "enemies[].patrol": límites horizontales de la patrulla.
+ * - "exit.type = 'edge'": el robot sale por el borde derecho.
+ * - "exit.type = 'door'": zona rectangular de la puerta.
+ *
+ * Usado por: levels.js (lo agrega al array LEVELS).
+ * Depende de: nada (datos puros).
+ */
 
 export const LEVEL_1 = {
   id: 1,
@@ -77,6 +91,12 @@ export const LEVEL_1 = {
       energyCells: [
         { x: 1100, y: 395 },
       ],
+      traps: [
+        // Prensa sobre el contenedor largo (1320–1762). El bloque descansa arriba
+        // y baja de golpe hasta la superficie (395). restBottom deja 125 px libres
+        // (robot = 112 + 10 de margen).
+        { type: 'press', x1: 1480, x2: 1600, ceiling: 100, restBottom: 270, bottom: 395 },
+      ],
       exit: { type: 'edge' },
     },
 
@@ -116,6 +136,11 @@ export const LEVEL_1 = {
       ],
       energyCells: [
         { x: 1300, y: 340 },
+      ],
+      traps: [
+        // Láser sobre la pasarela derecha (1222–1618). El emisor está arriba,
+        // el rayo impacta en la superficie (378).
+        { type: 'laser', x: 1400, top: 120, bottom: 378 },
       ],
       exit: { type: 'door', x1: 1985, x2: 2150, top: 109, bottom: 269 },
     },

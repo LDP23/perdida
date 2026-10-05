@@ -1,6 +1,35 @@
-/* Entidades. La caja .entity mide lo mismo que la hitbox (config.js); el sprite
-   es mas grande y se apoya en su borde inferior, centrado. Las duraciones CSS
-   vienen de variables que game.js escribe una vez desde config.js. */
+/*
+ * entities.css — Sprites y animaciones de todas las entidades del juego.
+ *
+ * Arquitectura sprite:
+ * - .entity: caja invisible del tamaño de la hitbox, posicionada con --x/--y.
+ * - .entity__sprite: imagen centrada horizontalmente y alineada al borde inferior
+ *   de la caja. Suele ser más grande que la hitbox (el dibujo sobresale).
+ *
+ * Hojas de sprites genéricas (.sprite-sheet):
+ * - @property registra --frame-col y --frame-row como <integer>, lo que permite
+ *   animarlas con steps() sin que el navegador interpole valores intermedios.
+ * - background-size y background-position se calculan con una sola fórmula a
+ *   partir de --sheet-cols, --sheet-rows, --frame-col y --frame-row.
+ * - Robot (3×3), tira de correr (3×1) y criatura (4×2) usan la misma regla.
+ *
+ * Técnicas CSS notables:
+ * - scaleX(var(--facing)) voltea el sprite sin imagen duplicada.
+ * - translate, rotate y scale como propiedades individuales evitan pisar el
+ *   transform que posiciona y voltea el sprite.
+ * - ::after para el fogonazo del cañón (efecto temporal, no necesita elemento propio).
+ * - mask-image con repeating-linear-gradient para las líneas de materialización.
+ * - clip-path: inset() para revelar el sprite de abajo hacia arriba en el respawn.
+ * - drop-shadow en el padre (.entity--player) para el aura roja de daño, separada
+ *   de las animaciones del sprite hijo.
+ * - Las duraciones CSS (--run-cycle, --death-duration, etc.) se sincronizan con
+ *   config.js a través de variables que game.js escribe una vez al arrancar.
+ *
+ * Movimiento reducido (@media prefers-reduced-motion):
+ * - Elimina squash/stretch, sacudida, chispas de muerte.
+ * - Reduce la frecuencia de parpadeo de invulnerabilidad.
+ * - Aura roja fija (sin pulso).
+ */
 
 .entity {
   position: absolute;
@@ -26,16 +55,42 @@
 
 /* ===== Hojas de sprites: regla genérica ===== */
 /* --sheet-cols/--sheet-rows definen la grilla; --frame-col/--frame-row eligen el frame.
-   Robot (3×3), tira de correr (3×1) y criatura (4×2) usan esta misma regla. */
+   Robot (3×3), tira de correr (3×1) y criatura (4×2) usan esta misma regla.
+   @property permite animar --frame-col con steps() sin interpolar valores intermedios. */
+
+@property --frame-col {
+  syntax: "<integer>";
+  inherits: false;
+  initial-value: 0;
+}
+
+@property --frame-row {
+  syntax: "<integer>";
+  inherits: false;
+  initial-value: 0;
+}
 
 .sprite-sheet {
   background-size:
     calc(var(--sheet-cols, 1) * 100%)
     calc(var(--sheet-rows, 1) * 100%);
   background-position:
-    calc(100% * var(--frame-col, 0) / max(1, var(--sheet-cols, 1) - 1))
-    calc(100% * var(--frame-row, 0) / max(1, var(--sheet-rows, 1) - 1));
+    calc(100% * var(--frame-col) / max(1, var(--sheet-cols, 1) - 1))
+    calc(100% * var(--frame-row) / max(1, var(--sheet-rows, 1) - 1));
   background-repeat: no-repeat;
+}
+
+/* Ciclos de --frame-col reutilizables: steps(N) en la animación hace que
+   --frame-col cambie de forma discreta gracias al @property <integer>. */
+
+@keyframes cycle-3-frames {
+  from { --frame-col: 0; }
+  to   { --frame-col: 3; }
+}
+
+@keyframes cycle-2-walk-frames {
+  from { --frame-col: 1; }
+  to   { --frame-col: 3; }
 }
 
 /* ===== Robot: hoja de sprites 3x3 ===== */
@@ -72,13 +127,7 @@
   background-image: url('../assets/sprites/robot_correr.png');
   --sheet-cols: 3;
   --sheet-rows: 1;
-  animation: player-run-frames var(--run-cycle) steps(1) infinite;
-}
-
-@keyframes player-run-frames {
-  0%, 33.2% { background-position: 0% 0%; }
-  33.3%, 66.5% { background-position: 50% 0%; }
-  66.6%, 100% { background-position: 100% 0%; }
+  animation: cycle-3-frames var(--run-cycle) steps(3) infinite;
 }
 
 /* --- Subiendo: frame 4 (col 0, fila 1) + estirar --- */
@@ -177,12 +226,13 @@
 
 /* --- Muerte: frames 8 y 9 + efectos --- */
 .entity--player.is-dying .entity__sprite {
+  --frame-row: 2;
   animation: player-death var(--death-duration) steps(1, end) forwards;
 }
 
 @keyframes player-death {
-  0%, 39% { background-position: 50% 100%; }
-  40%, 100% { background-position: 100% 100%; }
+  0%, 39% { --frame-col: 1; }
+  40%, 100% { --frame-col: 2; }
 }
 
 /* Chispas durante la muerte */
@@ -458,12 +508,7 @@
 
 /* Caminar: frames 2 y 3 (col 1–2, fila 0) */
 .entity--enemy.is-walking .entity__sprite {
-  animation: enemy-walk var(--enemy-walk-cycle) steps(1) infinite;
-}
-
-@keyframes enemy-walk {
-  0%, 49.9% { background-position: 33.33% 0%; }
-  50%, 100% { background-position: 66.67% 0%; }
+  animation: cycle-2-walk-frames var(--enemy-walk-cycle) steps(2) infinite;
 }
 
 /* Preparar ataque: frame 4 (col 3, fila 0), pulso rojo intenso como aviso */

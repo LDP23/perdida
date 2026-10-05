@@ -1,6 +1,17 @@
-// Configuración central. Si un número afecta cómo se juega, vive aquí y en ningún otro lado.
-// Unidades: píxeles del mundo (los de la imagen de la escena) y segundos.
+/**
+ * @module config
+ *
+ * Configuración central del juego. Si un número afecta cómo se juega, vive aquí y
+ * en ningún otro lado. Cada constante está agrupada por subsistema y congelada con
+ * Object.freeze para evitar modificaciones accidentales.
+ *
+ * Unidades: píxeles del mundo (los de la imagen de la escena, 2172 × 724) y segundos.
+ *
+ * Usado por: prácticamente todos los módulos del juego.
+ * Depende de: nada.
+ */
 
+/** Dimensiones del mundo en píxeles de la imagen de escena. */
 export const WORLD = Object.freeze({
   width: 2172,
   height: 724,
@@ -208,6 +219,29 @@ export const SETTINGS_DEFAULTS = Object.freeze({
   screenShake: true,
   crtEffect: true,
   reducedMotion: null, // null = seguir la preferencia del sistema
+});
+
+// Trampas del escenario: duraciones de cada fase en segundos.
+// Las trampas no aplican daño: exponen dangerRects al hazard-system.
+export const TRAPS = Object.freeze({
+  // Prensa hidráulica: ciclo idle → warning → slam → hold → rise.
+  // Si se reduce idleTime+warningTime, verificar que la ventana segura siga siendo
+  // ≥ 2× el tiempo de cruce del robot (ver verificación de recorrido en CLAUDE.md).
+  press: Object.freeze({
+    idleTime: 1.4,        // s — quieta arriba, sin peligro
+    warningTime: 0.6,     // s — tiembla y enciende luz roja, sin peligro aún
+    slamTime: 0.12,       // s — baja de golpe (peligroso)
+    holdTime: 0.4,        // s — queda abajo (peligroso)
+    riseTime: 1.2,        // s — sube lento (peligroso, puede atrapar al descuidado)
+    blockHeight: 36,      // px — alto del bloque de acero
+  }),
+  // Láser intermitente: ciclo off → warning → on.
+  laser: Object.freeze({
+    offTime: 1.6,         // s — apagado, sin peligro
+    warningTime: 0.5,     // s — hilo rojo delgado parpadea, sin peligro
+    onTime: 1.2,          // s — rayo completo (peligroso)
+    beamWidth: 10,        // px — ancho del rayo
+  }),
 });
 
 export const DEBUG = Object.freeze({

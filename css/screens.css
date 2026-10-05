@@ -1,5 +1,33 @@
-/* Pantallas de menú: inicio, pausa, game over, opciones, créditos, apagado.
-   Se muestran según data-state y data-overlay; JS nunca escribe display. */
+/*
+ * screens.css — Pantallas de menú y transiciones entre estados del juego.
+ *
+ * Visibilidad: controlada por data-state, data-overlay y data-sub en .game.
+ * JS nunca escribe display — solo cambia los atributos data-* y el CSS decide
+ * qué pantalla se muestra con selectores de atributo.
+ *
+ * Efectos visuales notables:
+ * - Glitch del título: dos pseudo-elementos (::before, ::after) con el mismo texto
+ *   (attr(data-text)), coloreados de cian y rojo, recortados con clip-path: inset()
+ *   y desplazados con transform en keyframes step-end (saltos discretos, no suaves).
+ * - Campo de estrellas: 7 radial-gradient de 1px superpuestos con background-size
+ *   distintos y animados con background-position para crear movimiento parallax.
+ * - Líneas CRT: repeating-linear-gradient horizontal cada 4px (0→transparente→opaco).
+ * - Estática de TV (game over): dos repeating-linear-gradient cruzados (0° y 90°)
+ *   animados con background-position en steps(3) para simular ruido, con fundido.
+ * - Apagado CRT: clip-path: inset() que se cierra progresivamente con brightness
+ *   creciente para simular el colapso del tubo catódico.
+ * - Onda de señal: radial-gradient elíptico con pulse de opacidad y scaleX.
+ * - Fundido entre escenas: .scene-fade con opacity 0→1→0, duraciones sincronizadas
+ *   con config.js via --fade-out/--fade-in.
+ *
+ * Confirmación (pausa): un solo .confirm-dialog reutilizado, controlado por
+ * data-confirm="restart"|"exit" que oculta los botones y muestra el diálogo.
+ *
+ * Responsive: breakpoints en max-height: 420px y max-width: 500px para pantallas
+ * pequeñas (reduce gaps, tamaños de fuente y padding).
+ *
+ * Movimiento reducido: desactiva estrellas, glitch, onda, estática y CRT off.
+ */
 
 /* === Base de pantalla === */
 .screen {
@@ -238,11 +266,15 @@
 
 /* === Confirmación === */
 .confirm-dialog {
-  display: flex;
+  display: none;
   flex-direction: column;
   align-items: center;
   gap: 1rem;
 }
+
+/* data-confirm en la pantalla activa la confirmación y oculta los botones */
+.screen--paused[data-confirm] .confirm-dialog { display: flex; }
+.screen--paused[data-confirm] [data-ref="paused-buttons"] { display: none; }
 
 .confirm-dialog__text {
   font-family: var(--font-terminal);

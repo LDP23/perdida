@@ -1,7 +1,20 @@
+/**
+ * @module world-view
+ *
+ * Traduce el estado de la cámara y la escena a variables CSS (--world-scale,
+ * --camera-x, --scene-image). El CSS en world.css aplica el transform real:
+ * escalar el mundo, desplazarlo horizontalmente y pintar el fondo.
+ *
+ * Usado por: Game (la crea), PlayingState (llama render en cada frame).
+ * Depende de: config.js (WORLD).
+ */
 import { WORLD } from '../config.js';
 
-// Traduce el estado de la cámara y la escena a variables CSS. El CSS hace el resto
-// (world.css): escalar el mundo, desplazarlo y pintar el fondo.
+/**
+ * Vista del mundo.
+ *
+ * Ciclo de vida: Game la crea una vez; vive toda la sesión.
+ */
 export class WorldView {
   #root;
   #world;

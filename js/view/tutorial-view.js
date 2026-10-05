@@ -1,7 +1,21 @@
+/**
+ * @module tutorial-view
+ *
+ * Crea los carteles del tutorial una vez y alterna clases is-visible/is-dismissed
+ * para mostrarlos/ocultarlos. Cada cartel muestra una tecla (con variante para
+ * teclado y táctil) y un texto descriptivo.
+ *
+ * Usado por: SceneWorld (la crea si hay tutorial), PlayingState (llama sync en render).
+ * Depende de: dom-utils.js.
+ */
 import { createElement, setPosition } from './dom-utils.js';
 
-// Crea los carteles del tutorial una vez y alterna clases para mostrarlos/ocultarlos.
-
+/**
+ * Vista de los carteles del tutorial.
+ *
+ * Ciclo de vida: SceneWorld la crea al montar una escena con tutorial; destroy()
+ * remueve la capa del DOM.
+ */
 export class TutorialView {
   #layer;
   #elements = new Map();

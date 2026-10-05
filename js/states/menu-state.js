@@ -1,3 +1,13 @@
+/**
+ * @module menu-state
+ *
+ * Menú principal: nueva partida, subpantallas (cómo jugar, opciones, créditos),
+ * récord y salida. Usa botones reales con foco nativo y MenuNavigator para
+ * navegación por teclado.
+ *
+ * Usado por: StateMachine (estado 'menu').
+ * Depende de: GameSession, MenuNavigator, screens.js, dom-utils.js.
+ */
 import { GameSession } from '../core/session.js';
 import { MenuNavigator } from '../ui/menu-navigator.js';
 import { formatScore, getHighScore, supportsFullscreen, toggleFullscreen } from '../ui/screens.js';
@@ -11,6 +21,12 @@ const REFS = [
   'screen-credits', 'credits-buttons', 'btn-back-credits',
 ];
 
+/**
+ * Estado del menú principal.
+ *
+ * Ciclo de vida: StateMachine lo activa; enter() registra listeners en los botones;
+ * exit() los limpia. Las subpantallas usan data-sub en .game para mostrar/ocultar.
+ */
 export class MenuState {
   #context;
   #refs;

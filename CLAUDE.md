@@ -24,9 +24,12 @@ Solo HTML, CSS y JavaScript puro: sin frameworks, sin librerías, sin `<canvas>`
 4.2. ✅ Tira de correr dedicada (robot_correr.png), espantapájaros alineado al piso, doble salto sin giro (frames 4/5), aura roja de daño.
 5. ✅ Nivel 1 completo y plataformas: 3 escenas, transiciones por borde, puerta de salida, nivel completado, reinicio coherente (snapshot/restore), plataformas móviles y que caen, precarga de imágenes.
 6. ✅ Enemigos: criatura con patrulla/persecución/zarpazo, hoja 4×2, sistema de hojas generalizado, herramienta de escena por número.
-7. Trampas.
-8. Niveles 2 y 3.
-9. Táctil, responsive y pulido.
+6.2. ✅ Reorganización: PlayingState dividido en SceneWorld + 7 sistemas (screen-shake, platform, combat, pickup, hazard, scene-flow, debug-tools). PlayingState solo orquesta.
+7. ✅ Documentación: JSDoc en español en todos los módulos JS, encabezados descriptivos en CSS, comentarios de estructura en index.html, docs/ con 6 documentos de arquitectura (Mermaid).
+7.1. ✅ Sistema de trampas y trampas del nivel 1: clase base Trap (ciclo de fases + Timer), prensa hidráulica (N1E2), láser intermitente (N1E3), TrapSystem, TrapView, css/traps.css.
+8. Nivel 2 y sus trampas.
+9. Nivel 3, sus trampas, cápsula y victoria.
+10. Táctil, responsive y pulido.
 
 ## Arquitectura (qué hace cada archivo)
 
@@ -34,13 +37,14 @@ Solo HTML, CSS y JavaScript puro: sin frameworks, sin librerías, sin `<canvas>`
 index.html                 capas: game > viewport > world > scene, entities, debug-layer; hud; panels; pantallas (screen--*); debug-panel; boot-message
 css/base.css               tokens (--color-*, --font-*), fuentes locales, reset, mensaje de arranque
 css/world.css              escala (--world-scale) y cámara (--camera-x) con transform; fondo (--scene-image)
-css/entities.css           .entity, .entity__sprite, .sprite-sheet (hojas genéricas con --sheet-cols/--sheet-rows/--frame-col/--frame-row), .robot-sprite, .creature-sprite, animaciones del robot y la criatura, sacudida de pantalla, disparo, coleccionables, espantapájaros
+css/entities.css           .entity, .entity__sprite, .sprite-sheet (hojas genéricas con @property --frame-col/--frame-row), .robot-sprite, .creature-sprite, animaciones del robot y la criatura, sacudida de pantalla, disparo, coleccionables, espantapájaros
 css/hud.css                HUD: batería (--ratio, is-low), vidas, nivel, puntos, IDs, toast
 css/panels.css             panel de ID de tripulante (CRT, ámbar, barra --ratio, scanlines)
 css/tutorial.css           carteles del tutorial: appear/dismiss, teclado vs táctil
 css/platforms.css          plataformas: móvil (franja ámbar + propulsor cian), que cae (grietas + borde rojo + temblor + fundido)
 css/screens.css            pantallas de menú: visibilidad por data-state/data-overlay/data-sub, glitch, estrellas, estática TV, CRT off; nivel completado; fundido de transición; decoración pit-shadow
-css/debug.css              modo depuración (solo visible con .game.is-debug); safe-point, hazard, trigger, platform
+css/traps.css              trampas: prensa (franjas ámbar, pistón, temblor, destello), láser (emisor, rayo, chispas); reduced-motion
+css/debug.css              modo depuración (solo visible con .game.is-debug); safe-point, hazard, trigger, platform, trap
 js/main.js                 arranque: new Game(document).start()
 js/config.js               TODAS las constantes de jugabilidad
 js/core/game.js            raíz de composición: crea Input, Camera, vistas, StateMachine, GameLoop; destroy() limpia todo
@@ -57,24 +61,37 @@ js/core/storage.js         load(key, fallback) y save(key, value) sobre localSto
 js/core/settings.js        Settings: showTutorial, screenShake, crtEffect, reducedMotion; clases en .game
 js/core/timer.js           Timer reutilizable de cuenta regresiva (active, start, reset, update)
 js/core/device.js          setupDeviceClass: pone is-touch en .game según pointer: coarse
-js/entities/player.js      lógica del robot: correr, salto, batería, disparo, daño (con/sin knockback, aura roja), muerte, respawn, visualState
+js/entities/player.js      lógica del robot: correr, salto, batería, disparo, daño (con/sin knockback, aura roja), muerte, respawn, visualState, canBeHurt
 js/entities/battery.js     Battery(max): drain, spend, recharge, refill; getters value, ratio, isEmpty, isLow
 js/entities/projectile.js  Projectile: cuerpo sin gravedad, se destruye al chocar o recorrer maxDistance
-js/entities/entity-collection.js  EntityCollection: pares {entity, view}, limpieza automática de isDead, forEach
+js/entities/entity-collection.js  EntityCollection: pares {entity, view} con fábrica de vista opcional, limpieza automática de isDead, forEach, syncCustom
 js/entities/pickup.js      Pickup(type, x, y, crewId?): collect() → isCollected → isDead tras collectDuration
 js/entities/platform.js    Platform (base): body rect, dx/dy del último paso, isSolid, savePrevious()
 js/entities/moving-platform.js  MovingPlatform: interpola entre from y to, pausa en extremos
 js/entities/falling-platform.js  FallingPlatform: idle → shaking → falling → hidden → respawning → idle; onStepped(), isBlockedByBody()
-js/entities/safe-point.js  SafePointTracker: grounded + ambos pies + lejos de hazards → guarda punto seguro
+js/entities/safe-point.js  SafePointTracker: grounded + ambos pies + lejos de hazards y trap zones → guarda punto seguro
 js/entities/enemy.js       Enemy: patrulla/persecución/zarpazo, interfaz shootable, estados patrol→chase→windup→strike→recover (+hurt, dying, dead)
 js/entities/training-dummy.js  TrainingDummy: hitbox TRAINING_DUMMY (100×90), hitCount, onShot (interfaz shootable)
-js/levels/level1.js        datos de las 3 escenas del nivel 1: solids, hazards, crewIds, energyCells, enemies, exit, movingPlatforms, fallingPlatforms, decorations
+js/levels/level1.js        datos de las 3 escenas del nivel 1: solids, hazards, crewIds, energyCells, enemies, exit, movingPlatforms, fallingPlatforms, decorations, traps
 js/levels/levels.js        LEVELS = [LEVEL_1]: único lugar que conoce todos los niveles
-js/levels/level-loader.js  datos -> escena del motor; convierte hazards, exit (sin pared derecha si edge), door (rectFromSpan), plataformas, decoraciones
+js/levels/level-loader.js  datos -> escena del motor; convierte hazards, exit (sin pared derecha si edge), door (rectFromSpan), plataformas, decoraciones, traps
 js/levels/crew-logs.js     CREW_LOGS[9]: id, sceneId, name, role, log; VICTORY_MESSAGE
 js/core/session.js         GameSession: score, lives, foundCrewIds; snapshotLevelStart/restoreLevelStart; emite session:* events
 js/states/menu-state.js    menú principal: nueva partida, subpantallas, récord
-js/states/playing-state.js estado "jugando": sesión, escenas, transiciones, plataformas, enemigos (daño contacto/zarpazo, shootables), puerta, reinicio, precarga, salto de escena con Digit1–9
+js/traps/trap.js           Trap (base): ciclo de fases con Timer, phaseOffset, getters phase/phaseProgress/dangerRects/zone
+js/traps/hydraulic-press.js  HydraulicPress: fases idle→warning→slam→hold→rise, bloque interpola entre restBottom y bottom, viewData --block-y
+js/traps/intermittent-laser.js  IntermittentLaser: fases off→warning→on, rayo vertical fijo
+js/traps/trap-factory.js   createTrap(data): mapa type→clase, error claro si tipo desconocido
+js/scene/scene-world.js    SceneWorld: construye todas las entidades, trampas y vistas de una escena, getAllSolids(), dispose(). Sin reglas de juego, sin suscripciones.
+js/systems/screen-shake.js ScreenShake: sacudida por player:hurt (único listener), Timer, respeta screenShake
+js/systems/platform-system.js PlatformSystem: beforePlayer (mover + arrastrar rider), afterPlayer (pisadas)
+js/systems/combat-system.js CombatSystem: enemigos, proyectiles, dummies, shootables, checkProjectileHits, checkEnemyDamage. Suscribe player:shoot, enemy:destroyed
+js/systems/pickup-system.js PickupSystem: celdas e IDs, panel de registro, updatePanel (corta frame si abierto). Suscribe scene:mounted
+js/systems/trap-system.js  TrapSystem: actualiza trampas, escribe world.dynamicHazards. Orden: después de platformSystem.afterPlayer, antes de combatSystem
+js/systems/hazard-system.js HazardSystem: safePoint.update, checkHazards (estáticos + dynamicHazards), handleFall
+js/systems/scene-flow.js   SceneFlow: salidas, transiciones por fases, loadCurrentScene, onDeathSequenceEnd, completeLevel, fundido. Suscribe player:battery-empty, player:respawn-end, debug:jump-scene
+js/systems/debug-tools.js  DebugTools: reportDebug, handleInput (H, 1–9 → emite debug:jump-scene), setupScene. Suscribe scene:mounted
+js/states/playing-state.js orquestador: enter/exit/pause/resume, crea SceneWorld y sistemas, update en orden fijo, render, mountScene (emite scene:mounted)
 js/states/paused-state.js  pausa superpuesta: continuar, reiniciar nivel (restoreLevelStart sin perder intento), subpantallas
 js/states/level-complete-state.js  overlay al completar nivel: bono de batería, IDs del nivel, continuar o volver al menú
 js/states/game-over-state.js  resumen final: puntos, IDs, récord, reiniciar o salir al menú
@@ -89,6 +106,7 @@ js/view/entity-view.js     EntityView(layer, modifier, {width,height}).sync(body
 js/view/player-view.js     PlayerView: traduce Player.visualState a una clase is-*, aplica robot-sprite al sprite, has-hurt-aura
 js/view/enemy-view.js      EnemyView: traduce Enemy.visualState a clase is-*, aplica creature-sprite + sprite-sheet, is-fading
 js/view/training-dummy-view.js  TrainingDummyView: sprite de imagen (centrado, mayor que hitbox, alineado al piso) + etiqueta de impactos
+js/view/trap-view.js       TrapView: clase de tipo + fase (is-*), geometría de zona, viewData, hijo .trap__block para prensa
 js/view/platform-view.js   PlatformView: posiciona con --x/--y, clases is-* según visualState
 js/view/hud-view.js        HudView: dibuja HUD, solo toca DOM cuando un valor cambia
 js/view/tutorial-view.js   TutorialView: crea carteles en capa tutorial, alterna is-visible/is-dismissed
@@ -100,15 +118,22 @@ tools/physics-check.js     lógica del verificador, importa Player y physics rea
 ```
 
 Contexto compartido que reciben los estados: `{ input, camera, events, settings, worldView, debugView, loop, layers: { entities, world, hud, panels }, refs, states }`.
-Carpetas previstas: `js/traps/` (clase base + una por trampa).
+Carpeta `js/traps/`: clase base `Trap` + una subclase por tipo + fábrica `createTrap`.
+
+Sistemas reciben `{ context, getWorld, session, hud }` en el constructor. `getWorld()` devuelve el `SceneWorld` actual (nunca guardar la referencia).
+Contrato: `constructor(deps)`, `update(deltaTime)` (si lo necesita), `dispose()` (libera suscripciones y temporizadores).
+Orden de update en PlayingState: screenShake → sceneFlow.updateTransition → pausa → pickupSystem.updatePanel → debugTools.handleInput → muerte/respawn → platformSystem.beforePlayer → player → platformSystem.afterPlayer → trapSystem → combatSystem → pickupSystem → hazardSystem → sceneFlow.checkExits → tutorial → HUD → cámara.
+Agregar un sistema nuevo = crear archivo en `js/systems/`, agregarlo al arreglo `#systems` en `PlayingState.enter()` y en el orden de update.
 
 ## Convenciones obligatorias
 
 - Módulos ES (import/export). `const`/`let`, nunca `var`. Sin variables globales.
-- Nombres en inglés; comentarios en español, breves, explicando el porqué.
+- Nombres en inglés; comentarios y JSDoc en español, explicando el porqué.
+- Documentación JSDoc: cada módulo JS tiene un encabezado `@module` con descripción, "Usado por", "Depende de" y técnicas notables. Cada clase tiene un bloque JSDoc con descripción y ciclo de vida. Cada CSS tiene un encabezado con técnicas usadas.
 - Una responsabilidad por archivo, clase y función. Funciones cortas. Campos privados `#` para el estado interno.
 - Cero duplicación: si algo se repite, se extrae (clase base de trampas, `rectsOverlap`, un temporizador de ciclos).
 - Sin números mágicos: jugabilidad en `config.js` (objetos `Object.freeze`); medidas visuales como variables CSS.
+- `PlayingState` solo orquesta; toda regla de juego nueva va en un sistema; los sistemas se comunican por el `world` o por eventos, nunca llamándose entre sí.
 - Niveles = datos. Agregar o cambiar una escena no debe tocar el motor.
 - Lógica y dibujo separados: las entidades no tocan el DOM. Las vistas solo escriben variables CSS de
   geometría (`--x --y --w --h`) y clases de estado (`is-*`). Única excepción: `--scene-image`.
@@ -120,8 +145,10 @@ Carpetas previstas: `js/traps/` (clase base + una por trampa).
 - Coordenadas del mundo = píxeles de la imagen de escena (2172 × 724), "y" hacia abajo, `top` = borde superior.
 - Variables CSS `--ratio` para barras de progreso (0–1); `--collect-duration` para sincronizar CSS con config.js.
 - Entidades "shootable": tienen `body` (rect) y `onShot(projectile)`. PlayingState itera shootables y prueba `rectsOverlap` con cada proyectil.
-- Hoja de sprites del robot (`assets/sprites/robot.png`): 3×3 celdas de 276×244 px (exportadas al doble), se muestran a 138×122 en el mundo. `background-size: 300% 300%`, selección de frame con `background-position` en porcentajes (0%, 50%, 100%). Frames en uso: 1 reposo, 4 subiendo, 5 cayendo, 6 ataque, 7 daño, 8 arrodillado, 9 tirado. Frames 2-3 ya no se usan (la corrida usa tira dedicada).
-- Tira de correr (`assets/sprites/robot_correr.png`): 828×244, 3 frames en fila de 276×244 cada uno (misma escala que `robot.png`). `background-size: 300% 100%`, animación de 3 frames con `steps(1)` y `--run-cycle = 3 / runFps`.
+- Hojas de sprites genéricas: `.sprite-sheet` calcula `background-size` y `background-position` a partir de `--sheet-cols`, `--sheet-rows`, `--frame-col`, `--frame-row`. Las variables `--frame-col` y `--frame-row` están registradas con `@property` como `<integer>`, lo que permite animarlas con `steps()` sin interpolar valores intermedios. Una sola fórmula de posición en todo el proyecto.
+- Hoja de sprites del robot (`assets/sprites/robot.png`): 3×3 celdas de 276×244 px (exportadas al doble), se muestran a 138×122 en el mundo. Frames en uso: 1 reposo, 4 subiendo, 5 cayendo, 6 ataque, 7 daño, 8 arrodillado, 9 tirado. Frames 2-3 ya no se usan (la corrida usa tira dedicada).
+- Tira de correr (`assets/sprites/robot_correr.png`): 828×244, 3 frames en fila de 276×244 cada uno (misma escala que `robot.png`). Animación con `cycle-3-frames` y `steps(3)`, `--run-cycle = 3 / runFps`.
+- Hoja de la criatura (`assets/sprites/criatura.png`): 4×2 celdas de 498×310 px (al doble), 249×155 en el mundo. Frames: 1 reposo, 2–3 caminar, 4 preparar ataque, 5 zarpazo, 6 daño, 7 muriendo, 8 muerta. Contorno rojo con `drop-shadow`.
 - Doble salto: usa los mismos frames 4 (subiendo) y 5 (cayendo) del salto normal. Sin giro ni destello.
 - Aura roja de daño: `has-hurt-aura` en el elemento `.entity--player` (no el sprite), `drop-shadow` rojo que pulsa y se desvanece en `hurtAuraDuration` (2 s). Se reinicia con cada golpe. Con `reduced-motion`: aura fija sin pulso.
 - Prioridad de estados visuales del robot (de mayor a menor): `dying > respawning > hurt-frame > attacking > rising > falling > running > idle`. Una sola clase `is-*` activa a la vez; la decide `Player.visualState`.
@@ -129,12 +156,19 @@ Carpetas previstas: `js/traps/` (clase base + una por trampa).
 - `SHOOT.muzzleOffset = { x: 58, y: 49 }`: medido en el frame 6 de la hoja nueva. Fogonazo CSS en `::after` del sprite.
 - Los menús usan `<button>` reales y foco nativo; `Input` solo captura durante el juego (`setGameplayEnabled`). Las acciones `debug` y `pause` funcionan siempre.
 - Máquina de estados con pila: `change()` vacía la pila, `push()` superpone (pausa), `pop()` vuelve al anterior. `data-state` = base, `data-overlay` = superpuesto.
-- Pantallas: `<section class="screen screen--X">` controladas por CSS según `data-state`/`data-overlay`/`data-sub`. JS nunca escribe `display`.
-- Formato de datos de escena: `id`, `name`, `background`, `spawn`, `solids`, `hazards`, `crewIds`, `energyCells`, `trainingDummies`, `tutorial`, `exit` (`{type:'edge'}` o `{type:'door', x1, x2, top, bottom}`), `movingPlatforms` (`[{from:{x,y}, to:{x,y}, width}]`), `fallingPlatforms` (`[{x, y, width}]`), `decorations` (`[{type, x1, x2, top}]`).
+- Pantallas: `<section class="screen screen--X">` controladas por CSS según `data-state`/`data-overlay`/`data-sub`/`data-confirm`. JS nunca escribe `display`.
+- Diálogo de confirmación en pausa: un solo bloque `.confirm-dialog` reutilizado por "Reiniciar nivel" y "Salir al menú". El atributo `data-confirm="restart"|"exit"` en `.screen--paused` muestra la confirmación y oculta los botones. El foco empieza en "No" (opción segura). Escape en la confirmación la cierra sin cerrar la pausa.
+- Formato de datos de escena: `id`, `name`, `background`, `spawn`, `solids`, `hazards`, `crewIds`, `energyCells`, `trainingDummies`, `enemies` (`[{x, y, patrol: {x1, x2}}]`, donde x/y son los pies y patrol los límites de patrulla), `tutorial`, `exit` (`{type:'edge'}` o `{type:'door', x1, x2, top, bottom}`), `movingPlatforms` (`[{from:{x,y}, to:{x,y}, width}]`), `fallingPlatforms` (`[{x, y, width}]`), `decorations` (`[{type, x1, x2, top}]`), `traps` (`[{type:'press', x1, x2, ceiling, restBottom, bottom}]` o `[{type:'laser', x, top, bottom}]`, con `phaseOffset` opcional).
+- Trampas no aplican daño: exponen `dangerRects` (arreglo de Rect) y `zone` (Rect fijo). TrapSystem escribe `world.dynamicHazards` cada frame; HazardSystem los revisa igual que los hazards estáticos. SafePointTracker excluye las `zone` con el mismo margen. Agregar una trampa = subclase de Trap + línea en trap-factory + datos en la escena.
 - Orden de actualización por paso: (1) mover plataformas, (2) arrastrar rider con `carryByPlatform`, (3) paso normal del robot (`player.update` con todos los sólidos + plataformas activas).
 - `body.groundSolid`: referencia al sólido sobre el que descansa el cuerpo. Se usa para detectar plataformas y arrastrar al rider.
-- Transiciones de escena: fundido a negro con `.scene-fade` (clase `is-showing`/`is-hiding`), duraciones `TRANSITION.fadeOut`/`fadeIn`.
+- Transiciones de escena: fundido a negro con `.scene-fade` (clase `is-showing`/`is-hiding`), duraciones `TRANSITION.fadeOut`/`fadeIn`. Máquina de fases con `Timer` (no `setTimeout`): `fade-out → loading → fade-in → fade-in-wait`. Se detiene durante la pausa.
 - `GameSession.snapshotLevelStart()` / `restoreLevelStart()`: al morir se restaura al inicio del nivel y se pierde un intento; al reiniciar desde pausa se restaura sin perder intento.
+- Estados del enemigo: `patrol → chase → windup → strike → recover`, más `hurt`, `dying`, `dead`. No usa `StateMachine` (diseñada para UI con pila), sino estado simple con `Timer`. Prioridad visual (de mayor a menor): `dead > dying > hurt > strike > windup > walking > idle`.
+- `EntityCollection` con fábrica de vista: el tercer parámetro opcional `viewFactory(layer, entity)` permite crear vistas especializadas (`EnemyView`, `TrainingDummyView`, `PlatformView`). `syncCustom(fn)` itera pares {entity, view} para vistas que no siguen la interfaz `sync(body, flags)`. La lista de shootables es también un `EntityCollection`: las entidades muertas se eliminan automáticamente.
+- `Player.canBeHurt`: getter que centraliza `!isInvulnerable && !isDying && !isDead && !isRespawning`. Se usa en `takeHit`, `takeHitWithOrigin`, y en `PlayingState` para guardas de daño, peligros y caídas.
+- Herramienta de depuración: con depuración activa, las teclas `Digit1`…`Digit9` cargan la escena con ese número del nivel actual (atajos `scene1`…`scene9` en `KEY_BINDINGS`).
+- Nada de `setTimeout`/`setInterval` para la lógica del juego: usar `Timer` actualizado en `update`. Un `setTimeout` sigue corriendo durante la pausa y puede dispararse después de reiniciar o salir al menú.
 
 ## Física: restricciones verificadas (NO romper)
 

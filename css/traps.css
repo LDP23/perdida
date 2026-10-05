@@ -1,0 +1,231 @@
+/*
+ * traps.css — Trampas del escenario, dibujadas solo con CSS.
+ *
+ * Cada trampa es un .trap posicionado con --x/--y/--w/--h (zona completa).
+ * El tipo (.trap--press, .trap--laser) define la apariencia y la fase actual
+ * (is-idle, is-warning, is-on…) activa las animaciones correspondientes.
+ *
+ * Variables recibidas desde JS:
+ * - --x, --y, --w, --h: zona de la trampa en px del mundo.
+ * - --block-y: (solo prensa) posición del borde inferior del bloque, relativa al top de la zona.
+ * - --press-block-h: alto del bloque (sincronizado desde config.js por game.js).
+ *
+ * Técnicas:
+ * - repeating-linear-gradient para las franjas de advertencia de la prensa.
+ * - box-shadow para el resplandor del láser y la luz de la prensa.
+ * - translate (propiedad individual) para el temblor, sin pisar el transform de posición.
+ * - Pseudo-elementos para pistón (::before) y efectos (::after).
+ */
+
+/* === Base === */
+.trap {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: calc(var(--w) * 1px);
+  height: calc(var(--h) * 1px);
+  transform: translate(calc(var(--x) * 1px), calc(var(--y) * 1px));
+  pointer-events: none;
+}
+
+/* =====================================================================
+   PRENSA HIDRÁULICA
+   Bloque de acero oscuro con franjas ámbar, unido al techo por un pistón.
+   ===================================================================== */
+
+/* Pistón: barra metálica del techo al bloque */
+.trap--press::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 14px;
+  transform: translateX(-50%);
+  height: calc(var(--block-y) * 1px - var(--press-block-h) * 1px);
+  background: linear-gradient(90deg, #2a2a30, #45454d, #2a2a30);
+  border: 1px solid #555;
+  border-top: none;
+}
+
+/* Bloque de acero con franjas de advertencia */
+.trap__block {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: calc(var(--press-block-h) * 1px);
+  top: calc((var(--block-y) - var(--press-block-h)) * 1px);
+  background:
+    repeating-linear-gradient(
+      -45deg,
+      var(--color-amber) 0px,
+      var(--color-amber) 4px,
+      #2a2a30 4px,
+      #2a2a30 8px
+    );
+  border: 2px solid var(--color-amber);
+  box-sizing: border-box;
+}
+
+/* Cara inferior del bloque (sombra pesada) */
+.trap__block::after {
+  content: '';
+  position: absolute;
+  left: 2px;
+  right: 2px;
+  bottom: -4px;
+  height: 4px;
+  background: #1a1a1e;
+  border-radius: 0 0 2px 2px;
+}
+
+/* --- Fase: warning (temblor + luz roja) --- */
+.trap--press.is-warning {
+  animation: press-shake 0.06s steps(2) infinite;
+}
+
+.trap--press.is-warning .trap__block {
+  box-shadow: 0 0 10px 2px var(--color-alarm);
+}
+
+@keyframes press-shake {
+  0%  { translate: -1px 0; }
+  50% { translate: 1px 0; }
+}
+
+/* --- Fase: slam (destello de impacto en la base) --- */
+.trap--press.is-slam .trap__block::before {
+  content: '';
+  position: absolute;
+  left: -8px;
+  right: -8px;
+  bottom: -6px;
+  height: 8px;
+  background: radial-gradient(
+    ellipse at center bottom,
+    rgb(255 200 100 / 0.8) 0%,
+    rgb(255 150 50 / 0.4) 40%,
+    transparent 100%
+  );
+  animation: slam-flash 0.12s ease-out forwards;
+}
+
+@keyframes slam-flash {
+  0%   { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* --- Fase: hold (quieta abajo, sin efecto extra) --- */
+
+/* --- Fase: rise (subiendo, sin efecto extra) --- */
+
+
+/* =====================================================================
+   LÁSER INTERMITENTE
+   Emisor arriba con rayo vertical que se enciende y apaga.
+   ===================================================================== */
+
+/* Emisor: caja metálica en la parte superior de la zona */
+.trap--laser::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 20px;
+  height: 12px;
+  transform: translateX(-50%);
+  background: #2a2a30;
+  border: 1px solid #555;
+  border-radius: 0 0 3px 3px;
+}
+
+/* Rayo: núcleo blanco-rojizo con resplandor */
+.trap--laser::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 12px;
+  width: 0;
+  bottom: 0;
+  transform: translateX(-50%);
+  opacity: 0;
+}
+
+/* --- Fase: off (todo apagado) --- */
+.trap--laser.is-off::before {
+  box-shadow: none;
+}
+
+/* --- Fase: warning (hilo delgado que parpadea, emisor con luz tenue) --- */
+.trap--laser.is-warning::before {
+  box-shadow: 0 4px 6px rgb(255 43 63 / 0.4);
+}
+
+.trap--laser.is-warning::after {
+  width: 2px;
+  opacity: 1;
+  background: var(--color-alarm);
+  animation: laser-flicker 0.15s step-end infinite;
+}
+
+@keyframes laser-flicker {
+  0%, 100% { opacity: 0.8; }
+  50%      { opacity: 0.2; }
+}
+
+/* --- Fase: on (rayo completo) --- */
+.trap--laser.is-on::before {
+  box-shadow: 0 4px 10px rgb(255 43 63 / 0.7);
+}
+
+.trap--laser.is-on::after {
+  width: calc(var(--w) * 1px);
+  opacity: 1;
+  background: linear-gradient(
+    90deg,
+    transparent 10%,
+    rgb(255 43 63 / 0.3) 25%,
+    rgb(255 200 200 / 0.9) 45%,
+    white 50%,
+    rgb(255 200 200 / 0.9) 55%,
+    rgb(255 43 63 / 0.3) 75%,
+    transparent 90%
+  );
+  box-shadow: 0 0 12px 4px rgb(255 43 63 / 0.5);
+}
+
+/* Chispas en el punto de contacto con la pasarela */
+.trap--laser.is-on .trap__sparks {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 20px;
+  height: 8px;
+  transform: translateX(-50%);
+}
+
+/* Usamos un pseudo-elemento del contenedor para las chispas,
+   ya que ::before y ::after del .trap--laser están ocupados */
+
+
+/* =====================================================================
+   MOVIMIENTO REDUCIDO
+   Sin temblor ni chispas animadas. Los avisos se mantienen como color fijo.
+   ===================================================================== */
+.game.reduced-motion .trap--press.is-warning {
+  animation: none;
+  /* Indicador estático: borde rojo en vez de temblor */
+}
+
+.game.reduced-motion .trap--press.is-warning .trap__block {
+  border-color: var(--color-alarm);
+}
+
+.game.reduced-motion .trap--press.is-slam .trap__block::before {
+  animation: none;
+  opacity: 0;
+}
+
+.game.reduced-motion .trap--laser.is-warning::after {
+  animation: none;
+  opacity: 0.6;
+}

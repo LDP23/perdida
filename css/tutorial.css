@@ -1,4 +1,15 @@
-/* Carteles del tutorial: aparecen cerca del robot, desaparecen con la acción. */
+/*
+ * tutorial.css — Carteles del tutorial: instrucciones in-game cerca del robot.
+ *
+ * Cada cartel se posiciona con --x/--y (coordenadas del mundo) y se muestra/oculta
+ * con transiciones de opacidad y translate. Tres estados: oculto (default),
+ * is-visible (aparece subiendo), is-dismissed (desaparece bajando).
+ *
+ * Técnicas:
+ * - Teclado vs táctil: dos <span> por tecla (--keyboard y --touch); el CSS decide
+ *   cuál mostrar según la clase .is-touch en .game (puesta por device.js).
+ * - transform: translate(-50%, ...) centra el cartel horizontalmente sobre su punto.
+ */
 
 .layer--tutorial {
   position: absolute;

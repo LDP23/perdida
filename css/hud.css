@@ -1,5 +1,19 @@
-/* HUD: fuera del mundo, no se mueve con la cámara.
-   Estilo terminal CRT discreto: el escenario es el protagonista. */
+/*
+ * hud.css — Heads-Up Display: batería, intentos, nivel, puntos, IDs y toast.
+ *
+ * Diseño: estilo terminal CRT discreto para no competir con el escenario.
+ * Posición: absolute sobre el viewport (fuera del mundo), no se mueve con la cámara.
+ * Layout: flexbox con justify-content: space-between (izq: batería+vidas, centro:
+ * nivel, der: puntos+IDs). El toast va centrado abajo en posición absoluta.
+ *
+ * Técnicas:
+ * - --ratio (0–1) controla el ancho de la barra de batería con calc() en un
+ *   linear-gradient (la zona coloreada y la zona vacía se dividen por el ratio).
+ * - repeating-linear-gradient superpuesto dibuja las marcas de segmento de la barra.
+ * - env(safe-area-inset-*) respeta el notch y las barras del navegador en móvil.
+ * - is-low cambia el color a --color-alarm y activa un pulso de opacidad.
+ * - El HUD solo se muestra con data-state="playing"; se atenúa con data-overlay="paused".
+ */
 
 .hud {
   position: absolute;

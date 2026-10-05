@@ -1,3 +1,14 @@
+/**
+ * @module paused-state
+ *
+ * Pantalla de pausa superpuesta sobre el juego (push/pop). Permite continuar,
+ * reiniciar nivel (con confirmación), ver opciones/cómo jugar, y salir al menú
+ * (con confirmación). La confirmación usa un solo bloque reutilizado, controlado
+ * por data-confirm en la pantalla de pausa.
+ *
+ * Usado por: StateMachine (estado 'paused', superpuesto con push sobre 'playing').
+ * Depende de: MenuNavigator, screens.js, dom-utils.js.
+ */
 import { MenuNavigator } from '../ui/menu-navigator.js';
 import { toggleFullscreen } from '../ui/screens.js';
 import { queryRefs } from '../view/dom-utils.js';
@@ -5,11 +16,22 @@ import { queryRefs } from '../view/dom-utils.js';
 const REFS = [
   'screen-paused', 'paused-buttons',
   'btn-resume', 'btn-restart-level', 'btn-pause-how-to-play', 'btn-pause-options', 'btn-exit-to-menu',
-  'confirm-dialog', 'btn-confirm-yes', 'btn-confirm-no',
+  'confirm-dialog', 'confirm-text', 'btn-confirm-yes', 'btn-confirm-no',
   'screen-how-to-play', 'how-to-play-buttons', 'btn-back-how-to-play',
   'screen-options', 'options-list', 'options-buttons', 'btn-back-options', 'btn-fullscreen',
 ];
 
+const CONFIRM_MESSAGES = {
+  restart: '¿Reiniciar el nivel? Se pierde el progreso del nivel.',
+  exit: '¿Salir al menú? Se pierde el progreso del nivel.',
+};
+
+/**
+ * Estado de pausa.
+ *
+ * Ciclo de vida: se apila sobre PlayingState con push('paused'); pop() reanuda.
+ * Colabora con: PlayingState (pause/resume), confirmación (data-confirm).
+ */
 export class PausedState {
   #context;
   #refs;
@@ -27,8 +49,7 @@ export class PausedState {
   enter() {
     this.#context.input.setGameplayEnabled(false);
     this.#pendingAction = null;
-    this.#refs['confirm-dialog'].hidden = true;
-    this.#refs['paused-buttons'].hidden = false;
+    delete this.#refs['screen-paused'].dataset.confirm;
 
     this.#listen('btn-resume', () => this.#resume());
     this.#listen('btn-restart-level', () => this.#confirmAction('restart'));
@@ -47,6 +68,8 @@ export class PausedState {
 
   exit() {
     this.#cleanupSub();
+    delete this.#refs['screen-paused'].dataset.confirm;
+    this.#pendingAction = null;
     this.#nav?.dispose();
     this.#nav = null;
     this.#removeListeners();
@@ -64,10 +87,11 @@ export class PausedState {
 
   #confirmAction(action) {
     this.#pendingAction = action;
-    this.#refs['paused-buttons'].hidden = true;
-    this.#refs['confirm-dialog'].hidden = false;
+    this.#refs['screen-paused'].dataset.confirm = action;
+    this.#refs['confirm-text'].textContent = CONFIRM_MESSAGES[action];
     this.#nav?.dispose();
     this.#nav = new MenuNavigator(this.#refs['confirm-dialog'], () => this.#cancelConfirm());
+    this.#refs['btn-confirm-no'].focus();
   }
 
   #executeConfirm() {
@@ -82,12 +106,13 @@ export class PausedState {
   }
 
   #cancelConfirm() {
+    const focusRef = this.#pendingAction === 'restart' ? 'btn-restart-level' : 'btn-exit-to-menu';
     this.#pendingAction = null;
-    this.#refs['confirm-dialog'].hidden = true;
-    this.#refs['paused-buttons'].hidden = false;
+    delete this.#refs['screen-paused'].dataset.confirm;
     this.#context.input.consumePress('pause');
     this.#nav?.dispose();
     this.#nav = new MenuNavigator(this.#refs['paused-buttons'], () => this.#resume());
+    this.#refs[focusRef].focus();
   }
 
   #openSub(name) {

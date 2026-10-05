@@ -1,12 +1,26 @@
+/**
+ * @module debug-view
+ *
+ * Modo de depuración visual: dibuja los rectángulos de colisión (sólidos, hazards,
+ * triggers, hitboxes), una regla en píxeles de la imagen de fondo, un cursor que
+ * muestra las coordenadas del mundo, y un panel con métricas del juego.
+ * Sirve para ajustar las medidas de los niveles comparándolas con el fondo.
+ *
+ * Usado por: Game (la crea), PlayingState/DebugTools (la alimentan con datos).
+ * Depende de: config.js (DEBUG, WORLD), math-utils.js (damp), dom-utils.js.
+ */
 import { DEBUG, WORLD } from '../config.js';
 import { damp } from '../core/math-utils.js';
 import { createElement, setPosition, setRect } from './dom-utils.js';
 
 const Y_LABEL_COLUMN_STEP = DEBUG.rulerStep * 5;
 
-// Modo de depuración: dibuja los rectángulos de colisión, una regla en píxeles
-// de la imagen y un cursor que muestra las coordenadas del mundo. Sirve para
-// ajustar las medidas de los niveles comparándolas con el fondo.
+/**
+ * Vista de depuración.
+ *
+ * Ciclo de vida: Game la crea una vez; toggle() la activa/desactiva; dispose()
+ * limpia listeners del puntero.
+ */
 export class DebugView {
   #root;
   #viewport;

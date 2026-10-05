@@ -1,10 +1,25 @@
+/**
+ * @module enemy-view
+ *
+ * Vista de la criatura enemiga: traduce Enemy.visualState a una clase is-*,
+ * aplica la hoja de sprites creature-sprite, y maneja el desvanecimiento is-fading.
+ *
+ * Usado por: SceneWorld (la crea vía EntityCollection con viewFactory).
+ * Depende de: EntityView.
+ */
 import { EntityView } from './entity-view.js';
 
+/** Clases de estado visual de la criatura. */
 const VISUAL_CLASSES = [
   'is-idle', 'is-walking', 'is-windup', 'is-strike',
   'is-hurt', 'is-dying', 'is-dead',
 ];
 
+/**
+ * Vista de la criatura enemiga.
+ *
+ * Ciclo de vida: EntityCollection la crea vía viewFactory; destroy() remueve del DOM.
+ */
 export class EnemyView {
   #view;
   #element;

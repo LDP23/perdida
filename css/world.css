@@ -1,5 +1,20 @@
-/* Mundo del juego. JavaScript solo escribe variables (--world-scale, --camera-x,
-   --scene-image); aquí se decide cómo se aplican. */
+/*
+ * world.css — Cámara virtual, escala del mundo y fondo de escena.
+ *
+ * El mundo mide 2172 × 724 px (tamaño de la imagen de fondo) y se escala con
+ * transform: scale() para llenar el alto de la pantalla. La cámara se desplaza
+ * horizontalmente con translate3d() — ambos en un solo transform compuesto.
+ *
+ * Técnicas:
+ * - transform en vez de layout properties: scale + translate3d es la forma más
+ *   barata de mover todo el escenario porque no provoca recálculo de layout.
+ * - will-change: transform avisa al navegador que habrá cambios frecuentes,
+ *   permitiéndole crear una capa compuesta (GPU) para el mundo.
+ * - transform-origin: 0 0 para que el escalado parta de la esquina superior
+ *   izquierda (misma coordenada que las entidades).
+ * - image-rendering: pixelated mantiene los bordes nítidos del pixel art al escalar.
+ * - JS escribe --world-scale, --camera-x y --scene-image; el CSS decide cómo usarlos.
+ */
 
 .game {
   position: fixed;

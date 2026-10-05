@@ -1,7 +1,17 @@
+/**
+ * @module screens
+ *
+ * Utilidades compartidas por los estados de pantalla: récord (highScore en localStorage),
+ * formato de puntuación y pantalla completa.
+ *
+ * Usado por: MenuState, GameOverState, LevelCompleteState, SceneFlow.
+ * Depende de: storage.js (load, save).
+ */
 import { load, save } from '../core/storage.js';
 
-// Utilidades compartidas por los estados de pantalla.
-
+/**
+ * @returns {number} récord guardado en localStorage, o 0 si no existe.
+ */
 export function getHighScore() {
   return load('highScore', 0);
 }

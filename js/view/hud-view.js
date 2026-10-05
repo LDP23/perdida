@@ -1,6 +1,19 @@
-// Dibuja el HUD: batería, intentos, nivel, puntos, IDs y avisos breves.
-// Solo toca el DOM cuando un valor cambia.
+/**
+ * @module hud-view
+ *
+ * Dibuja el HUD (Heads-Up Display): batería (barra + número), intentos (iconos),
+ * nivel (texto), puntos, IDs encontrados, y avisos breves (toast). Solo toca el
+ * DOM cuando un valor cambia (compara con #last).
+ *
+ * Usado por: PlayingState (llama sync en render).
+ * Depende de: nada (DOM puro).
+ */
 
+/**
+ * Vista del HUD.
+ *
+ * Ciclo de vida: PlayingState la crea en enter(); destroy() vacía el contenedor.
+ */
 export class HudView {
   #container;
   #batteryBar;

@@ -1,6 +1,16 @@
-// Simula al Player real sobre un piso infinito y mide saltos a distintos FPS.
-// Abre con Live Server en /tools/physics-check.html.
-
+/**
+ * @module physics-check
+ *
+ * Verificador de física: simula al Player real sobre un piso infinito y mide
+ * saltos a 30, 120 y 144 FPS. Compara los resultados con los requisitos de los
+ * huecos del juego (pinchos, ácido, foso) para garantizar que la física es
+ * determinista a cualquier tasa de frames.
+ *
+ * Se usa abriendo /tools/physics-check.html con Live Server. No es parte del juego.
+ *
+ * Importa el Player y la física reales (no simulaciones separadas) para verificar
+ * que el código actual cumple las restricciones de diseño del CLAUDE.md.
+ */
 import { PLAYER, LOOP } from '../js/config.js';
 import { EventBus } from '../js/core/event-bus.js';
 import { Player } from '../js/entities/player.js';

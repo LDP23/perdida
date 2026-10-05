@@ -1,4 +1,16 @@
-/* Capa de paneles (fuera del mundo, no se mueve con la cámara). */
+/*
+ * panels.css — Panel de registro de tripulante (ID card).
+ *
+ * Estilo: terminal CRT con tono ámbar, scanlines simuladas con
+ * repeating-linear-gradient (líneas alternas semitransparentes), barra de
+ * progreso con --ratio (misma técnica que la batería del HUD).
+ *
+ * Técnicas:
+ * - La capa .panel-layer usa display: none cuando está vacía (:empty) para no
+ *   interceptar eventos del puntero cuando no hay panel abierto.
+ * - animation: panel-appear con scale(0.95→1) da un efecto de "encendido".
+ * - z-index: 20 lo pone sobre el HUD pero bajo los menús.
+ */
 
 .panel-layer {
   position: absolute;

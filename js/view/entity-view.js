@@ -1,8 +1,20 @@
+/**
+ * @module entity-view
+ *
+ * Vista genérica de una entidad: una caja del tamaño de su hitbox (posicionada
+ * con --x/--y) y un sprite hijo que el CSS acomoda y anima según las clases is-*.
+ * El robot, los enemigos y los disparos la usan como base.
+ *
+ * Usado por: PlayerView, EnemyView, SceneWorld (para proyectiles, pickups).
+ * Depende de: dom-utils.js.
+ */
 import { createElement, setPosition, setSize } from './dom-utils.js';
 
-// Dibujo genérico de una entidad: una caja del tamaño de su hitbox (posicionada
-// con --x/--y) y un sprite adentro que el CSS acomoda y anima según las clases.
-// El robot, los enemigos y los disparos usan esta misma clase.
+/**
+ * Vista genérica de entidad.
+ *
+ * Ciclo de vida: se crea al montar la escena; destroy() remueve el elemento del DOM.
+ */
 export class EntityView {
   #element;
   #sprite;

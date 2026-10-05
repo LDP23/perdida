@@ -1,11 +1,24 @@
+/**
+ * @module off-state
+ *
+ * Pantalla de apagado con animación CRT. Los navegadores no permiten cerrar una
+ * pestaña que el usuario abrió manualmente (window.close() solo funciona si fue
+ * abierta por script). Se intenta cerrar y si sigue abierta se muestra esta pantalla.
+ *
+ * Usado por: StateMachine (estado 'off').
+ * Depende de: MenuNavigator, dom-utils.js.
+ */
 import { MenuNavigator } from '../ui/menu-navigator.js';
 import { queryRefs } from '../view/dom-utils.js';
 
 const REFS = ['screen-off', 'btn-power-on'];
 
-// Pantalla de apagado. Los navegadores no permiten cerrar una pestaña que el
-// usuario abrió manualmente (window.close() solo funciona si fue abierta por script).
-// Se intenta cerrar y si sigue abierta se muestra esta pantalla con animación CRT.
+/**
+ * Estado de apagado.
+ *
+ * Ciclo de vida: StateMachine lo activa con change('off'). El botón "encender"
+ * vuelve al menú.
+ */
 export class OffState {
   #context;
   #refs;

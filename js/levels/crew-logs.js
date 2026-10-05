@@ -1,4 +1,13 @@
-// Registros de la tripulación: la historia del juego. No cambiar el texto.
+/**
+ * @module crew-logs
+ *
+ * Registros de la tripulación: la historia del juego contada por los 9 tripulantes.
+ * Cada entrada tiene id (liga con crewIds del nivel), sceneId (escena donde se
+ * encuentra), name, role y log (texto que se muestra en el panel). No cambiar el texto.
+ *
+ * Usado por: CrewLogPanel (busca la entrada por id para mostrar el registro).
+ * Depende de: nada (datos puros).
+ */
 
 export const CREW_LOGS = [
   { id: 'lucia-ferrer', sceneId: 'n1e1', name: 'Lucía Ferrer', role: 'Jefa de muelle',

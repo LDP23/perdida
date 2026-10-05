@@ -1,8 +1,17 @@
+/**
+ * @module player-view
+ *
+ * Vista del robot: traduce Player.visualState a una clase is-* (solo una activa
+ * a la vez), aplica el sprite-sheet del robot, maneja el aura roja de daño
+ * (has-hurt-aura) y los estados superpuestos (landing, invulnerable, muzzle-flash).
+ *
+ * Usado por: SceneWorld (la crea al montar la escena), PlayingState (llama sync).
+ * Depende de: config.js (PLAYER), EntityView.
+ */
 import { PLAYER } from '../config.js';
 import { EntityView } from './entity-view.js';
 
-// Todas las clases de estado posibles; se limpian cada frame y solo una se activa
-// segun la prioridad definida en Player.visualState.
+/** Clases de estado posibles; se limpian cada frame y solo una se activa. */
 const VISUAL_CLASSES = [
   'is-idle', 'is-running', 'is-rising', 'is-falling', 'is-landing',
   'is-attacking', 'is-hurt-frame', 'is-invulnerable', 'is-dying',
