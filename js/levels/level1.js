@@ -21,6 +21,15 @@
 export const LEVEL_1 = {
   id: 1,
   name: 'Bahía de carga',
+  theme: 'cargo',
+  story: {
+    title: 'Nivel 1 · Bahía de carga',
+    lines: [
+      'Sistema reactivado. Batería al 100 %.',
+      'La estación no responde. Solo llega una señal débil que se repite.',
+      'Origen: más adentro.',
+    ],
+  },
   scenes: [
     {
       id: 'n1e1',

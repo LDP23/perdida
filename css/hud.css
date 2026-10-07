@@ -126,10 +126,10 @@
 .hud__level {
   padding: 4px 12px;
   background: rgb(2 4 11 / 0.7);
-  border: 1px solid var(--color-signal);
+  border: 1px solid var(--color-level-accent, var(--color-signal));
   border-radius: 3px;
   font-size: 16px;
-  color: var(--color-text-dim);
+  color: var(--color-level-accent, var(--color-text-dim));
 }
 
 /* --- Derecha: puntos + IDs --- */

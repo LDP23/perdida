@@ -32,6 +32,8 @@ export class TrapView {
     setRect(this.#element, trap.zone);
     if (trap.type === 'press') {
       createElement('trap__block', this.#element);
+    } else if (trap.type === 'acid-drip') {
+      createElement('trap__splash', this.#element);
     }
   }
 

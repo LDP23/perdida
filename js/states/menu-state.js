@@ -69,7 +69,7 @@ export class MenuState {
 
   #newGame() {
     const session = new GameSession(this.#context.events);
-    this.#context.states.change('playing', { session });
+    this.#context.states.change('story', { session });
   }
 
   #openSub(name) {

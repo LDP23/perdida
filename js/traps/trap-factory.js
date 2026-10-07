@@ -7,6 +7,7 @@
  * Usado por: SceneWorld (al construir las trampas de la escena).
  * Depende de: HydraulicPress, IntermittentLaser.
  */
+import { AcidDrip } from './acid-drip.js';
 import { HydraulicPress } from './hydraulic-press.js';
 import { IntermittentLaser } from './intermittent-laser.js';
 
@@ -14,6 +15,7 @@ import { IntermittentLaser } from './intermittent-laser.js';
 const TRAP_CLASSES = new Map([
   ['press', HydraulicPress],
   ['laser', IntermittentLaser],
+  ['acid-drip', AcidDrip],
 ]);
 
 /**

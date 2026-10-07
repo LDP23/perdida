@@ -235,6 +235,16 @@ export const TRAPS = Object.freeze({
     riseTime: 1.2,        // s — sube lento (peligroso, puede atrapar al descuidado)
     blockHeight: 36,      // px — alto del bloque de acero
   }),
+  // Goteo de ácido: ciclo idle → warning → fall → splash.
+  // La duración de fall se calcula con √(2·distancia/gravedad), no es constante.
+  acidDrip: Object.freeze({
+    idleTime: 1.2,        // s — sin gota visible
+    warningTime: 0.8,     // s — gota crece en la tubería, sin peligro
+    fallGravity: 2400,    // px/s² — aceleración de la gota
+    splashTime: 0.25,     // s — salpicadura en el suelo (peligroso)
+    dropSize: 14,         // px — tamaño de la gota (cuadrado)
+    splashWidth: 40,      // px — ancho de la salpicadura
+  }),
   // Láser intermitente: ciclo off → warning → on.
   laser: Object.freeze({
     offTime: 1.6,         // s — apagado, sin peligro

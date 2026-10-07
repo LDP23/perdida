@@ -90,6 +90,7 @@
 
 /* === Visibilidad por estado === */
 .game[data-state="menu"] .screen--menu,
+.game[data-state="story"] .screen--story,
 .game[data-state="game-over"] .screen--game-over,
 .game[data-state="off"] .screen--off,
 .game[data-overlay="paused"] .screen--paused,
@@ -581,8 +582,69 @@
   margin: 1rem 0;
 }
 
+.screen--level-complete .screen__title {
+  color: var(--color-level-accent, var(--color-signal));
+}
+
 .level-complete-summary span {
-  color: var(--color-amber);
+  color: var(--color-level-accent, var(--color-amber));
+}
+
+/* ============================================================
+   HISTORIA ENTRE NIVELES
+   ============================================================ */
+.screen--story {
+  background: var(--color-void);
+}
+
+.screen--story::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--story-image) center / cover no-repeat;
+  opacity: 0.12;
+  pointer-events: none;
+}
+
+.story__title {
+  color: var(--color-level-accent, var(--color-signal));
+}
+
+.story__lines {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  text-align: center;
+}
+
+.story__line {
+  font-family: var(--font-terminal);
+  font-size: var(--text-body);
+  color: var(--color-text);
+  opacity: 0;
+  animation: story-line-appear 0.6s ease forwards;
+}
+
+.story__line:nth-child(1) { animation-delay: 0.3s; }
+.story__line:nth-child(2) { animation-delay: 1.2s; }
+.story__line:nth-child(3) { animation-delay: 2.1s; }
+.story__line:nth-child(4) { animation-delay: 3.0s; }
+
+@keyframes story-line-appear {
+  from { opacity: 0; translate: 0 8px; }
+  to   { opacity: 1; translate: 0 0; }
+}
+
+.story__hint {
+  font-family: var(--font-terminal);
+  font-size: var(--text-small);
+  color: var(--color-text-dim);
+  margin-top: 0.5rem;
+}
+
+.game.reduced-motion .story__line {
+  animation: none;
+  opacity: 1;
 }
 
 /* ============================================================
@@ -627,6 +689,58 @@
   transform: translate(calc(var(--x) * 1px), calc(var(--y) * 1px));
   background: linear-gradient(to bottom, transparent 0%, var(--color-void) 80%);
   pointer-events: none;
+}
+
+/* ============================================================
+   PUERTA QUE SE ABRE (decoración de N2E2)
+   ============================================================ */
+.decoration--opening-door {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: calc(var(--w) * 1px);
+  height: calc(var(--h) * 1px);
+  transform: translate(calc(var(--x) * 1px), calc(var(--y) * 1px));
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.decoration--opening-door::before,
+.decoration--opening-door::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(90deg, #1a1a22, #2a2a32, #1a1a22);
+  border: 1px solid #3a3a44;
+  box-sizing: border-box;
+}
+
+.decoration--opening-door::before {
+  left: 0;
+  transform-origin: left center;
+  animation: door-open-left 1.2s ease-out 0.3s forwards;
+}
+
+.decoration--opening-door::after {
+  right: 0;
+  transform-origin: right center;
+  animation: door-open-right 1.2s ease-out 0.3s forwards;
+}
+
+@keyframes door-open-left {
+  to { transform: scaleX(0); }
+}
+
+@keyframes door-open-right {
+  to { transform: scaleX(0); }
+}
+
+.game.reduced-motion .decoration--opening-door::before,
+.game.reduced-motion .decoration--opening-door::after {
+  animation: none;
+  transform: scaleX(0);
 }
 
 /* ============================================================

@@ -112,6 +112,7 @@ export class PlayingState {
     this.#hud = null;
     this.#session = null;
     this.#context.playingSession = null;
+    delete this.#context.refs.game.dataset.theme;
     if (this.#visibilityHandler) {
       document.removeEventListener('visibilitychange', this.#visibilityHandler);
       window.removeEventListener('blur', this.#visibilityHandler);
@@ -173,7 +174,7 @@ export class PlayingState {
     w.playerView.sync(w.player);
     w.projectiles.sync((p) => ({ 'is-facing-left': p.direction < 0 }));
     w.energyCells.sync((p) => ({ 'is-collected': p.isCollected }));
-    w.crewIdPickups.sync((p) => ({ 'is-collected': p.isCollected }));
+    w.crewIdPickups.sync((p) => ({ 'is-collected': p.isCollected, 'is-dropped': p.isDropped }));
     w.dummies.syncCustom((dummy, view) => view.sync(dummy));
     w.enemies.syncCustom((enemy, view) => view.sync(enemy));
     w.movingPlatforms.syncCustom((mp, view) => view.sync(mp));
@@ -196,6 +197,7 @@ export class PlayingState {
     });
 
     const level = LEVELS[this.#session.levelIndex];
+    if (level.theme) this.#context.refs.game.dataset.theme = level.theme;
     this.#hud.levelName = `Nivel ${level.id} · ${level.name}`;
     this.#hud.lives = this.#session.lives;
 

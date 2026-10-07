@@ -26,18 +26,20 @@ export class TrapSystem {
   }
 
   /**
-   * Actualiza todas las trampas y recopila sus dangerRects.
+   * Actualiza todas las trampas y recopila sus dangerRects y solidRects.
    * @param {number} dt — deltaTime en segundos.
    */
   update(dt) {
     const w = this.#getWorld();
     const hazards = [];
+    const solids = [];
     for (const trap of w.traps) {
       trap.update(dt);
-      const rects = trap.dangerRects;
-      for (let i = 0; i < rects.length; i++) hazards.push(rects[i]);
+      for (const r of trap.dangerRects) hazards.push(r);
+      for (const r of trap.solidRects) solids.push(r);
     }
     w.dynamicHazards = hazards;
+    w.dynamicSolids = solids;
   }
 
   dispose() {}

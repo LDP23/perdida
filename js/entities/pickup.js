@@ -27,6 +27,8 @@ export class Pickup {
   crewId;
   /** @type {boolean} — true cuando el robot lo tocó (inicia animación de recolección) */
   isCollected = false;
+  /** @type {boolean} — true si fue soltado por una criatura (animación de salto) */
+  isDropped = false;
   /** @type {boolean} — true cuando debe ser eliminado */
   isDead = false;
   /** @type {Timer} — cuenta regresiva de la animación de recolección */

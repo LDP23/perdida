@@ -64,21 +64,25 @@ export class Enemy {
   #hasStruckThisSwing = false;
   /** @type {boolean} — si el desvanecimiento final ya empezó */
   #fadeStarted = false;
+  /** @type {string|null} — ID de tripulante que suelta al morir */
+  #dropsCrewId;
 
   /**
    * @param {Object} data — datos de la criatura desde los datos de escena.
    * @param {number} data.x — centro horizontal (pies), en px del mundo.
    * @param {number} data.y — base (pies), en px del mundo.
    * @param {{x1: number, x2: number}} data.patrol — límites de patrulla.
+   * @param {string} [data.dropsCrewId] — ID de tripulante que suelta al morir.
    * @param {EventBus} events — bus de eventos.
    */
-  constructor({ x, y, patrol }, events) {
+  constructor({ x, y, patrol, dropsCrewId }, events) {
     this.body = createBody({ width: ENEMY.width, height: ENEMY.height });
     // x,y son los pies: centrar la hitbox horizontalmente, alinear abajo
     this.body.x = x - ENEMY.width / 2;
     this.body.y = y - ENEMY.height;
     this.#health = ENEMY.health;
     this.#patrol = patrol;
+    this.#dropsCrewId = dropsCrewId ?? null;
     this.#events = events;
   }
 
@@ -268,7 +272,13 @@ export class Enemy {
     this.#state = 'dying';
     this.#stateTimer.start(ENEMY.dyingTime);
     this.body.vx = 0;
-    this.#events.emit('enemy:destroyed');
+    const footX = this.body.x + this.body.width / 2;
+    const footY = this.body.y + this.body.height;
+    this.#events.emit('enemy:destroyed', {
+      x: footX,
+      y: footY,
+      dropsCrewId: this.#dropsCrewId,
+    });
   }
 
   // --- Detección ---

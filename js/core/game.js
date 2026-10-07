@@ -16,6 +16,7 @@ import { MenuState } from '../states/menu-state.js';
 import { OffState } from '../states/off-state.js';
 import { PausedState } from '../states/paused-state.js';
 import { PlayingState } from '../states/playing-state.js';
+import { StoryState } from '../states/story-state.js';
 import { DebugView } from '../view/debug-view.js';
 import { queryRefs } from '../view/dom-utils.js';
 import { WorldView } from '../view/world-view.js';
@@ -87,6 +88,7 @@ export class Game {
     this.#states = new StateMachine(
       {
         menu: new MenuState(context),
+        story: new StoryState(context),
         playing: new PlayingState(context),
         paused: new PausedState(context),
         'level-complete': new LevelCompleteState(context),

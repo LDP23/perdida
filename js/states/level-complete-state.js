@@ -62,9 +62,9 @@ export class LevelCompleteState {
     if (nextLevel < LEVELS.length) {
       session.levelIndex = nextLevel;
       session.sceneIndex = 0;
-      this.#context.states.change('playing', { session });
+      this.#context.states.change('story', { session });
     } else {
-      // Provisional: niveles 2 y 3 en la etapa 9
+      // Provisional: nivel 3 en la etapa 9
       saveHighScore(session.score);
       this.#context.states.change('menu');
     }

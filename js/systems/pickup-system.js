@@ -10,6 +10,7 @@
  * Escucha: 'scene:mounted' (para cerrar el panel al cambiar de escena).
  */
 import { PICKUP, SCORE } from '../config.js';
+import { Pickup } from '../entities/pickup.js';
 import { CrewLogPanel } from '../ui/crew-log-panel.js';
 import { rectsOverlap } from '../physics/collision.js';
 
@@ -26,7 +27,7 @@ export class PickupSystem {
   #hud;
   #crewPanel;
   #panelPaused = false;
-  #unsub;
+  #unsubs = [];
 
   constructor({ context, getWorld, session, hud }) {
     this.#context = context;
@@ -34,10 +35,19 @@ export class PickupSystem {
     this.#session = session;
     this.#hud = hud;
     this.#crewPanel = new CrewLogPanel(context.layers.panels);
-    this.#unsub = context.events.on('scene:mounted', () => {
-      this.#panelPaused = false;
-      this.#crewPanel.close();
-    });
+    this.#unsubs.push(
+      context.events.on('scene:mounted', () => {
+        this.#panelPaused = false;
+        this.#crewPanel.close();
+      }),
+      context.events.on('enemy:destroyed', ({ x, y, dropsCrewId }) => {
+        if (!dropsCrewId || this.#session.hasFoundCrewId(dropsCrewId)) return;
+        const w = this.#getWorld();
+        const pickup = new Pickup({ type: 'crew-id', x, y: y - 60, crewId: dropsCrewId });
+        pickup.isDropped = true;
+        w.crewIdPickups.add(pickup);
+      }),
+    );
   }
 
   // Devuelve true si el panel consume el frame
@@ -56,7 +66,7 @@ export class PickupSystem {
   }
 
   dispose() {
-    this.#unsub();
+    for (const unsub of this.#unsubs) unsub();
     this.#crewPanel.destroy();
   }
 

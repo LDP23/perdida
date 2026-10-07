@@ -64,6 +64,9 @@ export class Trap {
   /** @returns {Rect[]} rectángulos peligrosos en este instante (vacío si no daña) */
   get dangerRects() { return []; }
 
+  /** @returns {Rect[]} rectángulos sólidos en este instante (vacío si no bloquea) */
+  get solidRects() { return []; }
+
   /** @returns {Rect} área total que la trampa puede ocupar (fija, para safe-point) */
   get zone() { return this.#zone; }
 

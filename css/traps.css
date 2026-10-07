@@ -208,6 +208,100 @@
 
 
 /* =====================================================================
+   GOTEO DE ÁCIDO
+   Gota verde que cae desde una tubería y salpica al llegar al suelo.
+   ===================================================================== */
+
+/* Emisor: resplandor verde en la boca de la tubería */
+.trap--acid-drip::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 16px;
+  height: 8px;
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse at center, var(--color-acid), transparent 70%);
+  opacity: 0.4;
+  border-radius: 0 0 50% 50%;
+}
+
+/* Gota */
+.trap--acid-drip::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  width: 10px;
+  height: 14px;
+  transform: translateX(-50%);
+  top: calc(var(--drop-y, 0) * 1px);
+  background: radial-gradient(ellipse at 40% 30%, #c8ff90, var(--color-acid) 60%, #3a8a1f);
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  opacity: 0;
+  filter: drop-shadow(0 0 4px var(--color-acid));
+}
+
+/* --- Fase: warning (gota crece en la boca) --- */
+.trap--acid-drip.is-warning::before {
+  opacity: 0.8;
+}
+
+.trap--acid-drip.is-warning::after {
+  opacity: 1;
+  animation: drip-grow 0.8s ease-in forwards;
+}
+
+@keyframes drip-grow {
+  0%   { scale: 0.3; opacity: 0.3; }
+  100% { scale: 1;   opacity: 1; }
+}
+
+/* --- Fase: fall (gota cayendo) --- */
+.trap--acid-drip.is-fall::after {
+  opacity: 1;
+}
+
+.trap--acid-drip.is-fall::before {
+  opacity: 0.3;
+}
+
+/* --- Fase: splash (salpicadura en el suelo) --- */
+.trap--acid-drip.is-splash::after {
+  opacity: 0;
+}
+
+.trap--acid-drip.is-splash .trap__splash {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+}
+
+/* Salpicadura con pseudo-elementos que se abren (usamos un hijo) */
+.trap--acid-drip .trap__splash {
+  display: none;
+}
+
+.trap--acid-drip.is-splash .trap__splash {
+  display: block;
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 40px;
+  height: 10px;
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse at center bottom, var(--color-acid) 0%, transparent 70%);
+  animation: drip-splash 0.25s ease-out forwards;
+  filter: drop-shadow(0 0 6px var(--color-acid));
+}
+
+@keyframes drip-splash {
+  0%   { scale: 0.4 1; opacity: 1; }
+  50%  { scale: 1.2 0.8; opacity: 0.8; }
+  100% { scale: 1.5 0.3; opacity: 0; }
+}
+
+
+/* =====================================================================
    MOVIMIENTO REDUCIDO
    Sin temblor ni chispas animadas. Los avisos se mantienen como color fijo.
    ===================================================================== */
@@ -228,4 +322,15 @@
 .game.reduced-motion .trap--laser.is-warning::after {
   animation: none;
   opacity: 0.6;
+}
+
+.game.reduced-motion .trap--acid-drip.is-warning::after {
+  animation: none;
+  opacity: 1;
+  scale: 1;
+}
+
+.game.reduced-motion .trap--acid-drip.is-splash .trap__splash {
+  animation: none;
+  opacity: 0.7;
 }

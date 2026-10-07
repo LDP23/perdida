@@ -67,12 +67,13 @@ export class HydraulicPress extends Trap {
   get dangerRects() {
     const phase = this.phase;
     if (phase === 'idle' || phase === 'warning') return [];
-    return [{
-      x: this.#x1,
-      y: this.#currentBottom - this.#blockHeight,
-      width: this.#x2 - this.#x1,
-      height: this.#blockHeight,
-    }];
+    return [this.#blockRect()];
+  }
+
+  get solidRects() {
+    const phase = this.phase;
+    if (phase !== 'idle' && phase !== 'warning') return [];
+    return [this.#blockRect()];
   }
 
   /** --block-y: posición del borde inferior del bloque relativa al top de la zona */
@@ -83,6 +84,15 @@ export class HydraulicPress extends Trap {
   update(dt) {
     super.update(dt);
     this.#updateBlockPosition();
+  }
+
+  #blockRect() {
+    return {
+      x: this.#x1,
+      y: this.#currentBottom - this.#blockHeight,
+      width: this.#x2 - this.#x1,
+      height: this.#blockHeight,
+    };
   }
 
   #updateBlockPosition() {

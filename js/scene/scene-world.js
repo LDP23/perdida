@@ -52,6 +52,8 @@ export class SceneWorld {
   trapViews = [];
   /** @type {Rect[]} — peligros dinámicos de las trampas, reemplazado cada frame por TrapSystem */
   dynamicHazards = [];
+  /** @type {Rect[]} — sólidos dinámicos de las trampas (bloque en reposo), reemplazado cada frame */
+  dynamicSolids = [];
   safePoint;
   tutorial = null;
   tutorialView = null;
@@ -126,6 +128,13 @@ export class SceneWorld {
         el.style.setProperty('--y', deco.top);
         el.style.setProperty('--w', deco.x2 - deco.x1);
         this.#decorationElements.push(el);
+      } else if (deco.type === 'opening-door') {
+        const el = createElement('decoration decoration--opening-door', layers.world);
+        el.style.setProperty('--x', deco.x1);
+        el.style.setProperty('--y', deco.top);
+        el.style.setProperty('--w', deco.x2 - deco.x1);
+        el.style.setProperty('--h', deco.bottom - deco.top);
+        this.#decorationElements.push(el);
       }
     }
 
@@ -146,6 +155,7 @@ export class SceneWorld {
     const solids = [...this.scene.solids];
     this.movingPlatforms.forEach((mp) => { if (mp.isSolid) solids.push(mp.body); });
     this.fallingPlatforms.forEach((fp) => { if (fp.isSolid) solids.push(fp.body); });
+    for (const r of this.dynamicSolids) solids.push(r);
     return solids;
   }
 
@@ -163,6 +173,7 @@ export class SceneWorld {
     this.trapViews = [];
     this.traps = [];
     this.dynamicHazards = [];
+    this.dynamicSolids = [];
     for (const el of this.#decorationElements) el.remove();
     this.#decorationElements = [];
     this.tutorial?.dispose();

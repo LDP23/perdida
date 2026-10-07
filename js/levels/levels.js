@@ -8,5 +8,6 @@
  * Depende de: level1.js (y futuros level2.js, level3.js).
  */
 import { LEVEL_1 } from './level1.js';
+import { LEVEL_2 } from './level2.js';
 
-export const LEVELS = [LEVEL_1];
+export const LEVELS = [LEVEL_1, LEVEL_2];

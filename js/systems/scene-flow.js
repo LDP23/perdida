@@ -185,7 +185,10 @@ export class SceneFlow {
     const batteryBonus = Math.round(w.player.battery.value) * SCORE.batteryBonusPerPoint;
     this.#session.addScore(batteryBonus);
     const level = LEVELS[this.#session.levelIndex];
-    const levelCrewIds = level.scenes.flatMap(s => s.crewIds?.map(c => c.crewId) ?? []);
+    const levelCrewIds = level.scenes.flatMap(s => [
+      ...(s.crewIds?.map(c => c.crewId) ?? []),
+      ...(s.enemies?.map(e => e.dropsCrewId).filter(Boolean) ?? []),
+    ]);
     const crewThisLevel = levelCrewIds.filter(id => this.#session.hasFoundCrewId(id)).length;
     this.#context.states.push('level-complete', {
       session: this.#session,

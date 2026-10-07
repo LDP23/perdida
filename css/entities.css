@@ -445,6 +445,23 @@
   100% { scale: 1.6; opacity: 0; filter: brightness(3); translate: 0 -16px; }
 }
 
+/* Soltado por una criatura: salta hacia arriba y luego flota */
+.entity--crew-id.is-dropped .entity__sprite {
+  animation: pickup-drop 0.5s ease-out forwards, pickup-float 2s ease-in-out 0.5s infinite,
+    pickup-glow-amber 1.5s ease-in-out 0.5s infinite alternate;
+}
+
+@keyframes pickup-drop {
+  0%   { translate: 0 20px; opacity: 0; scale: 0.5; }
+  40%  { translate: 0 -20px; opacity: 1; scale: 1.1; }
+  100% { translate: 0 0; opacity: 1; scale: 1; }
+}
+
+.game.reduced-motion .entity--crew-id.is-dropped .entity__sprite {
+  animation: none;
+  opacity: 1;
+}
+
 /* ===== Espantapajaros ===== */
 .entity--training-dummy .entity__sprite {
   width: calc(var(--dummy-sprite-w) * 1px);
