@@ -60,13 +60,13 @@
 
 @property --frame-col {
   syntax: "<integer>";
-  inherits: false;
+  inherits: true;
   initial-value: 0;
 }
 
 @property --frame-row {
   syntax: "<integer>";
-  inherits: false;
+  inherits: true;
   initial-value: 0;
 }
 

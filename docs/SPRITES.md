@@ -54,7 +54,4 @@ Convenciones de esta tabla:
 
 ## Descompresión
 
-| Archivo | Archivo (px) | En el mundo | Uso |
-|---|---|---|---|
-| `descompresion_corriente.png` | 1174 × 210 | 587 × 105 | Rayas de viento hacia la **derecha**. **Repetible en ambos ejes.** La transparencia ya está incluida (el negro original se convirtió en transparencia), así que no necesita modos de mezcla. |
-| `descompresion_escombros.png` | 170 × 28 | celdas 17 × 14 | 5 celdas: tornillo · placa · papel · cable · vidrio. |
+La descompresión no usa sprites: el efecto de corriente de viento se dibuja con gradientes CSS animados.

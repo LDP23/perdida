@@ -90,7 +90,7 @@
 /* Impacto: frame 2 */
 .trap--press.is-slam .trap__block,
 .trap--press.is-hold .trap__block {
-  background-position: -100% bottom;
+  background-position: 100% bottom;
 }
 
 /* --- Fase: warning (temblor) --- */
@@ -181,7 +181,7 @@
 
 /* --- Fase: on (rayo completo) --- */
 .trap--laser.is-on .trap__emitter {
-  background-position: -100% 0;
+  background-position: 100% 0;
   filter: drop-shadow(0 4px 10px rgb(255 43 63 / 0.7));
 }
 
@@ -215,7 +215,7 @@
 }
 
 .trap--sparks.is-warning {
-  background-position: calc(-100% / 3) bottom;
+  background-position: calc(100% / 3) bottom;
   animation: sparks-warn-flicker 0.12s step-end infinite;
 }
 
@@ -226,14 +226,14 @@
 }
 
 .trap--sparks.is-discharge {
-  background-position: calc(-200% / 3) bottom;
-  animation: sparks-discharge-alt var(--sparks-discharge-time, 0.4s) steps(1) infinite;
+  background-position: calc(200% / 3) bottom;
+  animation: sparks-discharge-alt var(--sparks-discharge-time, 0.4s) steps(2) infinite;
   filter: drop-shadow(0 0 8px var(--color-signal));
 }
 
 @keyframes sparks-discharge-alt {
-  0%, 100% { background-position: calc(-200% / 3) bottom; }
-  50%      { background-position: calc(-300% / 3) bottom; }
+  0%, 100% { background-position: calc(200% / 3) bottom; }
+  50%      { background-position: 100% bottom; }
 }
 
 
@@ -312,7 +312,7 @@
 /* --- Fases sweep-* --- */
 .trap--sweep-laser.is-sweep-right .trap__emitter,
 .trap--sweep-laser.is-sweep-left .trap__emitter {
-  background-position: -100% 0;
+  background-position: 100% 0;
   filter: drop-shadow(0 4px 10px rgb(255 43 63 / 0.7));
 }
 
@@ -346,14 +346,14 @@
   background: url(../assets/sprites/trampa_tuberia.png) no-repeat 0 0 / 200% 100%;
 }
 
-/* Tramo repetible de tubería debajo de la boca */
+/* Tramo repetible de tubería: desde el techo (y=0) hasta la boca */
 .trap--acid-drip .trap__pipe-tramo {
   position: absolute;
   left: 50%;
-  top: 61px;
+  top: calc(var(--pipe-ceiling-h, 0) * -1px);
   width: 36px;
   transform: translateX(-50%);
-  height: calc(var(--pipe-length, 0) * 1px);
+  height: calc(var(--pipe-ceiling-h, 0) * 1px);
   --tile-url: url(../assets/sprites/trampa_tuberia_tramo.png);
   --tile-w: 36px;
   --tile-h: 10px;
@@ -387,7 +387,7 @@
 
 /* --- Fase: warning (gota crece en la boca, tubería encendida) --- */
 .trap--acid-drip.is-warning .trap__pipe {
-  background-position: -100% 0;
+  background-position: 100% 0;
 }
 
 .trap--acid-drip.is-warning .trap__drop {
@@ -424,50 +424,38 @@
 
 /* =====================================================================
    DESCOMPRESIÓN
-   Corriente con sprite repetible + escombros animados con CSS.
+   Corriente de viento con gradientes CSS animados (sin sprites).
    ===================================================================== */
 
 .trap--decompression {
   overflow: hidden;
 }
 
-/* Corriente: sprite repetible en ambos ejes */
+/* Corriente: rayas diagonales semi-transparentes que se desplazan hacia la brecha */
 .trap--decompression .trap__current {
   position: absolute;
   inset: 0;
-  background: url(../assets/sprites/descompresion_corriente.png) repeat 0 0 / 587px 105px;
-  opacity: 0.25;
-  animation: decompression-flow 2s linear infinite;
+  background:
+    repeating-linear-gradient(
+      -20deg,
+      transparent 0px,
+      transparent 18px,
+      rgb(180 210 255 / 0.06) 18px,
+      rgb(180 210 255 / 0.06) 20px
+    ),
+    repeating-linear-gradient(
+      -35deg,
+      transparent 0px,
+      transparent 40px,
+      rgb(200 230 255 / 0.04) 40px,
+      rgb(200 230 255 / 0.04) 42px
+    );
+  animation: decompression-flow 1.8s linear infinite;
 }
 
 @keyframes decompression-flow {
-  from { background-position: 0 0; }
-  to   { background-position: -587px 0; }
-}
-
-/* Escombros: piezas flotantes animadas */
-.trap--decompression .trap__debris {
-  position: absolute;
-  width: 17px;
-  height: 14px;
-  background: url(../assets/sprites/descompresion_escombros.png) no-repeat 0 0 / 500% 100%;
-  animation: debris-float 3s linear infinite;
-  opacity: 0.7;
-}
-
-/* 5 celdas de escombros (0–4), distribuidas por nth-child */
-.trap__debris:nth-child(2) { background-position: -25% 0; animation-delay: -0.5s; }
-.trap__debris:nth-child(3) { background-position: -50% 0; animation-delay: -1.1s; }
-.trap__debris:nth-child(4) { background-position: -75% 0; animation-delay: -1.7s; }
-.trap__debris:nth-child(5) { background-position: -100% 0; animation-delay: -2.3s; }
-.trap__debris:nth-child(6) { background-position: 0 0; animation-delay: -2.8s; }
-
-@keyframes debris-float {
-  0%   { translate: 0 0; opacity: 0.7; rotate: 0deg; }
-  25%  { opacity: 0.5; }
-  50%  { translate: calc(var(--debris-dx, -40) * 1px) -10px; rotate: 180deg; }
-  75%  { opacity: 0.6; }
-  100% { translate: calc(var(--debris-dx, -40) * 2px) 0; opacity: 0; rotate: 360deg; }
+  from { background-position: 0 0, 0 0; }
+  to   { background-position: 200px 0, 150px 0; }
 }
 
 
@@ -505,7 +493,7 @@
 
 /* --- Estado destruido (frame 2) --- */
 .trap--turret.is-destroyed {
-  background-position: -100% 0;
+  background-position: 100% 0;
   filter: none;
   opacity: 0.6;
 }
@@ -567,11 +555,6 @@
 
 .game.reduced-motion .trap--decompression .trap__current {
   animation: none;
-}
-
-.game.reduced-motion .trap--decompression .trap__debris {
-  animation: none;
-  opacity: 0.4;
 }
 
 .game.reduced-motion .entity--projectile.is-enemy .entity__sprite {

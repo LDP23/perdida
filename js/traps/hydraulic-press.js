@@ -22,8 +22,7 @@ const P = TRAPS.press;
 /**
  * Prensa hidráulica.
  *
- * Datos de escena: { type: 'press', x1, x2, ceiling, restBottom, bottom, phaseOffset? }
- * - ceiling: y del soporte donde se ancla al techo.
+ * Datos de escena: { type: 'press', x1, x2, restBottom, bottom, phaseOffset? }
  * - restBottom: y del borde inferior del bloque en reposo.
  * - bottom: y del borde inferior del bloque al golpear.
  */
@@ -36,9 +35,9 @@ export class HydraulicPress extends Trap {
   constructor(data) {
     const zone = {
       x: data.x1,
-      y: data.ceiling,
+      y: 0,
       width: data.x2 - data.x1,
-      height: data.bottom - data.ceiling,
+      height: data.bottom,
     };
 
     super([

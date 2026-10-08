@@ -79,7 +79,7 @@ export const LEVEL_2 = {
         { type: 'acid-drip', x: 668, top: 265, bottom: 458 },
       ],
       movingPlatforms: [
-        { from: { x: 960, y: 470 }, to: { x: 1180, y: 400 }, width: 110 },
+        { from: { x: 960, y: 470 }, to: { x: 1131, y: 400 }, width: 110 },
       ],
       enemies: [
         { x: 1500, y: 373, patrol: { x1: 1290, x2: 1740 } },
@@ -113,7 +113,7 @@ export const LEVEL_2 = {
         { type: 'laser', x: 990 },
       ],
       movingPlatforms: [
-        { from: { x: 1620, y: 360 }, to: { x: 1800, y: 360 }, width: 100 },
+        { from: { x: 1620, y: 360 }, to: { x: 1741, y: 360 }, width: 100 },
       ],
       enemies: [
         { x: 1260, y: 390, patrol: { x1: 1160, x2: 1360 }, dropsCrewId: 'samuel-okoro' },

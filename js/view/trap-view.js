@@ -10,9 +10,8 @@
  * hijos necesarios para los sprites (soporte, pistón, bloque, emisor, rayo, etc.).
  *
  * Usado por: SceneWorld (crea una vista por trampa).
- * Depende de: dom-utils.js, config.js (TRAPS.decompression).
+ * Depende de: dom-utils.js.
  */
-import { TRAPS } from '../config.js';
 import { createElement, setRect } from './dom-utils.js';
 
 /**
@@ -63,19 +62,9 @@ export class TrapView {
         createElement('trap__splash', this.#element);
         break;
 
-      case 'decompression': {
+      case 'decompression':
         createElement('trap__current', this.#element);
-        const pullRatio = trap.viewData?.['--pull-x'] ?? (trap.zone.width / 2);
-        for (let i = 0; i < TRAPS.decompression.debrisCount; i++) {
-          const d = createElement('trap__debris', this.#element);
-          const leftPct = Math.random() * 90 + 5;
-          d.style.setProperty('left', `${leftPct}%`);
-          d.style.setProperty('top', `${Math.random() * 80 + 10}%`);
-          const posX = leftPct / 100 * trap.zone.width;
-          d.style.setProperty('--debris-dx', posX < pullRatio ? 40 : -40);
-        }
         break;
-      }
 
       case 'turret':
         break;

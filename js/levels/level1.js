@@ -104,7 +104,7 @@ export const LEVEL_1 = {
         // Prensa sobre el contenedor largo (1320–1762). El bloque descansa arriba
         // y baja de golpe hasta la superficie (395). restBottom deja 125 px libres
         // (robot = 112 + 10 de margen).
-        { type: 'press', x1: 1480, x2: 1600, ceiling: 100, restBottom: 270, bottom: 395 },
+        { type: 'press', x1: 1480, x2: 1600, restBottom: 270, bottom: 395 },
       ],
       exit: { type: 'edge' },
     },

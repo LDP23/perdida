@@ -18,7 +18,7 @@ import { Turret } from './turret.js';
 
 /** @type {Map<string, {cls: new(data: Object) => Trap, keys: Set<string>}>} */
 const TRAP_REGISTRY = new Map([
-  ['press',         { cls: HydraulicPress,  keys: new Set(['type', 'x1', 'x2', 'ceiling', 'restBottom', 'bottom', 'phaseOffset']) }],
+  ['press',         { cls: HydraulicPress,  keys: new Set(['type', 'x1', 'x2', 'restBottom', 'bottom', 'phaseOffset']) }],
   ['laser',         { cls: IntermittentLaser, keys: new Set(['type', 'x', 'phaseOffset']) }],
   ['acid-drip',     { cls: AcidDrip,         keys: new Set(['type', 'x', 'top', 'bottom', 'phaseOffset']) }],
   ['sparks',        { cls: ElectricSparks,   keys: new Set(['type', 'x', 'bottom', 'width', 'height', 'phaseOffset']) }],

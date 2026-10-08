@@ -153,7 +153,8 @@ assets/             Imágenes, sprites, fuentes
 ## Herramientas de desarrollo
 
 - **`tools/physics-check.html`**: simula saltos a distintos FPS y verifica las restricciones de diseño, incluyendo descompresión del nivel 3.
-- **`tools/level-check.html`**: detecta escalones trampa (desniveles de 1–10 px entre sólidos vecinos) en todos los niveles. Ejecutable también con `node --input-type=module -e "import './tools/level-check.js'"`.
+- **`tools/level-check.html`**: detecta escalones trampa (desniveles de 1–10 px entre sólidos vecinos) y plataformas que violan la separación mínima con sólidos (`PLATFORMS.wallClearance`). Ejecutable también con `node --input-type=module -e "import './tools/level-check.js'"`.
+- **`tools/trap-gallery.html`**: galería visual que muestra cada tipo de trampa congelada en cada una de sus fases, para verificar que las piezas permanentes no desaparezcan al cambiar de fase.
 
 ## Cómo agregar una trampa nueva
 

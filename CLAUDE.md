@@ -123,8 +123,10 @@ js/view/debug-view.js      showScene, track(id, rect, kind), report({clave: valo
 tools/process_assets.py    conversión de assets originales (ya aplicada)
 tools/physics-check.html   verificador de física: simula saltos a 30/120/144 FPS y compara requisitos
 tools/physics-check.js     lógica del verificador, importa Player y physics reales
-tools/level-check.html     detector de escalones trampa (1–10 px) en todos los niveles
-tools/level-check.js       lógica del detector, importa niveles y PLAYER
+tools/level-check.html     verificador de niveles: escalones trampa + separación de plataformas
+tools/level-check.js       lógica del verificador, importa niveles, PLAYER y PLATFORMS
+tools/trap-gallery.html    galería visual de trampas: cada tipo en cada fase, congelada
+tools/trap-gallery.js      lógica de la galería, importa trap-factory y TrapView
 ```
 
 Contexto compartido que reciben los estados: `{ input, camera, events, settings, worldView, debugView, loop, layers: { entities, world, hud, panels }, refs, states }`.
@@ -168,7 +170,7 @@ Agregar un sistema nuevo = crear archivo en `js/systems/`, agregarlo al arreglo 
 - Máquina de estados con pila: `change()` vacía la pila, `push()` superpone (pausa), `pop()` vuelve al anterior. `data-state` = base, `data-overlay` = superpuesto.
 - Pantallas: `<section class="screen screen--X">` controladas por CSS según `data-state`/`data-overlay`/`data-sub`/`data-confirm`. JS nunca escribe `display`.
 - Diálogo de confirmación en pausa: un solo bloque `.confirm-dialog` reutilizado por "Reiniciar nivel" y "Salir al menú". El atributo `data-confirm="restart"|"exit"` en `.screen--paused` muestra la confirmación y oculta los botones. El foco empieza en "No" (opción segura). Escape en la confirmación la cierra sin cerrar la pausa.
-- Formato de datos de escena: `id`, `name`, `background`, `spawn`, `solids`, `hazards`, `crewIds`, `energyCells`, `trainingDummies`, `enemies` (`[{x, y, patrol: {x1, x2}}]`, donde x/y son los pies y patrol los límites de patrulla), `tutorial`, `exit` (`{type:'edge'}` o `{type:'door', x1, x2, top, bottom}`), `movingPlatforms` (`[{from:{x,y}, to:{x,y}, width}]`), `fallingPlatforms` (`[{x, y, width}]`), `decorations` (`[{type, x1, x2, top}]`), `traps` (`[{type:'press', x1, x2, ceiling, restBottom, bottom}]` o `[{type:'laser', x}]`, con `phaseOffset` opcional). El láser calcula top/bottom dinámicamente con `findSurfaceBelow`. `trap-factory` valida las claves de datos.
+- Formato de datos de escena: `id`, `name`, `background`, `spawn`, `solids`, `hazards`, `crewIds`, `energyCells`, `trainingDummies`, `enemies` (`[{x, y, patrol: {x1, x2}}]`, donde x/y son los pies y patrol los límites de patrulla), `tutorial`, `exit` (`{type:'edge'}` o `{type:'door', x1, x2, top, bottom}`), `movingPlatforms` (`[{from:{x,y}, to:{x,y}, width}]`), `fallingPlatforms` (`[{x, y, width}]`), `decorations` (`[{type, x1, x2, top}]`), `traps` (`[{type:'press', x1, x2, restBottom, bottom}]` o `[{type:'laser', x}]`, con `phaseOffset` opcional). El láser calcula top/bottom dinámicamente con `findSurfaceBelow`. `trap-factory` valida las claves de datos.
 - Trampas no aplican daño: exponen `dangerRects` (arreglo de Rect), `solidRects` y `zone` (Rect fijo). TrapSystem escribe `world.dynamicHazards` y `world.dynamicSolids` cada frame; HazardSystem los revisa igual que los hazards estáticos. SafePointTracker consulta `safePointExclusions` de cada trampa (default: `[zone]`, override: sweep-laser usa el rayo actual ensanchado). Agregar una trampa = subclase de Trap + línea en trap-factory + datos en la escena.
 - Trampas que necesitan crear entidades emiten eventos: `turret:fire` → CombatSystem crea el proyectil enemy; `turret:destroyed` → CombatSystem suma puntos.
 - Proyectiles con `owner`: `'player'` impacta shootables, `'enemy'` impacta al robot con `takeHit` (sin empuje).
@@ -192,6 +194,12 @@ Agregar un sistema nuevo = crear archivo en `js/systems/`, agregarlo al arreglo 
 - `safePointExclusions`: getter en la clase base `Trap` (default: `[this.zone]`). SweepingLaser lo sobreescribe con el rayo actual ensanchado. SafePointTracker consulta todas las trampas cada frame.
 - Caídas y peligros: siempre reposicionan al robot en el punto seguro. El daño solo se aplica si `canBeHurt` es true (invulnerabilidad post-golpe no impide el reposicionamiento).
 - Nada de `setTimeout`/`setInterval` para la lógica del juego: usar `Timer` actualizado en `update`. Un `setTimeout` sigue corriendo durante la pausa y puede dispararse después de reiniciar o salir al menú.
+- Piezas permanentes vs efímeras en TrapView: las piezas que son parte fija de la trampa (soporte, tubería, riel, emisor) deben estar siempre visibles. Solo las piezas que aparecen/desaparecen por fase (rayo, gota, salpicadura, bloque de golpe) cambian con `is-*`. Si un sprite tiene 2 frames (apagado/encendido), el frame 1 es el reposo y se muestra con `background-position: 0 0`.
+- Variables `--frame-col`/`--frame-row` registradas con `@property` como `inherits: true`, para que las animaciones definidas en un padre (`.sprite-sheet`) lleguen a los hijos (`.trap__sprite`).
+- Zonas de trampas que cuelgan del techo (prensa, tubería) empiezan en y=0. La zona se extiende desde el techo hasta el punto más bajo que alcanza la trampa. El soporte/tubería se posiciona en top=0 del contenedor de la trampa; el tramo repetible se extiende con `top` negativo hasta el techo de la escena.
+- Separación mínima plataforma-sólido: `PLATFORMS.wallClearance` (4 px). `tools/level-check.js` lo verifica.
+- Descompresión: efecto CSS puro con `repeating-linear-gradient` animado (sin sprites). No usa `debrisCount`.
+- `tools/trap-gallery.html`: galería visual de trampas, muestra cada tipo en cada fase congelada. Usa las clases reales de js/traps/ y TrapView.
 
 ## Física: restricciones verificadas (NO romper)
 

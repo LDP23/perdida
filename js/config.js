@@ -194,6 +194,7 @@ export const TRANSITION = Object.freeze({
 
 // Plataformas móviles y que caen.
 export const PLATFORMS = Object.freeze({
+  wallClearance: 4,         // px — separación mínima entre plataforma y sólido estático
   moving: Object.freeze({
     speed: 90,
     endPause: 0.6,
@@ -255,6 +256,7 @@ export const TRAPS = Object.freeze({
     splashTime: 0.25,     // s — salpicadura en el suelo (peligroso)
     dropWidth: 10.5,      // px — ancho de la gota (docs/SPRITES.md: 10.5×21)
     dropHeight: 21,       // px — alto de la gota
+    dropStartY: 54,       // px — offset vertical donde la gota nace (bajo la boca de la tubería)
     splashWidth: 41.5,    // px — ancho de la salpicadura (docs/SPRITES.md)
     splashHeight: 29,     // px — alto de la salpicadura
     pipeWidth: 36,        // px — ancho de la tubería/boca (docs/SPRITES.md: 36×61)
@@ -307,7 +309,6 @@ export const TRAPS = Object.freeze({
   // Descompresión: fuerza que arrastra al robot hacia una brecha.
   decompression: Object.freeze({
     strength: 80,         // px/s — menor que runSpeed: resistible caminando
-    debrisCount: 6,       // piezas de escombros por zona de descompresión
   }),
 });
 

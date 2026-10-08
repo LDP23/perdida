@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Galería de trampas — Señal Perdida</title>
+  <style>
+    body {
+      background: #02040b;
+      color: #cfe9f2;
+      font-family: 'Courier New', monospace;
+      padding: 2rem;
+      margin: 0;
+    }
+    h1 { color: #3ef0ff; margin-bottom: 0.5rem; }
+    p.info { color: #7a9ab0; margin-top: 0; }
+    .trap-type { margin: 2rem 0; border-top: 1px solid #1a3050; padding-top: 1rem; }
+    .trap-type h2 { color: #ffb03a; margin-bottom: 0.5rem; }
+    .phases { display: flex; flex-wrap: wrap; gap: 24px; }
+    .phase-card {
+      background: #0a1531;
+      border: 1px solid #1a3050;
+      border-radius: 4px;
+      padding: 12px;
+      min-width: 200px;
+      position: relative;
+    }
+    .phase-card h3 {
+      color: #3ef0ff;
+      font-size: 13px;
+      margin: 0 0 8px;
+      text-transform: uppercase;
+    }
+    .phase-card .trap-container {
+      position: relative;
+      overflow: visible;
+      image-rendering: pixelated;
+    }
+  </style>
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/traps.css">
+  <script type="module" src="trap-gallery.js"></script>
+</head>
+<body>
+  <h1>Galería de trampas</h1>
+  <p class="info">Cada trampa en cada fase, congelada. Verificá que ninguna pieza permanente desaparezca.</p>
+  <div id="gallery"></div>
+</body>
+</html>

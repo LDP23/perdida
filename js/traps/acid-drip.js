@@ -31,12 +31,14 @@ export class AcidDrip extends Trap {
   #x;
   #top;
   #bottom;
-  #distance;
   #fallTime;
   #dropY;
+  #dropStartY;
 
   constructor(data) {
-    const distance = data.bottom - data.top;
+    const dropStartY = A.dropStartY;
+    const startWorldY = data.top + dropStartY;
+    const distance = data.bottom - startWorldY;
     const fallTime = Math.sqrt(2 * distance / A.fallGravity);
 
     const zone = {
@@ -56,9 +58,9 @@ export class AcidDrip extends Trap {
     this.#x = data.x;
     this.#top = data.top;
     this.#bottom = data.bottom;
-    this.#distance = distance;
+    this.#dropStartY = dropStartY;
     this.#fallTime = fallTime;
-    this.#dropY = data.top;
+    this.#dropY = data.top + dropStartY;
   }
 
   get type() { return 'acid-drip'; }
@@ -85,7 +87,10 @@ export class AcidDrip extends Trap {
   }
 
   get viewData() {
-    return { '--drop-y': this.#dropY - this.#top };
+    return {
+      '--drop-y': this.#dropY - this.#top,
+      '--pipe-ceiling-h': this.#top,
+    };
   }
 
   update(dt) {
@@ -96,11 +101,12 @@ export class AcidDrip extends Trap {
   #updateDropPosition() {
     const phase = this.phase;
     if (phase === 'fall') {
+      const startY = this.#top + this.#dropStartY;
       const t = this.phaseProgress * this.#fallTime;
-      this.#dropY = this.#top + 0.5 * A.fallGravity * t * t;
+      this.#dropY = startY + 0.5 * A.fallGravity * t * t;
       if (this.#dropY > this.#bottom) this.#dropY = this.#bottom;
     } else {
-      this.#dropY = this.#top;
+      this.#dropY = this.#top + this.#dropStartY;
     }
   }
 }

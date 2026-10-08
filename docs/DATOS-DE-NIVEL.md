@@ -82,8 +82,8 @@ export const LEVEL_N = {
 
   // Trampas del escenario (exponen dangerRects al hazard-system)
   traps: [
-    // Prensa: ceiling=soporte, restBottom=bloque arriba, bottom=bloque abajo
-    { type: 'press', x1: 1480, x2: 1600, ceiling: 100, restBottom: 270, bottom: 395 },
+    // Prensa: zona desde y=0 hasta bottom, bloque oscila entre restBottom y bottom
+    { type: 'press', x1: 1480, x2: 1600, restBottom: 270, bottom: 395 },
     // Láser intermitente: x=centro, el rayo va de y=0 hasta findSurfaceBelow
     { type: 'laser', x: 1400 },
     // Chispas eléctricas: x=centro, bottom=piso; width y height opcionales (defecto config)
