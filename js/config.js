@@ -230,6 +230,7 @@ export const SETTINGS_DEFAULTS = Object.freeze({
   screenShake: true,
   crtEffect: true,
   reducedMotion: null, // null = seguir la preferencia del sistema
+  timedEscape: true,
 });
 
 // Trampas del escenario: duraciones de cada fase en segundos.
@@ -297,6 +298,20 @@ export const TRAPS = Object.freeze({
   decompression: Object.freeze({
     strength: 80,         // px/s — menor que runSpeed: resistible caminando
   }),
+});
+
+// Secuencia de escape: alerta, temporizador y cápsula al final del juego.
+export const ESCAPE = Object.freeze({
+  countdownSeconds: 30,
+  alertPulseMin: 0.05,
+  alertPulseMax: 0.15,
+  alertPulseCycle: 1.5,
+  shakeAmplitude: 2,
+  consoleWidth: 80,
+  consoleHeight: 60,
+  interactionZone: 80,
+  podWidth: 60,
+  podHeight: 130,
 });
 
 export const DEBUG = Object.freeze({

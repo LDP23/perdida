@@ -29,6 +29,8 @@ export class SafePointTracker {
   #hazards;
   /** @type {Trap[]} — trampas (se consultan sus safePointExclusions) */
   #traps;
+  /** @type {boolean} — si el punto está fijado (no se actualiza con el movimiento del robot) */
+  #locked = false;
 
   /**
    * @param {{x: number, y: number}} spawn — punto inicial (centro-abajo del robot).
@@ -47,10 +49,22 @@ export class SafePointTracker {
   get point() { return this.#point; }
 
   /**
+   * Fija el punto seguro y lo bloquea: update() deja de actualizarlo.
+   * Se usa durante la secuencia de escape para que el robot siempre reaparezca
+   * junto a la consola del capitán.
+   * @param {{x: number, y: number}} point — centro-abajo del robot.
+   */
+  lock(point) {
+    this.#point = { ...point };
+    this.#locked = true;
+  }
+
+  /**
    * Evalúa si la posición actual del robot es segura y la guarda si lo es.
    * @param {Body} body — cuerpo del robot.
    */
   update(body) {
+    if (this.#locked) return;
     if (!body.contacts.ground) return;
     if (!this.#feetOnSolid(body)) return;
     if (this.#nearHazard(body)) return;

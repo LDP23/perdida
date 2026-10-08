@@ -9,7 +9,7 @@
  * Depende de: todos los módulos core, todos los estados, las vistas y config.js.
  * Participa en: orquesta el arranque y la destrucción del juego completo.
  */
-import { DEBUG, ENEMY, ENEMY_SPRITE, PICKUP, PLATFORMS, PLAYER, PLAYER_FEEDBACK, ROBOT_SPRITE, SHOOT, TRAINING_DUMMY, TRANSITION, TRAPS } from '../config.js';
+import { DEBUG, ENEMY, ENEMY_SPRITE, ESCAPE, PICKUP, PLATFORMS, PLAYER, PLAYER_FEEDBACK, ROBOT_SPRITE, SHOOT, TRAINING_DUMMY, TRANSITION, TRAPS } from '../config.js';
 import { GameOverState } from '../states/game-over-state.js';
 import { LevelCompleteState } from '../states/level-complete-state.js';
 import { MenuState } from '../states/menu-state.js';
@@ -17,6 +17,7 @@ import { OffState } from '../states/off-state.js';
 import { PausedState } from '../states/paused-state.js';
 import { PlayingState } from '../states/playing-state.js';
 import { StoryState } from '../states/story-state.js';
+import { VictoryState } from '../states/victory-state.js';
 import { DebugView } from '../view/debug-view.js';
 import { queryRefs } from '../view/dom-utils.js';
 import { WorldView } from '../view/world-view.js';
@@ -93,6 +94,7 @@ export class Game {
         paused: new PausedState(context),
         'level-complete': new LevelCompleteState(context),
         'game-over': new GameOverState(context),
+        victory: new VictoryState(context),
         off: new OffState(context),
       },
       refs.game,
@@ -132,6 +134,8 @@ export class Game {
     s.setProperty('--press-block-w', TRAPS.press.blockWidth);
     s.setProperty('--press-block-h', TRAPS.press.blockHeight);
     s.setProperty('--press-piston-overlap', TRAPS.press.pistonOverlap);
+    s.setProperty('--alert-pulse-cycle', `${ESCAPE.alertPulseCycle}s`);
+    s.setProperty('--alert-shake-amplitude', ESCAPE.shakeAmplitude);
 
     this.#disposeDevice = setupDeviceClass(refs.game);
     this.#resizeObserver = new ResizeObserver(([entry]) => this.#onResize(entry.contentRect));

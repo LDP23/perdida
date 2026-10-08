@@ -602,3 +602,107 @@
   transition: opacity var(--enemy-fade-time) ease-out;
   opacity: 0;
 }
+
+/* ============================================================
+   CONSOLA DEL CAPITÁN
+   ============================================================ */
+.captain-console {
+  position: absolute;
+  left: calc(var(--x) * 1px);
+  top: calc(var(--y) * 1px);
+  width: calc(var(--w) * 1px);
+  height: calc(var(--h) * 1px);
+}
+
+.captain-console__screen {
+  position: absolute;
+  inset: 4px;
+  background: rgb(0 30 10 / 0.9);
+  border: 2px solid var(--color-signal);
+  box-shadow:
+    0 0 8px rgb(0 255 255 / 0.3),
+    inset 0 0 12px rgb(0 255 255 / 0.1);
+  animation: console-glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes console-glow {
+  0% { box-shadow: 0 0 6px rgb(0 255 255 / 0.2), inset 0 0 8px rgb(0 255 255 / 0.08); }
+  100% { box-shadow: 0 0 14px rgb(0 255 255 / 0.5), inset 0 0 16px rgb(0 255 255 / 0.15); }
+}
+
+.captain-console.is-used .captain-console__screen {
+  border-color: var(--color-text-dim);
+  box-shadow: none;
+  animation: none;
+  opacity: 0.4;
+}
+
+.captain-console__indicator {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  translate: -50% 0;
+  font-family: var(--font-terminal);
+  font-size: 14px;
+  color: var(--color-signal);
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.2s;
+  text-shadow: 0 0 6px var(--color-signal);
+}
+
+.captain-console.is-active .captain-console__indicator {
+  opacity: 1;
+  animation: indicator-bob 0.8s ease-in-out infinite;
+}
+
+@keyframes indicator-bob {
+  0%, 100% { translate: -50% 0; }
+  50% { translate: -50% -4px; }
+}
+
+/* ============================================================
+   CÁPSULA DE ESCAPE
+   ============================================================ */
+.escape-pod {
+  position: absolute;
+  left: calc(var(--x) * 1px);
+  top: calc(var(--y) * 1px);
+  width: calc(var(--w) * 1px);
+  height: calc(var(--h) * 1px);
+  background: linear-gradient(
+    180deg,
+    rgb(0 255 255 / 0.05) 0%,
+    rgb(0 255 255 / 0.15) 50%,
+    rgb(0 255 255 / 0.05) 100%
+  );
+  border: 2px solid rgb(0 255 255 / 0.6);
+  border-radius: 4px 4px 0 0;
+  box-shadow:
+    0 0 20px rgb(0 255 255 / 0.3),
+    inset 0 0 30px rgb(0 255 255 / 0.1);
+  animation: pod-pulse 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes pod-pulse {
+  0% {
+    box-shadow: 0 0 15px rgb(0 255 255 / 0.2), inset 0 0 20px rgb(0 255 255 / 0.08);
+    border-color: rgb(0 255 255 / 0.4);
+  }
+  100% {
+    box-shadow: 0 0 30px rgb(0 255 255 / 0.5), inset 0 0 40px rgb(0 255 255 / 0.15);
+    border-color: rgb(0 255 255 / 0.8);
+  }
+}
+
+.game.reduced-motion .captain-console__screen {
+  animation: none;
+}
+
+.game.reduced-motion .captain-console.is-active .captain-console__indicator {
+  animation: none;
+}
+
+.game.reduced-motion .escape-pod {
+  animation: none;
+}

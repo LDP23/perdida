@@ -104,3 +104,40 @@
   color: var(--color-text-dim);
   text-align: center;
 }
+
+/* ============================================================
+   PANEL DEL CAPITÁN
+   ============================================================ */
+.captain-panel {
+  position: relative;
+  max-width: 520px;
+  width: 90%;
+  max-height: 80vh;
+  background: rgb(2 4 11 / 0.96);
+  border: 1px solid var(--color-amber);
+  padding: 24px 20px 16px;
+  font-family: var(--font-terminal);
+  color: var(--color-amber);
+  box-shadow:
+    0 0 20px rgb(255 176 0 / 0.15),
+    inset 0 0 40px rgb(0 0 0 / 0.4);
+  animation: panel-appear 0.25s ease-out;
+  overflow-y: auto;
+}
+
+.captain-panel__content {
+  line-height: 1.7;
+  font-size: 16px;
+}
+
+.captain-panel__line {
+  margin: 0;
+  padding: 0.1em 0;
+}
+
+.captain-panel__hint {
+  font-size: 14px;
+  color: var(--color-text-dim);
+  text-align: center;
+  margin-top: 16px;
+}

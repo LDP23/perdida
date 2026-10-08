@@ -129,6 +129,7 @@
           <button class="option-toggle" data-option="screenShake" aria-pressed="true">Vibración de pantalla</button>
           <button class="option-toggle" data-option="crtEffect" aria-pressed="true">Efecto CRT</button>
           <button class="option-toggle" data-option="reducedMotion" aria-pressed="false">Movimiento reducido</button>
+          <button class="option-toggle" data-option="timedEscape" aria-pressed="true">Escape cronometrado</button>
           <button class="option-toggle" data-ref="btn-fullscreen">Pantalla completa</button>
         </div>
 
@@ -202,6 +203,29 @@
         </div>
         <nav class="menu-buttons" data-ref="lc-buttons">
           <button data-ref="btn-lc-continue">Continuar</button>
+        </nav>
+      </div>
+    </section>
+
+    <!-- Victoria -->
+    <section class="screen screen--victory" data-ref="screen-victory">
+      <div class="screen__content screen__content--narrow">
+        <h2 class="screen__title victory__title">Señal restaurada</h2>
+        <p class="victory__subtitle" data-ref="victory-subtitle"></p>
+        <ul class="victory__crew-list" data-ref="victory-crew-list"></ul>
+        <p class="victory__special" data-ref="victory-special"></p>
+        <div class="victory__credits">
+          <p class="victory__credits-title">SEÑAL PERDIDA</p>
+          <p>Desarrollado por</p>
+          <p>Jafet Antonio Sevilla Ayala</p>
+          <p>Roy David Urtecho</p>
+          <p>Luis David Palomo</p>
+          <p class="victory__credits-inst">Universidad José Cecilio del Valle</p>
+          <p class="victory__credits-inst">Ingeniería del Software — 2026</p>
+        </div>
+        <p class="victory__score">Puntos: <span data-ref="victory-score">0</span></p>
+        <nav class="menu-buttons" data-ref="victory-buttons">
+          <button data-ref="btn-victory-menu">ENTER — Volver al menú</button>
         </nav>
       </div>
     </section>

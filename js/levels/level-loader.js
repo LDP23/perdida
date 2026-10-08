@@ -43,6 +43,8 @@ export function buildScene(sceneData) {
     fallingPlatforms: sceneData.fallingPlatforms ? [...sceneData.fallingPlatforms] : [],
     decorations: sceneData.decorations ? [...sceneData.decorations] : [],
     traps: sceneData.traps ? [...sceneData.traps] : [],
+    captainConsole: sceneData.captainConsole ?? null,
+    escapePod: sceneData.escapePod ?? null,
     exit,
     // Si la puerta existe, convertir su zona a rectángulo para chequeo de colisión
     door: exit?.type === 'door' ? rectFromSpan(exit) : null,

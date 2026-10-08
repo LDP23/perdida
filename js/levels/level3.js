@@ -107,6 +107,8 @@ export const LEVEL_3 = {
       energyCells: [
         { x: 1000, y: 365 },
       ],
+      captainConsole: { x: 1800 },
+      escapePod: { x: 2100 },
       decorations: [
         { type: 'eyes', x: 1570, y: 65 },
         { type: 'eyes', x: 1640, y: 42 },

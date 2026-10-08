@@ -30,4 +30,23 @@ export const CREW_LOGS = [
     log: 'Última grabación. Activé la baliza para pedir ayuda, pero la señal los atrae y los une. No vengan. Robot de mantenimiento: si despertás, la cápsula está lista. Llevate esta grabación. Que alguien sepa quiénes fuimos.' },
 ];
 
-export const VICTORY_MESSAGE = 'Tripulación identificada: 9/9. La cápsula transmite sus nombres hacia la Tierra. Esta vez la señal no atrae a nadie: los recuerda.';
+export const CAPTAIN_LOG_TEXT =
+  'REGISTRO FINAL — CAPITÁN ANDRÉS MOLINA\n' +
+  'DÍA 847 DESDE EL INCIDENTE\n\n' +
+  'La señal que interceptamos no era un pedido de\n' +
+  'auxilio. No sé qué era. Algo cambió en la\n' +
+  'tripulación desde que la decodificamos. Primero\n' +
+  'los ojos... después dejaron de responder.\n' +
+  'Uno por uno.\n\n' +
+  'Intenté la cuarentena. La purga de comunicaciones.\n' +
+  'El protocolo Omega. Nada funcionó.\n\n' +
+  'Dejé los identificadores de cada tripulante\n' +
+  'repartidos por la estación. Si alguien llega\n' +
+  'hasta aquí, al menos sabrán quiénes fuimos.\n\n' +
+  'La señal sigue activa. Hay que cortarla.\n\n' +
+  'Si estás leyendo esto, no te quedes. La estación\n' +
+  'ya no es segura. Activé la cápsula de escape en\n' +
+  'este sector.\n\n' +
+  '— Molina, fuera.';
+
+export const VICTORY_MESSAGE = 'Gracias al robot de mantenimiento, la identidad de cada miembro de la tripulación fue recuperada. Sus nombres no se perderán.';

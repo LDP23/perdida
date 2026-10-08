@@ -32,7 +32,7 @@ Solo HTML, CSS y JavaScript puro: sin frameworks, sin librerías, sin `<canvas>`
 9.1. ✅ Sprites de trampas y plataformas: findSurfaceBelow, láseres desde el techo, border-image para plataformas, sprites para todas las trampas, safePointExclusions, correcciones N3, decorations.css.
 9.1.2. ✅ Correcciones: fix plataforma móvil (excluir plataforma de sólidos de arrastre, detección de aplastamiento real), eliminación de chispas eléctricas, rediseño de goteo de ácido (sin tubería, desde techo, marca de superficie), rediseño visual de descompresión (rayas + chevrones + franja destino), fix pistón de prensa (solapamiento con collar), galería con zoom ×3.
 9.1.3. ✅ Correcciones: fix N2E2 pantalla negra (surfaceY como argumento, no mutación del dato), datos de nivel congelados (deepFreeze), red de seguridad al montar escena (error visible, nunca pantalla negra), descompresión sin franja destino, validación de trampas en level-check.
-9.2. Consola del capitán, cápsula de escape y victoria.
+9.2. ✅ Consola del capitán, cápsula de escape y victoria: EscapeSystem, CaptainPanel, VictoryState, alerta con countdown, cápsula de escape, opción timedEscape.
 10. Táctil, responsive y pulido.
 
 ## Arquitectura (qué hace cada archivo)
@@ -99,16 +99,19 @@ js/systems/pickup-system.js PickupSystem: celdas e IDs, panel de registro, updat
 js/systems/trap-system.js  TrapSystem: actualiza trampas, escribe world.dynamicHazards/dynamicSolids, asigna externalVx de descompresión
 js/systems/hazard-system.js HazardSystem: safePoint.update, checkHazards (estáticos + dynamicHazards), handleFall
 js/systems/scene-flow.js   SceneFlow: salidas, transiciones por fases, loadCurrentScene, onDeathSequenceEnd, completeLevel, fundido. Suscribe player:battery-empty, player:respawn-end, debug:jump-scene
+js/systems/escape-system.js EscapeSystem: consola del capitán, panel narrativo, alerta con countdown, cápsula de escape, transición a victoria. Suscribe scene:mounted
 js/systems/debug-tools.js  DebugTools: reportDebug, handleInput (H, 1–9 → emite debug:jump-scene), setupScene. Suscribe scene:mounted
 js/states/playing-state.js orquestador: enter/exit/pause/resume, crea SceneWorld y sistemas, update en orden fijo, render, mountScene (emite scene:mounted)
 js/states/paused-state.js  pausa superpuesta: continuar, reiniciar nivel (restoreLevelStart sin perder intento), subpantallas
 js/states/level-complete-state.js  overlay al completar nivel: bono de batería, IDs del nivel, continuar o volver al menú
+js/states/victory-state.js  pantalla de victoria: lista de tripulantes, mensaje especial 9/9, créditos, volver al menú
 js/states/game-over-state.js  resumen final: puntos, IDs, récord, reiniciar o salir al menú
 js/states/off-state.js     pantalla de apagado: intenta window.close(), muestra "sistema apagado" con CRT
 js/ui/menu-navigator.js    navegación por teclado en menús: flechas/WS mueven foco circular, Escape = volver
 js/ui/screens.js           utilidades: getHighScore, saveHighScore, formatScore, fullscreen
 js/ui/tutorial.js          Tutorial secuencial: de a uno, minVisible, linger, pendingDismiss, passX
 js/ui/hud.js               Hud: datos para la vista (battery, lives, score, crew, toast con Timer)
+js/ui/captain-panel.js     CaptainPanel: panel narrativo del registro del capitán, cierra con confirm/pause tras closeDelay
 js/ui/crew-log-panel.js    CrewLogPanel: abre panel de ID, pausa juego, cierra con confirm tras closeDelay
 js/view/dom-utils.js       createElement, setPosition, setSize, setRect, queryRefs
 js/view/entity-view.js     EntityView(layer, modifier, {width,height}).sync(body, flags) / destroy()
@@ -204,6 +207,13 @@ Agregar un sistema nuevo = crear archivo en `js/systems/`, agregarlo al arreglo 
 - Separación mínima plataforma-sólido: `PLATFORMS.wallClearance` (4 px). `tools/level-check.js` lo verifica.
 - Descompresión: efecto CSS puro (sin sprites). Rayas horizontales (12 por zona, gradiente hacia pullX), chevrones (3 por borde, animación secuencial hacia pullX). Solo `transform`/`opacity` en animaciones. Reduced-motion: chevrones estáticos, sin rayas.
 - `tools/trap-gallery.html`: galería visual de trampas, muestra cada tipo en cada fase congelada. Usa las clases reales de js/traps/ y TrapView.
+- Consola del capitán: dato de escena `captainConsole: { x }`. EscapeSystem calcula surfaceY con `findSurfaceBelow`. Indicador "↑ ACCEDER" visible cuando el robot está en la zona y en el suelo. Interacción consume `jump` antes de `player.update`.
+- Cápsula de escape: dato de escena `escapePod: { x }`. Aparece al activar la alerta. El contacto con el robot inicia la transición a victoria.
+- Secuencia de escape: al cerrar el panel del capitán → alerta roja + countdown de 30 s + cápsula visible. Si el countdown llega a 0 → daño + reposición. SafePointTracker.lock() fija el punto seguro a la consola.
+- VictoryState: se activa con `states.change('victory')` (no push). Muestra lista de tripulantes, créditos, mensaje especial si 9/9. Es el estado final.
+- Opción `timedEscape`: si es false, el countdown no aparece y la cápsula está disponible sin presión de tiempo.
+- `ESCAPE` en config.js: countdownSeconds, alertPulseCycle, shakeAmplitude, consoleWidth/Height, interactionZone, podWidth/Height.
+- Orden de update de EscapeSystem en PlayingState: `updatePanel` ANTES de pausa (para que Escape cierre el panel), `checkInteraction` ANTES de player.update (para consumir jump), `update` DESPUÉS de hazardSystem.
 
 ## Física: restricciones verificadas (NO romper)
 

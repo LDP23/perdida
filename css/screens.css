@@ -91,6 +91,7 @@
 /* === Visibilidad por estado === */
 .game[data-state="menu"] .screen--menu,
 .game[data-state="story"] .screen--story,
+.game[data-state="victory"] .screen--victory,
 .game[data-state="game-over"] .screen--game-over,
 .game[data-state="off"] .screen--off,
 .game[data-overlay="paused"] .screen--paused,
@@ -678,6 +679,153 @@
 }
 
 /* ============================================================
+   PANTALLA DE VICTORIA
+   ============================================================ */
+.screen--victory {
+  background: var(--color-void);
+}
+
+.victory__title {
+  color: var(--color-signal);
+  animation: victory-glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes victory-glow {
+  0% { text-shadow: 0 0 6px var(--color-signal); }
+  100% { text-shadow: 0 0 18px var(--color-signal), 0 0 36px rgba(0, 255, 255, 0.3); }
+}
+
+.victory__subtitle {
+  font-family: var(--font-terminal);
+  font-size: var(--text-small);
+  color: var(--color-text-dim);
+}
+
+.victory__subtitle.is-complete {
+  color: var(--color-signal);
+}
+
+.victory__crew-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-family: var(--font-terminal);
+  font-size: var(--text-small);
+  text-align: left;
+  width: 100%;
+}
+
+.victory__crew-list li {
+  padding: 0.15em 0;
+}
+
+.victory__crew-list .crew-found {
+  color: var(--color-signal);
+}
+
+.victory__crew-list .crew-missing {
+  color: var(--color-text-dim);
+  opacity: 0.5;
+}
+
+.victory__special {
+  font-family: var(--font-terminal);
+  font-size: var(--text-small);
+  color: var(--color-amber);
+  padding: 0.6em 0;
+  font-style: italic;
+}
+
+.victory__credits {
+  font-family: var(--font-terminal);
+  font-size: var(--text-small);
+  color: var(--color-text-dim);
+  margin-top: 0.8rem;
+  line-height: 1.6;
+}
+
+.victory__credits-title {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  color: var(--color-signal);
+  letter-spacing: 2px;
+  margin-bottom: 0.4rem;
+}
+
+.victory__credits-inst {
+  opacity: 0.6;
+}
+
+.victory__score {
+  font-family: var(--font-terminal);
+  font-size: var(--text-small);
+  color: var(--color-amber);
+}
+
+/* ============================================================
+   ALERTA DE ESCAPE
+   ============================================================ */
+.escape-alert {
+  position: absolute;
+  inset: 0;
+  z-index: 12;
+  pointer-events: none;
+}
+
+.escape-alert__overlay {
+  position: absolute;
+  inset: 0;
+  background: var(--color-alarm);
+  animation: alert-pulse var(--alert-pulse-cycle, 1.5s) ease-in-out infinite;
+}
+
+@keyframes alert-pulse {
+  0%, 100% { opacity: 0.05; }
+  50% { opacity: 0.15; }
+}
+
+.escape-alert__text {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  translate: -50% 0;
+  font-family: var(--font-display);
+  font-size: clamp(0.8rem, 2vw, 1.2rem);
+  color: var(--color-alarm);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  animation: alert-text-blink 1s steps(1) infinite;
+  text-shadow: 0 0 8px var(--color-alarm);
+}
+
+@keyframes alert-text-blink {
+  0%, 70% { opacity: 1; }
+  71%, 100% { opacity: 0; }
+}
+
+.escape-alert__countdown {
+  position: absolute;
+  top: 32px;
+  left: 50%;
+  translate: -50% 0;
+  font-family: var(--font-terminal);
+  font-size: clamp(1.2rem, 3vw, 1.8rem);
+  color: var(--color-alarm);
+  text-shadow: 0 0 10px var(--color-alarm);
+}
+
+.game.is-alert-shake .viewport {
+  animation: alert-shake 0.15s linear infinite;
+}
+
+@keyframes alert-shake {
+  0%, 100% { translate: 0 0; }
+  25% { translate: calc(var(--alert-shake-amplitude, 2) * 1px) calc(var(--alert-shake-amplitude, 2) * -1px); }
+  50% { translate: calc(var(--alert-shake-amplitude, 2) * -1px) calc(var(--alert-shake-amplitude, 2) * 1px); }
+  75% { translate: calc(var(--alert-shake-amplitude, 2) * 1px) calc(var(--alert-shake-amplitude, 2) * 0.5px); }
+}
+
+/* ============================================================
    MOVIMIENTO REDUCIDO: sin animaciones decorativas
    ============================================================ */
 .game.reduced-motion .screen__starfield {
@@ -705,6 +853,24 @@
 }
 
 .game.reduced-motion .new-record {
+  animation: none;
+}
+
+.game.reduced-motion .victory__title {
+  animation: none;
+  text-shadow: 0 0 8px var(--color-signal);
+}
+
+.game.reduced-motion .escape-alert__overlay {
+  animation: none;
+  opacity: 0.08;
+}
+
+.game.reduced-motion .escape-alert__text {
+  animation: none;
+}
+
+.game.reduced-motion.is-alert-shake .viewport {
   animation: none;
 }
 

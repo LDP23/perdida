@@ -19,14 +19,16 @@
  * 7. Si el robot está muriendo: solo avanza su animación + HUD + cámara.
  * 8. Si el robot está muerto: procesa fin de muerte (game over o respawn).
  * 9. Si el robot está reapareciendo: solo avanza su temporizador + HUD.
- * 10. Paso normal completo: plataformas → robot → trampas → combate → pickups →
- *     hazards → exits → tutorial → HUD → cámara.
+ * 10. Paso normal completo: escape.checkInteraction → plataformas → robot →
+ *     trampas → combate → pickups → hazards → escape.update → exits →
+ *     tutorial → HUD → cámara.
  */
 import { GameSession } from '../core/session.js';
 import { LEVELS } from '../levels/levels.js';
 import { SceneWorld } from '../scene/scene-world.js';
 import { CombatSystem } from '../systems/combat-system.js';
 import { DebugTools } from '../systems/debug-tools.js';
+import { EscapeSystem } from '../systems/escape-system.js';
 import { HazardSystem } from '../systems/hazard-system.js';
 import { PickupSystem } from '../systems/pickup-system.js';
 import { PlatformSystem } from '../systems/platform-system.js';
@@ -54,6 +56,7 @@ export class PlayingState {
   #combatSystem = null;
   #pickupSystem = null;
   #hazardSystem = null;
+  #escapeSystem = null;
   #sceneFlow = null;
   #debugTools = null;
   #systems = [];
@@ -84,12 +87,14 @@ export class PlayingState {
     this.#combatSystem = new CombatSystem(deps);
     this.#pickupSystem = new PickupSystem(deps);
     this.#hazardSystem = new HazardSystem(deps);
+    this.#escapeSystem = new EscapeSystem(deps);
     this.#sceneFlow = new SceneFlow(deps, (scene) => this.#mountScene(scene));
     this.#debugTools = new DebugTools(deps);
 
     this.#systems = [
       this.#screenShake, this.#platformSystem, this.#trapSystem, this.#combatSystem,
-      this.#pickupSystem, this.#hazardSystem, this.#sceneFlow, this.#debugTools,
+      this.#pickupSystem, this.#hazardSystem, this.#escapeSystem, this.#sceneFlow,
+      this.#debugTools,
     ];
     this.#visibilityHandler = () => {
       if (document.hidden) this.#autoPause();
@@ -137,6 +142,7 @@ export class PlayingState {
     const w = this.#world;
     if (!w) return;
     const { input, camera } = this.#context;
+    if (this.#escapeSystem.updatePanel(deltaTime, input)) return;
     if (input.consumePress('pause')) { this.#context.states.push('paused'); return; }
     if (this.#pickupSystem.updatePanel(deltaTime, input)) return;
     this.#debugTools.handleInput(deltaTime, input);
@@ -154,6 +160,7 @@ export class PlayingState {
       return;
     }
 
+    this.#escapeSystem.checkInteraction(input);
     this.#platformSystem.beforePlayer(deltaTime);
     w.player.update(deltaTime, input, w.getAllSolids());
     this.#platformSystem.afterPlayer();
@@ -161,6 +168,7 @@ export class PlayingState {
     this.#combatSystem.update(deltaTime);
     this.#pickupSystem.update(deltaTime);
     this.#hazardSystem.update();
+    this.#escapeSystem.update(deltaTime);
     this.#sceneFlow.checkExits();
     w.tutorial?.update(w.player.body, deltaTime);
     this.#hud.update(deltaTime);
