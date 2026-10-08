@@ -66,12 +66,11 @@ export class AcidDrip extends Trap {
   get dangerRects() {
     const phase = this.phase;
     if (phase === 'fall') {
-      const half = A.dropSize / 2;
       return [{
-        x: this.#x - half,
-        y: this.#dropY - half,
-        width: A.dropSize,
-        height: A.dropSize,
+        x: this.#x - A.dropWidth / 2,
+        y: this.#dropY - A.dropHeight / 2,
+        width: A.dropWidth,
+        height: A.dropHeight,
       }];
     }
     if (phase === 'splash') {

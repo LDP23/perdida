@@ -1,21 +1,21 @@
 /**
  * @module intermittent-laser
  *
- * Láser intermitente: trampa del nivel 1 escena 3. Un rayo vertical que se
- * enciende y apaga cíclicamente sobre una pasarela.
+ * Láser intermitente: un emisor cuelga del techo (y = 0) y el rayo baja hasta
+ * la primera superficie sólida debajo, recalculada en cada paso.
  *
  * Ciclo de fases:
  *   off (apagado, seguro) → warning (hilo rojo delgado, seguro) →
  *   on (rayo completo, peligroso) → off …
  *
  * dangerRects devuelve el rectángulo del rayo solo en la fase 'on'.
- * La zona fija cubre el rayo completo para que el safe-point nunca
- * guarde una posición dentro del haz.
+ * La zona fija cubre desde el emisor hasta el fondo de la escena.
  *
  * Usado por: trap-factory.js (mapa type → clase).
- * Depende de: config.js (TRAPS.laser), trap.js.
+ * Depende de: config.js (TRAPS.laser, WORLD), trap.js, collision.js.
  */
-import { TRAPS } from '../config.js';
+import { TRAPS, WORLD } from '../config.js';
+import { findSurfaceBelow } from '../physics/collision.js';
 import { Trap } from './trap.js';
 
 const L = TRAPS.laser;
@@ -23,22 +23,22 @@ const L = TRAPS.laser;
 /**
  * Láser intermitente.
  *
- * Datos de escena: { type: 'laser', x, top, bottom, phaseOffset? }
+ * Datos de escena: { type: 'laser', x, phaseOffset? }
  * - x: posición horizontal del centro del rayo.
- * - top: y del emisor (techo).
- * - bottom: y de la superficie donde impacta el rayo.
  */
 export class IntermittentLaser extends Trap {
-  /** @type {Rect} — rectángulo del rayo (fijo, el peligro se activa/desactiva por fase) */
-  #beamRect;
+  #x;
+  #beamTop;
+  #beamBottom;
 
   constructor(data) {
     const halfBeam = L.beamWidth / 2;
+    const beamTop = L.emitterMouthY;
     const zone = {
       x: data.x - halfBeam,
-      y: data.top,
+      y: 0,
       width: L.beamWidth,
-      height: data.bottom - data.top,
+      height: WORLD.height,
     };
 
     super([
@@ -47,14 +47,46 @@ export class IntermittentLaser extends Trap {
       { name: 'on',      duration: L.onTime },
     ], zone, data.phaseOffset);
 
-    this.#beamRect = { ...zone };
+    this.#x = data.x;
+    this.#beamTop = beamTop;
+    this.#beamBottom = WORLD.height;
   }
 
   get type() { return 'laser'; }
 
   get dangerRects() {
-    return this.phase === 'on' ? [this.#beamRect] : [];
+    return this.phase === 'on' ? [this.#beamRect()] : [];
   }
 
-  get viewData() { return null; }
+  get viewData() {
+    return {
+      '--beam-bottom': this.#beamBottom,
+    };
+  }
+
+  /**
+   * Recalcula la longitud del rayo según los sólidos actuales.
+   * @param {number} dt
+   * @param {Rect[]} [solids]
+   */
+  updateWithSolids(dt, solids) {
+    super.update(dt);
+    if (solids) {
+      this.#beamBottom = findSurfaceBelow(this.#x, this.#beamTop, solids, L.beamWidth);
+    }
+  }
+
+  update(dt) {
+    super.update(dt);
+  }
+
+  #beamRect() {
+    const halfBeam = L.beamWidth / 2;
+    return {
+      x: this.#x - halfBeam,
+      y: this.#beamTop,
+      width: L.beamWidth,
+      height: this.#beamBottom - this.#beamTop,
+    };
+  }
 }

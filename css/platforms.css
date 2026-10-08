@@ -1,17 +1,14 @@
 /*
- * platforms.css — Plataformas móviles y que caen, dibujadas solo con CSS.
+ * platforms.css — Plataformas móviles y que caen, con sprites via border-image.
  *
- * Plataforma móvil:
- * - Franja de advertencia ámbar con repeating-linear-gradient a -45deg.
- * - Propulsor cian debajo (::after) con pulso de opacidad y box-shadow.
+ * Sprites (docs/SPRITES.md):
+ * - plataforma_movil.png: 240×35 file → 120×17.5 world, cortes laterales 13 file / 6.5 world.
+ * - plataforma_cae.png:   240×22 file → 120×11 world, mismos cortes.
  *
- * Plataforma que cae:
- * - Grietas decorativas con linear-gradient superpuestos (::before).
- * - is-shaking: temblor rápido con steps(2) + borde intermitente (::after).
- * - is-hidden: visibility: hidden cuando cae fuera de pantalla.
- * - is-respawning: fundido con scale(0.8→1) para el efecto de materialización.
- *
- * Movimiento reducido: sin animaciones de pulso ni temblor; indicadores estáticos.
+ * Técnicas:
+ * - border-image para ancho variable con extremos preservados y centro estirado.
+ * - translate (propiedad individual) para temblor sin pisar el transform de posición.
+ * - visibility: hidden para ocultar al caer fuera de pantalla.
  */
 
 .platform {
@@ -25,55 +22,27 @@
 }
 
 /* === Plataforma móvil ===
-   Placa metálica oscura con franja de advertencia ámbar y propulsor cian debajo. */
+   Sprite con border-image para ancho variable. */
 .platform--moving {
-  background:
-    repeating-linear-gradient(
-      -45deg,
-      var(--color-amber) 0px,
-      var(--color-amber) 4px,
-      var(--color-void) 4px,
-      var(--color-void) 8px
-    );
-  border: 2px solid var(--color-amber);
-  box-shadow: 0 0 6px rgb(255 176 58 / 0.3);
-}
-
-/* Propulsor cian debajo */
-.platform--moving::after {
-  content: '';
-  position: absolute;
-  left: 20%;
-  right: 20%;
-  bottom: -8px;
-  height: 6px;
-  background: var(--color-signal);
-  border-radius: 0 0 3px 3px;
-  opacity: 0.6;
-  animation: thruster-pulse 1.2s ease-in-out infinite alternate;
-}
-
-@keyframes thruster-pulse {
-  0% { opacity: 0.3; box-shadow: 0 2px 8px var(--color-signal); }
-  100% { opacity: 0.8; box-shadow: 0 4px 14px var(--color-signal); }
+  border-style: solid;
+  border-width: 0 6.5px;
+  padding: 0;
+  background: none;
+  border-image-source: url(../assets/sprites/plataforma_movil.png);
+  border-image-slice: 0 13 fill;
+  border-image-repeat: stretch;
 }
 
 /* === Plataforma que cae ===
-   Placa con grietas sugeridas y borde rojo. */
+   Mismo principio de border-image. */
 .platform--falling {
-  background: var(--color-deep);
-  border: 2px solid var(--color-alarm);
-  box-shadow: inset 0 0 0 1px rgb(255 43 63 / 0.2);
-}
-
-/* Grietas decorativas */
-.platform--falling::before {
-  content: '';
-  position: absolute;
-  inset: 2px;
-  background:
-    linear-gradient(135deg, transparent 30%, rgb(255 43 63 / 0.15) 30%, rgb(255 43 63 / 0.15) 31%, transparent 31%),
-    linear-gradient(-45deg, transparent 60%, rgb(255 43 63 / 0.1) 60%, rgb(255 43 63 / 0.1) 61%, transparent 61%);
+  border-style: solid;
+  border-width: 0 6.5px;
+  padding: 0;
+  background: none;
+  border-image-source: url(../assets/sprites/plataforma_cae.png);
+  border-image-slice: 0 13 fill;
+  border-image-repeat: stretch;
 }
 
 /* Temblor antes de caer */
@@ -81,22 +50,9 @@
   animation: platform-shake 0.08s steps(2) infinite;
 }
 
-.platform--falling.is-shaking::after {
-  content: '';
-  position: absolute;
-  inset: -2px;
-  border: 2px solid var(--color-alarm);
-  animation: warning-flash 0.2s step-end infinite;
-}
-
 @keyframes platform-shake {
   0% { translate: -1px 0; }
   50% { translate: 1px -1px; }
-}
-
-@keyframes warning-flash {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0; }
 }
 
 /* Oculta cuando cae fuera de pantalla */
@@ -115,15 +71,9 @@
 }
 
 /* === Movimiento reducido === */
-.game.reduced-motion .platform--moving::after {
-  animation: none;
-  opacity: 0.5;
-}
-
 .game.reduced-motion .platform--falling.is-shaking {
   animation: none;
-  border-color: var(--color-alarm);
-  box-shadow: 0 0 8px var(--color-alarm);
+  filter: brightness(1.3);
 }
 
 .game.reduced-motion .platform--falling.is-respawning {

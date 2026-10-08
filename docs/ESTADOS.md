@@ -60,6 +60,21 @@ resume()              → el estado de encima se desapiló (pop)
 exit()                → se desactiva (limpia listeners, destruye sistemas)
 ```
 
+## Sprites por fase
+
+Cada trampa muestra un frame de su hoja según la fase actual:
+
+| Trampa | idle | warning | on/slam/discharge | hold | Otros |
+|---|---|---|---|---|---|
+| Prensa (bloque) | frame 1 | frame 1 + tiembla | frame 1 | frame 2 (golpe) | — |
+| Láser (emisor) | frame 1 | frame 1 | frame 2 | — | — |
+| Láser (rayo) | oculto | frame 1 (hilo) | frame 2 | — | — |
+| Chispas | frame 1 | frame 2 (parpadeo) | frames 3↔4 (steps) | — | — |
+| Torreta | frame 1 | — | — | — | frame 2 (destruida) |
+| Tubería ácido | frame 1 | frame 2 | — | — | — |
+
+Los láseres (intermitente y barrido) calculan la longitud del rayo en cada paso con `findSurfaceBelow`, ajustándose dinámicamente a sólidos y plataformas.
+
 ## Fases de la prensa hidráulica
 
 ```mermaid
@@ -91,3 +106,59 @@ stateDiagram-v2
     note right of warning: Seguro, hilo rojo parpadea (0.5 s)
     note right of on: PELIGROSO, rayo completo (1.2 s)
 ```
+
+## Fases de las chispas eléctricas
+
+```mermaid
+stateDiagram-v2
+    [*] --> idle
+    idle --> warning: timerEnd
+    warning --> discharge: timerEnd
+    discharge --> idle: timerEnd
+
+    note right of idle: Seguro (1.6 s)
+    note right of warning: Seguro, puntos cian parpadean (0.7 s)
+    note right of discharge: PELIGROSO, descarga eléctrica (0.5 s)
+```
+
+## Fases del láser de barrido
+
+```mermaid
+stateDiagram-v2
+    [*] --> warning_left
+    warning_left --> sweep_right: timerEnd
+    sweep_right --> pause_right: timerEnd
+    pause_right --> warning_right: timerEnd
+    warning_right --> sweep_left: timerEnd
+    sweep_left --> pause_left: timerEnd
+    pause_left --> warning_left: timerEnd
+
+    note right of warning_left: Seguro, hilo parpadea en x1 (0.6 s)
+    note right of sweep_right: PELIGROSO, rayo va → (calculado)
+    note right of pause_right: Seguro, apagado en x2 (1.2 s)
+    note right of warning_right: Seguro, hilo parpadea en x2 (0.6 s)
+    note right of sweep_left: PELIGROSO, rayo va ← (calculado)
+    note right of pause_left: Seguro, apagado en x1 (1.2 s)
+```
+
+## Fases de la torreta
+
+```mermaid
+stateDiagram-v2
+    [*] --> idle
+    idle --> aiming: timerEnd
+    aiming --> fire: timerEnd
+    fire --> cooldown: timerEnd
+    cooldown --> idle: timerEnd
+
+    note right of idle: Inactiva (1.0 s)
+    note right of aiming: Luz roja parpadea (0.9 s)
+    note right of fire: Emite turret:fire (0.1 s)
+    note right of cooldown: Enfriamiento (0.8 s)
+```
+
+Cuando la torreta recibe suficientes impactos (health = 2), queda destruida: sin fases, sin peligro, sin ser disparable.
+
+## Descompresión
+
+La descompresión no tiene fases cíclicas: siempre está activa. Expone `pullFor(body)` que devuelve la velocidad externa hacia `pullX`. `dangerRects` es siempre vacío; su `zone` cuenta para el punto seguro.

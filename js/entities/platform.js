@@ -5,9 +5,8 @@
  * Las subclases definen cómo se mueve (MovingPlatform: vaivén, FallingPlatform: caída).
  *
  * Usado por: MovingPlatform, FallingPlatform (herencia).
- * Depende de: config.js (PLATFORMS.thickness).
+ * Depende de: nada (la subclase pasa el alto).
  */
-import { PLATFORMS } from '../config.js';
 
 /**
  * Plataforma base. Rastrea su posición anterior para calcular el desplazamiento
@@ -28,10 +27,10 @@ export class Platform {
    * @param {number} x — borde izquierdo, en px del mundo.
    * @param {number} y — borde superior, en px del mundo.
    * @param {number} width — ancho, en px del mundo.
+   * @param {number} height — alto, en px del mundo.
    */
-  constructor(x, y, width) {
-    const h = PLATFORMS.thickness;
-    this.body = { x, y, width, height: h, kind: 'solid' };
+  constructor(x, y, width, height) {
+    this.body = { x, y, width, height, kind: 'solid' };
     this.#prevX = x;
     this.#prevY = y;
   }

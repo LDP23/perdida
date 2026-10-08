@@ -106,8 +106,9 @@ body {
 }
 
 /* Acento por nivel: cada tema redefine este token. */
-.game[data-theme="cargo"] { --color-level-accent: var(--color-amber); }
-.game[data-theme="lab"]   { --color-level-accent: #8faab8; }
+.game[data-theme="cargo"]  { --color-level-accent: var(--color-amber); }
+.game[data-theme="lab"]    { --color-level-accent: #8faab8; }
+.game[data-theme="bridge"] { --color-level-accent: #ff4455; }
 
 /* Opciones del jugador: el CSS decide qué apagar. */
 .game.no-crt .screen--menu::after { display: none; }

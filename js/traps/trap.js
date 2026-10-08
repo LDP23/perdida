@@ -70,6 +70,9 @@ export class Trap {
   /** @returns {Rect} área total que la trampa puede ocupar (fija, para safe-point) */
   get zone() { return this.#zone; }
 
+  /** @returns {Rect[]} rectángulos que excluyen el punto seguro (por defecto la zona) */
+  get safePointExclusions() { return [this.#zone]; }
+
   /** @returns {string} tipo de la trampa ('press', 'laser', etc.) */
   get type() { return ''; }
 

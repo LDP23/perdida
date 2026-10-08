@@ -2,8 +2,8 @@
  * @module hazard-system
  *
  * Gestiona peligros del escenario (zonas de daño) y caídas al vacío. Actualiza el
- * SafePointTracker en cada frame. Si el robot toca un peligro o cae, le aplica daño
- * y lo reposiciona en el último punto seguro.
+ * SafePointTracker en cada frame. Si el robot toca un peligro o cae, lo reposiciona
+ * en el último punto seguro. El daño solo se aplica si canBeHurt es true.
  *
  * Usado por: PlayingState (en el arreglo de sistemas).
  * Depende de: config.js (BATTERY, SCENE), collision.js.
@@ -36,18 +36,19 @@ export class HazardSystem {
   dispose() {}
 
   #checkHazards(w) {
-    if (!w.player.canBeHurt) return;
+    if (w.player.isDying || w.player.isDead || w.player.isRespawning) return;
     if (this.#hitAnyHazard(w, w.scene.hazards)) return;
     this.#hitAnyHazard(w, w.dynamicHazards);
   }
 
-  /** Revisa un arreglo de peligros; aplica daño y retorna true si hubo impacto */
   #hitAnyHazard(w, hazards) {
     for (const hazard of hazards) {
       if (rectsOverlap(w.player.body, hazard)) {
-        w.player.takeHit(BATTERY.hitCost);
+        if (w.player.canBeHurt) {
+          w.player.takeHit(BATTERY.hitCost);
+          this.#events.emit('player:hazard');
+        }
         w.player.placeAt(w.safePoint.point);
-        this.#events.emit('player:hazard');
         return true;
       }
     }
@@ -55,11 +56,13 @@ export class HazardSystem {
   }
 
   #handleFall(w) {
-    if (!w.player.canBeHurt) return;
+    if (w.player.isDying || w.player.isDead || w.player.isRespawning) return;
     if (w.player.body.y > w.scene.height + SCENE.fallMargin) {
-      w.player.takeHit(BATTERY.hitCost);
+      if (w.player.canBeHurt) {
+        w.player.takeHit(BATTERY.hitCost);
+        this.#events.emit('player:hazard');
+      }
       w.player.placeAt(w.safePoint.point);
-      this.#events.emit('player:hazard');
     }
   }
 }

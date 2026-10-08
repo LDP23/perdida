@@ -391,6 +391,21 @@
       transparent 100%);
 }
 
+/* Proyectil enemigo: esfera roja pulsante */
+.entity--projectile.is-enemy .entity__sprite {
+  background: radial-gradient(circle, #fff 20%, var(--color-alarm) 50%, rgb(255 43 63 / 0.3) 100%);
+  border-radius: 50%;
+  box-shadow:
+    0 0 8px var(--color-alarm),
+    0 0 16px rgb(255 43 63 / 0.4);
+  animation: enemy-projectile-pulse 0.3s ease-in-out infinite alternate;
+}
+
+@keyframes enemy-projectile-pulse {
+  from { box-shadow: 0 0 6px var(--color-alarm), 0 0 12px rgb(255 43 63 / 0.3); }
+  to   { box-shadow: 0 0 10px var(--color-alarm), 0 0 20px rgb(255 43 63 / 0.5); }
+}
+
 /* ===== Coleccionables ===== */
 .entity--crew-id .entity__sprite,
 .entity--energy-cell .entity__sprite {

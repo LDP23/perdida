@@ -1,17 +1,15 @@
 /**
  * @module hydraulic-press
  *
- * Prensa hidráulica: trampa de aplastamiento del nivel 1 escena 2.
- * Un bloque de acero sube y baja cíclicamente sobre un pasillo.
+ * Prensa hidráulica: un bloque de acero sube y baja cíclicamente.
  *
  * Ciclo de fases:
  *   idle (arriba, seguro) → warning (tiembla, luz roja, seguro) →
  *   slam (baja de golpe, peligroso) → hold (abajo, peligroso) →
  *   rise (sube lento, peligroso) → idle …
  *
- * El bloque interpola su posición vertical entre restBottom (arriba) y
- * bottom (abajo). dangerRects devuelve el bloque solo en slam/hold/rise.
- * viewData expone --block-y para que el CSS posicione el bloque.
+ * El bloque interpola entre restBottom y bottom. La hitbox y el sólido son el
+ * bloque visible (blockWidth × blockHeight, centrado en x1–x2, docs/SPRITES.md).
  *
  * Usado por: trap-factory.js (mapa type → clase).
  * Depende de: config.js (TRAPS.press), trap.js.
@@ -26,16 +24,13 @@ const P = TRAPS.press;
  *
  * Datos de escena: { type: 'press', x1, x2, ceiling, restBottom, bottom, phaseOffset? }
  * - ceiling: y del soporte donde se ancla al techo.
- * - restBottom: y del borde inferior del bloque en reposo (debe dejar pasar al robot).
- * - bottom: y del borde inferior del bloque al golpear (la superficie del piso).
+ * - restBottom: y del borde inferior del bloque en reposo.
+ * - bottom: y del borde inferior del bloque al golpear.
  */
 export class HydraulicPress extends Trap {
-  #x1;
-  #x2;
+  #centerX;
   #restBottom;
   #bottom;
-  #blockHeight;
-  /** @type {number} — y del borde inferior del bloque en este instante */
   #currentBottom;
 
   constructor(data) {
@@ -54,11 +49,9 @@ export class HydraulicPress extends Trap {
       { name: 'rise',    duration: P.riseTime },
     ], zone, data.phaseOffset);
 
-    this.#x1 = data.x1;
-    this.#x2 = data.x2;
+    this.#centerX = (data.x1 + data.x2) / 2;
     this.#restBottom = data.restBottom;
     this.#bottom = data.bottom;
-    this.#blockHeight = P.blockHeight;
     this.#currentBottom = data.restBottom;
   }
 
@@ -76,7 +69,6 @@ export class HydraulicPress extends Trap {
     return [this.#blockRect()];
   }
 
-  /** --block-y: posición del borde inferior del bloque relativa al top de la zona */
   get viewData() {
     return { '--block-y': this.#currentBottom - this.zone.y };
   }
@@ -88,10 +80,10 @@ export class HydraulicPress extends Trap {
 
   #blockRect() {
     return {
-      x: this.#x1,
-      y: this.#currentBottom - this.#blockHeight,
-      width: this.#x2 - this.#x1,
-      height: this.#blockHeight,
+      x: this.#centerX - P.blockWidth / 2,
+      y: this.#currentBottom - P.blockHeight,
+      width: P.blockWidth,
+      height: P.blockHeight,
     };
   }
 

@@ -39,7 +39,7 @@ export class FallingPlatform extends Platform {
    * @param {number} opts.width — ancho, en px del mundo.
    */
   constructor({ x, y, width }) {
-    super(x, y, width);
+    super(x, y, width, PLATFORMS.falling.height);
     this.#originY = y;
     this.#shakeTime = PLATFORMS.falling.shakeTime;
     this.#respawnTime = PLATFORMS.falling.respawnTime;

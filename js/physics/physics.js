@@ -30,6 +30,7 @@ import { rectsOverlap } from './collision.js';
  * @property {number} height — alto de la hitbox, en px del mundo.
  * @property {number} vx — velocidad horizontal, en px/s (positivo = derecha).
  * @property {number} vy — velocidad vertical, en px/s (positivo = abajo).
+ * @property {number} externalVx — velocidad horizontal externa (px/s), sumada al desplazamiento sin tocar vx.
  * @property {number} gravityScale — multiplicador de gravedad (0 = sin gravedad, como proyectiles).
  * @property {Contacts} contacts — lados en contacto con sólidos tras el último paso.
  * @property {Rect|null} groundSolid — referencia al sólido sobre el que descansa (para plataformas).
@@ -57,6 +58,7 @@ export function createBody({ x = 0, y = 0, width, height, gravityScale = 1 }) {
     x, y, width, height,
     vx: 0,
     vy: 0,
+    externalVx: 0,
     gravityScale,
     contacts: { left: false, right: false, ground: false, ceiling: false },
     groundSolid: null,
@@ -88,7 +90,7 @@ export function stepBody(body, solids, deltaTime) {
   resetContacts(body.contacts);
   body.groundSolid = null;
   const fallDistance = integrateGravity(body, deltaTime);
-  moveAxis(body, 'x', body.vx * deltaTime, solids);
+  moveAxis(body, 'x', (body.vx + body.externalVx) * deltaTime, solids);
   moveAxis(body, 'y', fallDistance, solids);
 }
 

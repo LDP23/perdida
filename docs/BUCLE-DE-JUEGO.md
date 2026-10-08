@@ -44,7 +44,7 @@ Si la pestaña estuvo oculta, el siguiente frame traería segundos de retraso.
 2. sceneFlow.updateTransition  (si hay transición, corta)
 3. ¿pause?                    (si pulsó pausa, push PausedState, corta)
 4. pickupSystem.updatePanel    (si panel abierto, consume frame)
-5. debugTools.handleInput      (tecla H y salto de escena)
+5. debugTools.handleInput      (tecla H: daño de prueba; 1–9: salto de escena)
 6. ¿dying/dead/respawning?    (compuertas de estado del robot)
 7. platformSystem.beforePlayer (mover plataformas + arrastrar rider)
 8. player.update               (física + entrada)

@@ -31,7 +31,7 @@ export const LEVEL_2 = {
         { x1: 578, x2: 1385, top: 502 },
         { x1: 1085, x2: 1195, top: 432 },
         { x1: 1195, x2: 1255, top: 395 },
-        { x1: 1255, x2: 1370, top: 360 },
+        { x1: 1255, x2: 1370, top: 364 },
         { x1: 1385, x2: 1780, top: 364 },
         { x1: 1400, x2: 1500, top: 305 },
         { x1: 1555, x2: 1695, top: 280 },
@@ -42,8 +42,8 @@ export const LEVEL_2 = {
         { x1: 345, x2: 578, top: 522, bottom: 724, type: 'acid' },
       ],
       traps: [
-        { type: 'laser', x: 800, top: 130, bottom: 502 },
-        { type: 'laser', x: 960, top: 130, bottom: 502, phaseOffset: 1.2 },
+        { type: 'laser', x: 800 },
+        { type: 'laser', x: 960, phaseOffset: 1.2 },
       ],
       enemies: [
         { x: 850, y: 502, patrol: { x1: 620, x2: 1070 }, dropsCrewId: 'marco-ibarra' },
@@ -110,7 +110,7 @@ export const LEVEL_2 = {
         { x1: 465, x2: 1938, top: 612, bottom: 724, type: 'acid' },
       ],
       traps: [
-        { type: 'laser', x: 990, top: 130, bottom: 417 },
+        { type: 'laser', x: 990 },
       ],
       movingPlatforms: [
         { from: { x: 1620, y: 360 }, to: { x: 1800, y: 360 }, width: 100 },

@@ -68,8 +68,20 @@ graph TB
         HudView[HudView]
     end
 
+    subgraph "Trampas (js/traps)"
+        TrapBase[Trap]
+        HydPress[HydraulicPress]
+        IntLaser[IntermittentLaser]
+        AcDrip[AcidDrip]
+        ElSparks[ElectricSparks]
+        SwLaser[SweepingLaser]
+        TurretTrap[Turret]
+        Decomp[Decompression]
+    end
+
     subgraph "Niveles (js/levels)"
         Level1[level1.js]
+        Level3[level3.js]
         LevelLoader[level-loader.js]
     end
 
@@ -88,6 +100,14 @@ graph TB
     Player --> Physics
     Player --> Battery
     LevelLoader --> Level1
+    LevelLoader --> Level3
+    TrapBase --> HydPress
+    TrapBase --> IntLaser
+    TrapBase --> AcDrip
+    TrapBase --> ElSparks
+    TrapBase --> SwLaser
+    TrapBase --> TurretTrap
+    TrapBase --> Decomp
 ```
 
 ## Flujo de datos
@@ -121,6 +141,19 @@ tools/              Herramientas de desarrollo
 docs/               Esta documentación
 assets/             Imágenes, sprites, fuentes
 ```
+
+## Herramientas compartidas para sprites
+
+- **`findSurfaceBelow(x, fromY, solids, width)`** (`collision.js`): busca el primer sólido debajo de `fromY` alineado con la franja horizontal. Los láseres la usan para calcular la longitud del rayo cada frame.
+- **`safePointExclusions`** (getter en `Trap`): por defecto devuelve `[this.zone]`. El barrido lo sobreescribe con el rayo actual ensanchado. `SafePointTracker` lo consulta cada frame.
+- **Piezas repetibles** (`.trap-tile-y` / `.trap-tile-x`): regla CSS genérica que repite un sprite en un eje usando `background-repeat` con el tamaño de mosaico como variable (`--tile-w` / `--tile-h`). El largo lo da la geometría (`--w` o `--h`) de la vista.
+- **`border-image`** para plataformas de ancho variable: cortes laterales definidos en `config.js` (`PLATFORMS.*.borderSlice`). Los extremos no se deforman al variar el ancho.
+- **`docs/SPRITES.md`**: referencia de tamaños, frames y anclas de todos los sprites.
+
+## Herramientas de desarrollo
+
+- **`tools/physics-check.html`**: simula saltos a distintos FPS y verifica las restricciones de diseño, incluyendo descompresión del nivel 3.
+- **`tools/level-check.html`**: detecta escalones trampa (desniveles de 1–10 px entre sólidos vecinos) en todos los niveles. Ejecutable también con `node --input-type=module -e "import './tools/level-check.js'"`.
 
 ## Cómo agregar una trampa nueva
 

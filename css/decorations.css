@@ -1,0 +1,114 @@
+/*
+ * decorations.css — Decoraciones del mundo: sombra de foso, puerta que se abre,
+ * ojos rojos. Elementos visuales colocados por los datos de nivel.
+ *
+ * Técnicas:
+ * - Gradientes y pseudo-elementos para efectos ambientales.
+ * - Animaciones con keyframes para puerta y parpadeo de ojos.
+ * - reduced-motion: sin animaciones, estado final estático.
+ */
+
+/* ============================================================
+   SOMBRA DE FOSO
+   ============================================================ */
+.decoration--pit-shadow {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: calc(var(--w) * 1px);
+  height: 304px;
+  transform: translate(calc(var(--x) * 1px), calc(var(--y) * 1px));
+  background: linear-gradient(to bottom, transparent 0%, var(--color-void) 80%);
+  pointer-events: none;
+}
+
+/* ============================================================
+   PUERTA QUE SE ABRE (decoración de N2E2)
+   ============================================================ */
+.decoration--opening-door {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: calc(var(--w) * 1px);
+  height: calc(var(--h) * 1px);
+  transform: translate(calc(var(--x) * 1px), calc(var(--y) * 1px));
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.decoration--opening-door::before,
+.decoration--opening-door::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(90deg, #1a1a22, #2a2a32, #1a1a22);
+  border: 1px solid #3a3a44;
+  box-sizing: border-box;
+}
+
+.decoration--opening-door::before {
+  left: 0;
+  transform-origin: left center;
+  animation: door-open-left 1.2s ease-out 0.3s forwards;
+}
+
+.decoration--opening-door::after {
+  right: 0;
+  transform-origin: right center;
+  animation: door-open-right 1.2s ease-out 0.3s forwards;
+}
+
+@keyframes door-open-left {
+  to { transform: scaleX(0); }
+}
+
+@keyframes door-open-right {
+  to { transform: scaleX(0); }
+}
+
+.game.reduced-motion .decoration--opening-door::before,
+.game.reduced-motion .decoration--opening-door::after {
+  animation: none;
+  transform: scaleX(0);
+}
+
+/* ============================================================
+   OJOS ROJOS (decoración orgánica de N3E3)
+   ============================================================ */
+.decoration--eyes {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 18px;
+  height: 10px;
+  transform: translate(calc(var(--x) * 1px), calc(var(--y) * 1px));
+  pointer-events: none;
+}
+
+.decoration--eyes::before,
+.decoration--eyes::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #ff6060, var(--color-alarm) 60%, transparent 100%);
+  box-shadow: 0 0 8px var(--color-alarm), 0 0 16px rgb(255 43 63 / 0.4);
+  animation: eyes-blink 4s ease-in-out infinite;
+}
+
+.decoration--eyes::before { left: 0; }
+.decoration--eyes::after  { right: 0; animation-delay: 0.15s; }
+
+@keyframes eyes-blink {
+  0%, 92%, 100% { opacity: 1; }
+  95%, 97%      { opacity: 0.05; }
+}
+
+.game.reduced-motion .decoration--eyes::before,
+.game.reduced-motion .decoration--eyes::after {
+  animation: none;
+}

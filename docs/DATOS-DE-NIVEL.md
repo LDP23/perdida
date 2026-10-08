@@ -68,6 +68,8 @@ export const LEVEL_N = {
   // Decoraciones (solo visual, sin colisión)
   decorations: [
     { type: 'pit-shadow', x1: 935, x2: 1218, top: 420 },
+    { type: 'opening-door', x1: 0, x2: 80, top: 340, bottom: 498 },
+    { type: 'eyes', x: 1570, y: 65 },
   ],
 
   // Tutorial: carteles que aparecen cerca del robot
@@ -82,8 +84,16 @@ export const LEVEL_N = {
   traps: [
     // Prensa: ceiling=soporte, restBottom=bloque arriba, bottom=bloque abajo
     { type: 'press', x1: 1480, x2: 1600, ceiling: 100, restBottom: 270, bottom: 395 },
-    // Láser: x=centro del rayo, top=emisor, bottom=impacto
-    { type: 'laser', x: 1400, top: 120, bottom: 378 },
+    // Láser intermitente: x=centro, el rayo va de y=0 hasta findSurfaceBelow
+    { type: 'laser', x: 1400 },
+    // Chispas eléctricas: x=centro, bottom=piso; width y height opcionales (defecto config)
+    { type: 'sparks', x: 1100, bottom: 472 },
+    // Láser de barrido: x1,x2=recorrido del riel, riel en y=0, rayo hasta findSurfaceBelow
+    { type: 'sweep-laser', x1: 1510, x2: 1880 },
+    // Torreta: x,y=posición, direction=1 (der) o -1 (izq)
+    { type: 'turret', x: 2150, y: 300, direction: -1 },
+    // Descompresión: x1,x2=zona, pullX=centro de la brecha
+    { type: 'decompression', x1: 300, x2: 900, top: 0, bottom: 724, pullX: 594 },
     // phaseOffset opcional (segundos) para desfasar trampas iguales cercanas
   ],
 

@@ -73,10 +73,12 @@ export class SceneWorld {
       const trap = createTrap(data);
       this.traps.push(trap);
       this.trapViews.push(new TrapView(layers.entities, trap));
+      if (trap.type === 'turret') {
+        trap.setEvents(events);
+      }
     }
 
-    const trapZones = this.traps.map((t) => t.zone);
-    this.safePoint = new SafePointTracker(scene.spawn, scene.solids, scene.hazards, trapZones);
+    this.safePoint = new SafePointTracker(scene.spawn, scene.solids, scene.hazards, this.traps);
 
     this.energyCells = new EntityCollection(layers.entities, 'energy-cell');
     for (const data of scene.energyCells) {
@@ -109,6 +111,12 @@ export class SceneWorld {
       this.shootables.add(enemy);
     }
 
+    for (const trap of this.traps) {
+      if (trap.type === 'turret') {
+        this.shootables.add(trap);
+      }
+    }
+
     this.movingPlatforms = new EntityCollection(layers.entities, 'moving',
       (layer, mp) => new PlatformView(layer, mp, 'moving'));
     this.fallingPlatforms = new EntityCollection(layers.entities, 'falling',
@@ -134,6 +142,11 @@ export class SceneWorld {
         el.style.setProperty('--y', deco.top);
         el.style.setProperty('--w', deco.x2 - deco.x1);
         el.style.setProperty('--h', deco.bottom - deco.top);
+        this.#decorationElements.push(el);
+      } else if (deco.type === 'eyes') {
+        const el = createElement('decoration decoration--eyes', layers.world);
+        el.style.setProperty('--x', deco.x);
+        el.style.setProperty('--y', deco.y);
         this.#decorationElements.push(el);
       }
     }

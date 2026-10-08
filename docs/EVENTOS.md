@@ -15,6 +15,7 @@ flowchart LR
         PickupSystem
         DebugTools
         SceneFlow
+        Turret
     end
 
     subgraph "EventBus"
@@ -34,6 +35,8 @@ flowchart LR
     Player -->|player:jump| Bus
     Player -->|player:battery-empty| Bus
     CombatSystem -->|enemy:destroyed| Bus
+    Turret -->|turret:fire| Bus
+    Turret -->|turret:destroyed| Bus
     PickupSystem -->|pickup:energy-cell| Bus
 
     Bus -->|player:hurt| ScreenShake2
@@ -58,6 +61,8 @@ flowchart LR
 | `pickup:energy-cell` | — | PickupSystem | Tutorial |
 | `pickup:crew-id` | `{crewId}` | PickupSystem | — |
 | `enemy:destroyed` | — | CombatSystem | CombatSystem (puntos) |
+| `turret:fire` | `{x, y, direction}` | Turret | CombatSystem |
+| `turret:destroyed` | `{x, y}` | Turret | CombatSystem (puntos) |
 | `scene:mounted` | — | PlayingState | PickupSystem, DebugTools |
 | `debug:jump-scene` | `{index}` | DebugTools | SceneFlow |
 | `session:score` | `{score}` | GameSession | — |

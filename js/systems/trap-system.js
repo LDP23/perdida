@@ -1,16 +1,14 @@
 /**
  * @module trap-system
  *
- * Sistema de trampas: actualiza todas las trampas del mundo y escribe sus
- * rectángulos peligrosos en world.dynamicHazards. El HazardSystem lee ese
- * arreglo para aplicar daño al robot, evitando duplicar la lógica.
+ * Sistema de trampas: actualiza todas las trampas del mundo, escribe sus
+ * rectángulos peligrosos en world.dynamicHazards y asigna la fuerza externa
+ * de descompresión al cuerpo del robot (body.externalVx).
  *
- * Orden de actualización: después de platformSystem.afterPlayer y antes de
- * combatSystem. Así las trampas ya se movieron cuando el hazard-system evalúa
- * la colisión.
+ * Los láseres reciben los sólidos actuales para calcular dónde termina el rayo.
  *
  * Usado por: PlayingState (en el arreglo de sistemas).
- * Depende de: nada (lee world.traps, escribe world.dynamicHazards).
+ * Depende de: nada (lee world.traps, escribe world.dynamicHazards y body.externalVx).
  */
 
 /**
@@ -26,20 +24,29 @@ export class TrapSystem {
   }
 
   /**
-   * Actualiza todas las trampas y recopila sus dangerRects y solidRects.
+   * Actualiza todas las trampas, recopila dangerRects y solidRects, y calcula
+   * la fuerza externa de descompresión sobre el robot.
    * @param {number} dt — deltaTime en segundos.
    */
   update(dt) {
     const w = this.#getWorld();
     const hazards = [];
     const solids = [];
+    let externalVx = 0;
+    const allSolids = w.getAllSolids();
     for (const trap of w.traps) {
-      trap.update(dt);
+      if (trap.updateWithSolids) {
+        trap.updateWithSolids(dt, allSolids);
+      } else {
+        trap.update(dt);
+      }
       for (const r of trap.dangerRects) hazards.push(r);
       for (const r of trap.solidRects) solids.push(r);
+      if (trap.pullFor) externalVx += trap.pullFor(w.player.body);
     }
     w.dynamicHazards = hazards;
     w.dynamicSolids = solids;
+    w.player.body.externalVx = externalVx;
   }
 
   dispose() {}

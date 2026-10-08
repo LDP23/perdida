@@ -41,7 +41,7 @@ export class MovingPlatform extends Platform {
    * @param {number} opts.width — ancho de la plataforma, en px del mundo.
    */
   constructor({ from, to, width }) {
-    super(from.x, from.y, width);
+    super(from.x, from.y, width, PLATFORMS.moving.height);
     this.#from = from;
     this.#to = to;
     this.#speed = PLATFORMS.moving.speed;

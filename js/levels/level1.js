@@ -147,9 +147,7 @@ export const LEVEL_1 = {
         { x: 1300, y: 340 },
       ],
       traps: [
-        // Láser sobre la pasarela derecha (1222–1618). El emisor está arriba,
-        // el rayo impacta en la superficie (378).
-        { type: 'laser', x: 1400, top: 120, bottom: 378 },
+        { type: 'laser', x: 1400 },
       ],
       exit: { type: 'door', x1: 1985, x2: 2150, top: 109, bottom: 269 },
     },

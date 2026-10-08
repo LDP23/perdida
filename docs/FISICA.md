@@ -13,9 +13,9 @@ flowchart TD
     B --> C[Aplicar gravedad: vy += gravity × dt]
     C --> D[Limitar vy a maxFallSpeed]
     D --> E["Promediar: vyEff = (vyPrev + vy) / 2"]
-    E --> F[Mover eje X: x += vx × dt]
+    E --> F["Mover eje X: x += (vx + externalVx) × dt"]
     F --> G[Resolver colisiones X]
-    G --> H[Mover eje Y: y += vyEff × dt]
+    G --> H["Mover eje Y: y += vyEff × dt"]
     H --> I[Resolver colisiones Y]
     I --> J[Detectar suelo: groundSolid]
 ```
@@ -72,3 +72,48 @@ a la vez puede empujar al cuerpo en la dirección incorrecta.
 | Foso N1E3 | — | < 242 (imposible, requiere plataforma) |
 
 Estas restricciones se verifican con `tools/physics-check.html`.
+
+## Fuerza externa (externalVx)
+
+`body.externalVx` es una velocidad horizontal (px/s) que se suma al desplazamiento
+en `stepBody` sin tocar `vx`. Se usa para la trampa de descompresión del nivel 3.
+
+### Por qué es una velocidad separada
+
+Si se sumara directamente a `vx`, la aceleración/frenado del robot (approach hacia
+`runSpeed`) compensaría la fuerza inmediatamente. Al ser una velocidad externa:
+- El desplazamiento total es `(vx + externalVx) × dt`.
+- El robot controla su `vx` normalmente (corre, frena, salta).
+- La fuerza actúa como un "viento" constante que se suma al movimiento propio.
+- Con `externalVx = 0` el resultado es idéntico al motor original.
+
+### Verificación con descompresión
+
+Con strength = 80 px/s (menor que runSpeed = 245):
+- El robot puede caminar en contra de la corriente (245 - 80 = 165 px/s neto).
+- Si se queda quieto, la corriente lo arrastra a 80 px/s.
+- Los saltos con fuerza a favor ganan ~40 px de alcance horizontal.
+- Los saltos con fuerza en contra pierden ~40 px de alcance horizontal.
+
+### Plataformas que caen en N3
+
+Una sola plataforma por brecha, centrada en `pullX`, ancho 100 px.
+
+| Brecha | Distancia | Plataforma | Entrada (simple+help) | Salida (doble+against+coyote) | Sin plataforma |
+|---|---|---|---|---|---|
+| N3E1 (383→805) | 422 px | 544–644 | 154 ≥ 113 (margen 41) ✅ | 152 ≥ 113 (margen 39) ✅ | 286 < 374 (margen 88) ✅ |
+| N3E3 (331→643) | 312 px | 437–537 | 154 ≥ 58 (margen 96) ✅ | 152 ≥ 58 (margen 94) ✅ | 219 < 264 (margen 45) ✅ |
+
+### Grosor de colisión de plataformas
+
+El robot recorre como máximo `maxFallSpeed × maxSubstep = 1100 × (1/120) ≈ 9.17 px` por subpaso.
+El grosor debe ser mayor que ese valor para que la colisión siempre se detecte:
+
+| Tipo | Alto (px) | Margen |
+|---|---|---|
+| Móvil | 17.5 | 8.33 px ✅ |
+| Que cae | 11 | 1.83 px ✅ |
+
+## Búsqueda de superficie: findSurfaceBelow
+
+`findSurfaceBelow(x, fromY, solids, width)` busca el primer sólido cuyo borde superior está por debajo de `fromY` y que se superpone horizontalmente con la franja `[x − width/2, x + width/2]`. Devuelve el `y` del sólido encontrado, o el alto de la escena si no hay ninguno. Se usa para los láseres dinámicos.

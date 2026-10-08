@@ -40,6 +40,31 @@ export function rectsOverlap(a, b) {
 }
 
 /**
+ * Encuentra la superficie sólida más cercana debajo de un punto.
+ * El rayo busca hacia abajo desde fromY: devuelve el borde superior del primer
+ * sólido que se superpone horizontalmente con la franja [x − width/2, x + width/2].
+ *
+ * @param {number} x — centro horizontal de la búsqueda.
+ * @param {number} fromY — y desde donde empieza a buscar hacia abajo.
+ * @param {Rect[]} solids — sólidos contra los que buscar.
+ * @param {number} width — ancho de la franja de búsqueda.
+ * @param {number} sceneHeight — alto de la escena (fallback si no hay sólido).
+ * @returns {number} y del borde superior del primer sólido debajo, o sceneHeight.
+ */
+export function findSurfaceBelow(x, fromY, solids, width, sceneHeight = 724) {
+  const halfW = width / 2;
+  const left = x - halfW;
+  const right = x + halfW;
+  let closest = sceneHeight;
+  for (const s of solids) {
+    if (s.y < fromY) continue;
+    if (s.x >= right || s.x + s.width <= left) continue;
+    if (s.y < closest) closest = s.y;
+  }
+  return closest;
+}
+
+/**
  * Convierte un span (definido por bordes) a un Rect (definido por posición y tamaño).
  * Los datos de nivel usan spans porque es más intuitivo marcar bordes en la imagen.
  *

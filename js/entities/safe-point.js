@@ -27,20 +27,20 @@ export class SafePointTracker {
   #solids;
   /** @type {Rect[]} — peligros de la escena (para verificar distancia segura) */
   #hazards;
-  /** @type {Rect[]} — zonas fijas de trampas (excluidas con el mismo margen que los hazards) */
-  #trapZones;
+  /** @type {Trap[]} — trampas (se consultan sus safePointExclusions) */
+  #traps;
 
   /**
    * @param {{x: number, y: number}} spawn — punto inicial (centro-abajo del robot).
    * @param {Rect[]} solids — sólidos de la escena.
    * @param {Rect[]} hazards — peligros de la escena.
-   * @param {Rect[]} [trapZones=[]] — zonas de trampas (para que el robot nunca reaparezca dentro).
+   * @param {Trap[]} [traps=[]] — trampas (se consultan sus safePointExclusions cada frame).
    */
-  constructor(spawn, solids, hazards, trapZones = []) {
+  constructor(spawn, solids, hazards, traps = []) {
     this.#point = { ...spawn };
     this.#solids = solids;
     this.#hazards = hazards;
-    this.#trapZones = trapZones;
+    this.#traps = traps;
   }
 
   /** @returns {{x: number, y: number}} último punto seguro (centro-abajo) */
@@ -92,8 +92,10 @@ export class SafePointTracker {
     for (const hazard of this.#hazards) {
       if (rectsOverlap(inflated, hazard)) return true;
     }
-    for (const zone of this.#trapZones) {
-      if (rectsOverlap(inflated, zone)) return true;
+    for (const trap of this.#traps) {
+      for (const zone of trap.safePointExclusions) {
+        if (rectsOverlap(inflated, zone)) return true;
+      }
     }
     return false;
   }

@@ -15,7 +15,7 @@
  * 3. Si no hay world, corta.
  * 4. pause — si se pulsó pausa, se apila PausedState y corta.
  * 5. pickupSystem.updatePanel — si el panel de ID está abierto, consume el frame.
- * 6. debugTools.handleInput — tecla H y salto de escena.
+ * 6. debugTools.handleInput — tecla H: daño de prueba; 1–9: salto de escena.
  * 7. Si el robot está muriendo: solo avanza su animación + HUD + cámara.
  * 8. Si el robot está muerto: procesa fin de muerte (game over o respawn).
  * 9. Si el robot está reapareciendo: solo avanza su temporizador + HUD.
@@ -172,7 +172,10 @@ export class PlayingState {
     const w = this.#world;
     if (!w) return;
     w.playerView.sync(w.player);
-    w.projectiles.sync((p) => ({ 'is-facing-left': p.direction < 0 }));
+    w.projectiles.sync((p) => ({
+      'is-facing-left': p.direction < 0,
+      'is-enemy': p.owner === 'enemy',
+    }));
     w.energyCells.sync((p) => ({ 'is-collected': p.isCollected }));
     w.crewIdPickups.sync((p) => ({ 'is-collected': p.isCollected, 'is-dropped': p.isDropped }));
     w.dummies.syncCustom((dummy, view) => view.sync(dummy));

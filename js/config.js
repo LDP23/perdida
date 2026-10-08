@@ -194,9 +194,19 @@ export const TRANSITION = Object.freeze({
 
 // Plataformas móviles y que caen.
 export const PLATFORMS = Object.freeze({
-  thickness: 20,
-  moving: Object.freeze({ speed: 90, endPause: 0.6 }),
-  falling: Object.freeze({ shakeTime: 0.5, respawnTime: 3, fallGravityScale: 1 }),
+  moving: Object.freeze({
+    speed: 90,
+    endPause: 0.6,
+    height: 17.5,           // px — alto del sprite (docs/SPRITES.md: 35 file / 2)
+    borderSlice: 13,        // px — corte lateral en el archivo (6.5 en el mundo)
+  }),
+  falling: Object.freeze({
+    shakeTime: 0.5,
+    respawnTime: 3,
+    fallGravityScale: 1,
+    height: 11,             // px — alto del sprite (docs/SPRITES.md: 22 file / 2)
+    borderSlice: 13,        // px — corte lateral en el archivo (6.5 en el mundo)
+  }),
 });
 
 // event.code identifica la tecla física: funciona igual con teclado en español o inglés.
@@ -233,7 +243,8 @@ export const TRAPS = Object.freeze({
     slamTime: 0.12,       // s — baja de golpe (peligroso)
     holdTime: 0.4,        // s — queda abajo (peligroso)
     riseTime: 1.2,        // s — sube lento (peligroso, puede atrapar al descuidado)
-    blockHeight: 36,      // px — alto del bloque de acero
+    blockWidth: 121,      // px — ancho visible del bloque (docs/SPRITES.md: celda 202×76, bloque centrado)
+    blockHeight: 67,      // px — alto visible del bloque (docs/SPRITES.md)
   }),
   // Goteo de ácido: ciclo idle → warning → fall → splash.
   // La duración de fall se calcula con √(2·distancia/gravedad), no es constante.
@@ -242,8 +253,13 @@ export const TRAPS = Object.freeze({
     warningTime: 0.8,     // s — gota crece en la tubería, sin peligro
     fallGravity: 2400,    // px/s² — aceleración de la gota
     splashTime: 0.25,     // s — salpicadura en el suelo (peligroso)
-    dropSize: 14,         // px — tamaño de la gota (cuadrado)
-    splashWidth: 40,      // px — ancho de la salpicadura
+    dropWidth: 10.5,      // px — ancho de la gota (docs/SPRITES.md: 10.5×21)
+    dropHeight: 21,       // px — alto de la gota
+    splashWidth: 41.5,    // px — ancho de la salpicadura (docs/SPRITES.md)
+    splashHeight: 29,     // px — alto de la salpicadura
+    pipeWidth: 36,        // px — ancho de la tubería/boca (docs/SPRITES.md: 36×61)
+    pipeHeight: 61,       // px — alto de la tubería/boca
+    pipeMouthY: 50,       // px — boca: ~50 px del borde superior (docs/SPRITES.md)
   }),
   // Láser intermitente: ciclo off → warning → on.
   laser: Object.freeze({
@@ -251,6 +267,47 @@ export const TRAPS = Object.freeze({
     warningTime: 0.5,     // s — hilo rojo delgado parpadea, sin peligro
     onTime: 1.2,          // s — rayo completo (peligroso)
     beamWidth: 10,        // px — ancho del rayo
+    emitterWidth: 40,     // px — ancho del emisor (docs/SPRITES.md: 40×36)
+    emitterHeight: 36,    // px — alto del emisor
+    emitterMouthY: 32,    // px — boca del emisor: ~4 px por encima del borde inferior → 36-4
+  }),
+  // Chispas eléctricas: ciclo idle → warning → discharge.
+  sparks: Object.freeze({
+    idleTime: 1.6,        // s — panel apagado, sin peligro
+    warningTime: 0.7,     // s — chispas pequeñas parpadean, sin peligro
+    dischargeTime: 0.5,   // s — descarga eléctrica (peligroso)
+    width: 86,            // px — ancho de la celda del sprite (docs/SPRITES.md: 86×61)
+    height: 61,           // px — alto de la celda del sprite
+    arcLeft: 36,          // px — arcos de descarga: 36 px a la izquierda del centro (docs/SPRITES.md)
+    arcRight: 30,         // px — arcos de descarga: 30 px a la derecha del centro
+    arcHeight: 58,        // px — arcos de descarga: 58 px de alto desde el piso
+  }),
+  // Láser de barrido: rayo que recorre una plataforma de lado a lado.
+  sweepLaser: Object.freeze({
+    speed: 160,           // px/s — menor que runSpeed para que el robot lo siga
+    warningTime: 0.6,     // s — hilo parpadea en el extremo de inicio
+    pauseTime: 1.2,       // s — apagado entre barridos
+    beamWidth: 10,        // px — ancho del rayo
+  }),
+  // Torreta: dispara proyectiles al robot.
+  turret: Object.freeze({
+    idleTime: 1.0,        // s — inactiva
+    aimTime: 0.9,         // s — luz roja parpadea cada vez más rápido
+    cooldownTime: 0.8,    // s — enfriamiento después de disparar
+    health: 2,            // disparos para destruirla
+    projectileSpeed: 200, // px/s — velocidad del proyectil enemigo
+    projectileSize: 16,   // px — ancho y alto del proyectil
+    projectileDamage: 12, // batería que drena al impactar al robot
+    maxDistance: 1800,     // px — alcance del proyectil
+    spriteWidth: 97,      // px — ancho de la celda (docs/SPRITES.md: 97×84)
+    spriteHeight: 84,     // px — alto de la celda
+    muzzleOffsetX: 95.5,  // px — boca del cañón: 95.5 px desde el borde derecho (docs/SPRITES.md)
+    muzzleOffsetY: 38.8,  // px — boca del cañón: 38.8 px sobre el borde inferior (docs/SPRITES.md)
+  }),
+  // Descompresión: fuerza que arrastra al robot hacia una brecha.
+  decompression: Object.freeze({
+    strength: 80,         // px/s — menor que runSpeed: resistible caminando
+    debrisCount: 6,       // piezas de escombros por zona de descompresión
   }),
 });
 

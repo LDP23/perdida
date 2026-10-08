@@ -1,5 +1,5 @@
 /*
- * traps.css — Trampas del escenario, dibujadas solo con CSS.
+ * traps.css — Trampas del escenario con sprites.
  *
  * Cada trampa es un .trap posicionado con --x/--y/--w/--h (zona completa).
  * El tipo (.trap--press, .trap--laser) define la apariencia y la fase actual
@@ -8,13 +8,19 @@
  * Variables recibidas desde JS:
  * - --x, --y, --w, --h: zona de la trampa en px del mundo.
  * - --block-y: (solo prensa) posición del borde inferior del bloque, relativa al top de la zona.
- * - --press-block-h: alto del bloque (sincronizado desde config.js por game.js).
+ * - --press-block-w, --press-block-h: dimensiones del bloque (desde config.js).
+ * - --beam-x: (solo barrido) posición horizontal del emisor relativa a x1.
+ * - --beam-h: (solo barrido) altura del rayo actual.
+ * - --beam-bottom: (solo intermitente) y del piso donde impacta el rayo.
+ * - --drop-y: (solo ácido) posición vertical de la gota.
+ * - --pull-x: (solo descompresión) centro de atracción relativo a x1.
+ * - --turret-dir: (solo torreta) dirección: 1 derecha, -1 izquierda.
  *
  * Técnicas:
- * - repeating-linear-gradient para las franjas de advertencia de la prensa.
- * - box-shadow para el resplandor del láser y la luz de la prensa.
- * - translate (propiedad individual) para el temblor, sin pisar el transform de posición.
- * - Pseudo-elementos para pistón (::before) y efectos (::after).
+ * - sprite-sheet con --frame-col para frames de trampa.
+ * - .trap-tile-y / .trap-tile-x para piezas que se repiten en un eje.
+ * - border-image para plataformas de ancho variable (en platforms.css).
+ * - translate (propiedad individual) para temblor sin pisar el transform.
  */
 
 /* === Base === */
@@ -26,65 +32,70 @@
   height: calc(var(--h) * 1px);
   transform: translate(calc(var(--x) * 1px), calc(var(--y) * 1px));
   pointer-events: none;
+  image-rendering: pixelated;
 }
+
+/* === Pieza que se repite en un eje ===
+   --tile-url: sprite de la pieza.
+   --tile-w, --tile-h: tamaño de un tile en px del mundo. */
+.trap-tile-y {
+  background: var(--tile-url) repeat-y 0 0 / var(--tile-w) var(--tile-h);
+}
+
+.trap-tile-x {
+  background: var(--tile-url) repeat-x 0 0 / var(--tile-w) var(--tile-h);
+}
+
 
 /* =====================================================================
    PRENSA HIDRÁULICA
-   Bloque de acero oscuro con franjas ámbar, unido al techo por un pistón.
+   Soporte fijo en el techo, pistón repetible, bloque con 2 frames.
    ===================================================================== */
 
-/* Pistón: barra metálica del techo al bloque */
-.trap--press::before {
-  content: '';
+/* Soporte: sprite fijo en la parte superior, centrado */
+.trap--press .trap__support {
   position: absolute;
   left: 50%;
   top: 0;
-  width: 14px;
+  width: 134px;
+  height: 31px;
   transform: translateX(-50%);
-  height: calc(var(--block-y) * 1px - var(--press-block-h) * 1px);
-  background: linear-gradient(90deg, #2a2a30, #45454d, #2a2a30);
-  border: 1px solid #555;
-  border-top: none;
+  background: url(../assets/sprites/trampa_prensa_soporte.png) no-repeat center / 100% 100%;
 }
 
-/* Bloque de acero con franjas de advertencia */
+/* Pistón: pieza repetible vertical del soporte al bloque */
+.trap--press .trap__piston {
+  position: absolute;
+  left: 50%;
+  top: 31px;
+  width: 33.5px;
+  transform: translateX(-50%);
+  height: calc((var(--block-y) - var(--press-block-h)) * 1px - 31px);
+  --tile-url: url(../assets/sprites/trampa_prensa_piston.png);
+  --tile-w: 33.5px;
+  --tile-h: 22.5px;
+}
+
+/* Bloque: sprite-sheet 2×1 (frame 1 normal, frame 2 impacto) */
 .trap__block {
   position: absolute;
-  left: 0;
-  width: 100%;
+  left: 50%;
+  width: calc(var(--press-block-w) * 1px);
   height: calc(var(--press-block-h) * 1px);
   top: calc((var(--block-y) - var(--press-block-h)) * 1px);
-  background:
-    repeating-linear-gradient(
-      -45deg,
-      var(--color-amber) 0px,
-      var(--color-amber) 4px,
-      #2a2a30 4px,
-      #2a2a30 8px
-    );
-  border: 2px solid var(--color-amber);
-  box-sizing: border-box;
+  transform: translateX(-50%);
+  background: url(../assets/sprites/trampa_prensa_bloque.png) no-repeat 0 bottom / 200% auto;
 }
 
-/* Cara inferior del bloque (sombra pesada) */
-.trap__block::after {
-  content: '';
-  position: absolute;
-  left: 2px;
-  right: 2px;
-  bottom: -4px;
-  height: 4px;
-  background: #1a1a1e;
-  border-radius: 0 0 2px 2px;
+/* Impacto: frame 2 */
+.trap--press.is-slam .trap__block,
+.trap--press.is-hold .trap__block {
+  background-position: -100% bottom;
 }
 
-/* --- Fase: warning (temblor + luz roja) --- */
+/* --- Fase: warning (temblor) --- */
 .trap--press.is-warning {
   animation: press-shake 0.06s steps(2) infinite;
-}
-
-.trap--press.is-warning .trap__block {
-  box-shadow: 0 0 10px 2px var(--color-alarm);
 }
 
 @keyframes press-shake {
@@ -92,79 +103,96 @@
   50% { translate: 1px 0; }
 }
 
-/* --- Fase: slam (destello de impacto en la base) --- */
-.trap--press.is-slam .trap__block::before {
-  content: '';
-  position: absolute;
-  left: -8px;
-  right: -8px;
-  bottom: -6px;
-  height: 8px;
-  background: radial-gradient(
-    ellipse at center bottom,
-    rgb(255 200 100 / 0.8) 0%,
-    rgb(255 150 50 / 0.4) 40%,
-    transparent 100%
-  );
+.trap--press.is-warning .trap__block {
+  filter: drop-shadow(0 0 6px var(--color-alarm));
+}
+
+/* --- Fase: slam (destello rápido en la base) --- */
+.trap--press.is-slam .trap__block {
+  filter: drop-shadow(0 4px 8px rgb(255 200 100 / 0.6));
   animation: slam-flash 0.12s ease-out forwards;
 }
 
 @keyframes slam-flash {
-  0%   { opacity: 1; }
-  100% { opacity: 0; }
+  0%   { filter: drop-shadow(0 4px 10px rgb(255 200 100 / 0.8)); }
+  100% { filter: drop-shadow(0 2px 4px rgb(255 200 100 / 0.1)); }
 }
-
-/* --- Fase: hold (quieta abajo, sin efecto extra) --- */
-
-/* --- Fase: rise (subiendo, sin efecto extra) --- */
 
 
 /* =====================================================================
    LÁSER INTERMITENTE
-   Emisor arriba con rayo vertical que se enciende y apaga.
+   Emisor sprite en el techo, rayo repetible vertical, impacto en el piso.
    ===================================================================== */
 
-/* Emisor: caja metálica en la parte superior de la zona */
-.trap--laser::before {
-  content: '';
+/* Emisor: sprite-sheet 2×1 (frame 1 apagado, frame 2 encendido) */
+.trap--laser .trap__emitter {
   position: absolute;
   left: 50%;
   top: 0;
-  width: 20px;
-  height: 12px;
+  width: 40px;
+  height: 36px;
   transform: translateX(-50%);
-  background: #2a2a30;
-  border: 1px solid #555;
-  border-radius: 0 0 3px 3px;
+  background: url(../assets/sprites/trampa_laser_emisor.png) no-repeat 0 0 / 200% 100%;
 }
 
-/* Rayo: núcleo blanco-rojizo con resplandor */
-.trap--laser::after {
-  content: '';
+/* Rayo: sprite repetible vertical (18×16 por tile) */
+.trap--laser .trap__beam {
   position: absolute;
   left: 50%;
-  top: 12px;
-  width: 0;
-  bottom: 0;
+  top: 32px;
+  width: 18px;
   transform: translateX(-50%);
+  height: calc(var(--beam-bottom) * 1px - var(--y) * 1px - 32px);
+  --tile-url: url(../assets/sprites/trampa_laser_rayo.png);
+  --tile-w: 36px;
+  --tile-h: 16px;
+  background-size: 36px 16px;
   opacity: 0;
 }
 
-/* --- Fase: off (todo apagado) --- */
-.trap--laser.is-off::before {
-  box-shadow: none;
+/* Impacto: sprite fijo en la superficie, centrado */
+.trap--laser .trap__impact {
+  position: absolute;
+  left: 50%;
+  top: calc(var(--beam-bottom) * 1px - var(--y) * 1px - 16px);
+  width: 39.5px;
+  height: 32px;
+  transform: translateX(-50%);
+  background: url(../assets/sprites/trampa_laser_impacto.png) no-repeat center / 100% 100%;
+  opacity: 0;
 }
 
-/* --- Fase: warning (hilo delgado que parpadea, emisor con luz tenue) --- */
-.trap--laser.is-warning::before {
-  box-shadow: 0 4px 6px rgb(255 43 63 / 0.4);
+/* --- Fase: off --- */
+.trap--laser.is-off .trap__emitter {
+  background-position: 0 0;
 }
 
-.trap--laser.is-warning::after {
-  width: 2px;
+/* --- Fase: warning (hilo delgado parpadea, emisor frame 1) --- */
+.trap--laser.is-warning .trap__emitter {
+  background-position: 0 0;
+  filter: drop-shadow(0 4px 6px rgb(255 43 63 / 0.4));
+}
+
+.trap--laser.is-warning .trap__beam {
   opacity: 1;
-  background: var(--color-alarm);
+  background: url(../assets/sprites/trampa_laser_rayo.png) repeat-y 0 0 / 36px 16px;
   animation: laser-flicker 0.15s step-end infinite;
+}
+
+/* --- Fase: on (rayo completo) --- */
+.trap--laser.is-on .trap__emitter {
+  background-position: -100% 0;
+  filter: drop-shadow(0 4px 10px rgb(255 43 63 / 0.7));
+}
+
+.trap--laser.is-on .trap__beam {
+  opacity: 1;
+  background: url(../assets/sprites/trampa_laser_rayo.png) repeat-y -18px 0 / 36px 16px;
+  filter: drop-shadow(0 0 8px rgb(255 43 63 / 0.5));
+}
+
+.trap--laser.is-on .trap__impact {
+  opacity: 1;
 }
 
 @keyframes laser-flicker {
@@ -172,81 +200,197 @@
   50%      { opacity: 0.2; }
 }
 
-/* --- Fase: on (rayo completo) --- */
-.trap--laser.is-on::before {
-  box-shadow: 0 4px 10px rgb(255 43 63 / 0.7);
+
+/* =====================================================================
+   CHISPAS ELÉCTRICAS
+   Sprite-sheet 4×1 con frames: idle, warning, discharge(×2).
+   ===================================================================== */
+
+.trap--sparks {
+  background: url(../assets/sprites/trampa_chispas.png) no-repeat 0 bottom / 400% auto;
 }
 
-.trap--laser.is-on::after {
-  width: calc(var(--w) * 1px);
-  opacity: 1;
-  background: linear-gradient(
-    90deg,
-    transparent 10%,
-    rgb(255 43 63 / 0.3) 25%,
-    rgb(255 200 200 / 0.9) 45%,
-    white 50%,
-    rgb(255 200 200 / 0.9) 55%,
-    rgb(255 43 63 / 0.3) 75%,
-    transparent 90%
-  );
-  box-shadow: 0 0 12px 4px rgb(255 43 63 / 0.5);
+.trap--sparks.is-idle {
+  background-position: 0 bottom;
 }
 
-/* Chispas en el punto de contacto con la pasarela */
-.trap--laser.is-on .trap__sparks {
+.trap--sparks.is-warning {
+  background-position: calc(-100% / 3) bottom;
+  animation: sparks-warn-flicker 0.12s step-end infinite;
+}
+
+@keyframes sparks-warn-flicker {
+  0%, 100% { opacity: 0.9; }
+  33%      { opacity: 0.4; }
+  66%      { opacity: 0.7; }
+}
+
+.trap--sparks.is-discharge {
+  background-position: calc(-200% / 3) bottom;
+  animation: sparks-discharge-alt var(--sparks-discharge-time, 0.4s) steps(1) infinite;
+  filter: drop-shadow(0 0 8px var(--color-signal));
+}
+
+@keyframes sparks-discharge-alt {
+  0%, 100% { background-position: calc(-200% / 3) bottom; }
+  50%      { background-position: calc(-300% / 3) bottom; }
+}
+
+
+/* =====================================================================
+   LÁSER DE BARRIDO
+   Riel con caps + tramo, emisor móvil, rayo vertical.
+   ===================================================================== */
+
+/* Riel izquierdo (cap) */
+.trap--sweep-laser .trap__rail-left {
   position: absolute;
-  left: 50%;
-  bottom: 0;
-  width: 20px;
-  height: 8px;
-  transform: translateX(-50%);
+  left: 0;
+  top: 0;
+  width: 33.5px;
+  height: 17.5px;
+  background: url(../assets/sprites/trampa_riel_izq.png) no-repeat 0 0 / 100% 100%;
 }
 
-/* Usamos un pseudo-elemento del contenedor para las chispas,
-   ya que ::before y ::after del .trap--laser están ocupados */
+/* Riel tramo (repetible horizontal) */
+.trap--sweep-laser .trap__rail {
+  position: absolute;
+  left: 33.5px;
+  top: 0;
+  right: 33.5px;
+  height: 17.5px;
+  --tile-url: url(../assets/sprites/trampa_riel_tramo.png);
+  --tile-w: 77px;
+  --tile-h: 17.5px;
+}
+
+/* Riel derecho (cap) */
+.trap--sweep-laser .trap__rail-right {
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 33.5px;
+  height: 17.5px;
+  background: url(../assets/sprites/trampa_riel_der.png) no-repeat 0 0 / 100% 100%;
+}
+
+/* Emisor: reutiliza el sprite del láser intermitente */
+.trap--sweep-laser .trap__emitter {
+  position: absolute;
+  top: 0;
+  width: 40px;
+  height: 36px;
+  transform: translateX(calc(var(--beam-x, 0) * 1px - 20px));
+  background: url(../assets/sprites/trampa_laser_emisor.png) no-repeat 0 0 / 200% 100%;
+  transition: none;
+}
+
+/* Rayo del barrido */
+.trap--sweep-laser .trap__beam {
+  position: absolute;
+  left: 0;
+  top: 32px;
+  width: 18px;
+  height: calc(var(--beam-h, 0) * 1px);
+  transform: translateX(calc(var(--beam-x, 0) * 1px - 9px));
+  opacity: 0;
+}
+
+/* --- Fases warning-* --- */
+.trap--sweep-laser.is-warning-left .trap__emitter,
+.trap--sweep-laser.is-warning-right .trap__emitter {
+  filter: drop-shadow(0 4px 6px rgb(255 43 63 / 0.4));
+}
+
+.trap--sweep-laser.is-warning-left .trap__beam,
+.trap--sweep-laser.is-warning-right .trap__beam {
+  opacity: 1;
+  background: url(../assets/sprites/trampa_laser_rayo.png) repeat-y 0 0 / 36px 16px;
+  animation: laser-flicker 0.15s step-end infinite;
+}
+
+/* --- Fases sweep-* --- */
+.trap--sweep-laser.is-sweep-right .trap__emitter,
+.trap--sweep-laser.is-sweep-left .trap__emitter {
+  background-position: -100% 0;
+  filter: drop-shadow(0 4px 10px rgb(255 43 63 / 0.7));
+}
+
+.trap--sweep-laser.is-sweep-right .trap__beam,
+.trap--sweep-laser.is-sweep-left .trap__beam {
+  opacity: 1;
+  background: url(../assets/sprites/trampa_laser_rayo.png) repeat-y -18px 0 / 36px 16px;
+  filter: drop-shadow(0 0 8px rgb(255 43 63 / 0.5));
+}
+
+/* --- Fases pause-* --- */
+.trap--sweep-laser.is-pause-left .trap__emitter,
+.trap--sweep-laser.is-pause-right .trap__emitter {
+  filter: none;
+}
 
 
 /* =====================================================================
    GOTEO DE ÁCIDO
-   Gota verde que cae desde una tubería y salpica al llegar al suelo.
+   Tubería con tramo repetible, gota sprite, salpicadura sprite.
    ===================================================================== */
 
-/* Emisor: resplandor verde en la boca de la tubería */
-.trap--acid-drip::before {
-  content: '';
+/* Boca de la tubería */
+.trap--acid-drip .trap__pipe {
   position: absolute;
   left: 50%;
   top: 0;
-  width: 16px;
-  height: 8px;
+  width: 36px;
+  height: 61px;
   transform: translateX(-50%);
-  background: radial-gradient(ellipse at center, var(--color-acid), transparent 70%);
-  opacity: 0.4;
-  border-radius: 0 0 50% 50%;
+  background: url(../assets/sprites/trampa_tuberia.png) no-repeat 0 0 / 200% 100%;
+}
+
+/* Tramo repetible de tubería debajo de la boca */
+.trap--acid-drip .trap__pipe-tramo {
+  position: absolute;
+  left: 50%;
+  top: 61px;
+  width: 36px;
+  transform: translateX(-50%);
+  height: calc(var(--pipe-length, 0) * 1px);
+  --tile-url: url(../assets/sprites/trampa_tuberia_tramo.png);
+  --tile-w: 36px;
+  --tile-h: 10px;
 }
 
 /* Gota */
-.trap--acid-drip::after {
-  content: '';
+.trap--acid-drip .trap__drop {
   position: absolute;
   left: 50%;
-  width: 10px;
-  height: 14px;
+  width: 10.5px;
+  height: 21px;
   transform: translateX(-50%);
   top: calc(var(--drop-y, 0) * 1px);
-  background: radial-gradient(ellipse at 40% 30%, #c8ff90, var(--color-acid) 60%, #3a8a1f);
-  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  background: url(../assets/sprites/trampa_acido_gota.png) no-repeat center / 100% 100%;
   opacity: 0;
   filter: drop-shadow(0 0 4px var(--color-acid));
 }
 
-/* --- Fase: warning (gota crece en la boca) --- */
-.trap--acid-drip.is-warning::before {
-  opacity: 0.8;
+/* Salpicadura */
+.trap--acid-drip .trap__splash {
+  display: none;
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 41.5px;
+  height: 29px;
+  transform: translateX(-50%);
+  background: url(../assets/sprites/trampa_acido_salpicadura.png) no-repeat center / 100% 100%;
+  filter: drop-shadow(0 0 6px var(--color-acid));
 }
 
-.trap--acid-drip.is-warning::after {
+/* --- Fase: warning (gota crece en la boca, tubería encendida) --- */
+.trap--acid-drip.is-warning .trap__pipe {
+  background-position: -100% 0;
+}
+
+.trap--acid-drip.is-warning .trap__drop {
   opacity: 1;
   animation: drip-grow 0.8s ease-in forwards;
 }
@@ -257,41 +401,18 @@
 }
 
 /* --- Fase: fall (gota cayendo) --- */
-.trap--acid-drip.is-fall::after {
+.trap--acid-drip.is-fall .trap__drop {
   opacity: 1;
 }
 
-.trap--acid-drip.is-fall::before {
-  opacity: 0.3;
-}
-
 /* --- Fase: splash (salpicadura en el suelo) --- */
-.trap--acid-drip.is-splash::after {
+.trap--acid-drip.is-splash .trap__drop {
   opacity: 0;
 }
 
 .trap--acid-drip.is-splash .trap__splash {
-  position: absolute;
-  left: 50%;
-  bottom: 0;
-}
-
-/* Salpicadura con pseudo-elementos que se abren (usamos un hijo) */
-.trap--acid-drip .trap__splash {
-  display: none;
-}
-
-.trap--acid-drip.is-splash .trap__splash {
   display: block;
-  position: absolute;
-  left: 50%;
-  bottom: 0;
-  width: 40px;
-  height: 10px;
-  transform: translateX(-50%);
-  background: radial-gradient(ellipse at center bottom, var(--color-acid) 0%, transparent 70%);
   animation: drip-splash 0.25s ease-out forwards;
-  filter: drop-shadow(0 0 6px var(--color-acid));
 }
 
 @keyframes drip-splash {
@@ -302,29 +423,117 @@
 
 
 /* =====================================================================
+   DESCOMPRESIÓN
+   Corriente con sprite repetible + escombros animados con CSS.
+   ===================================================================== */
+
+.trap--decompression {
+  overflow: hidden;
+}
+
+/* Corriente: sprite repetible en ambos ejes */
+.trap--decompression .trap__current {
+  position: absolute;
+  inset: 0;
+  background: url(../assets/sprites/descompresion_corriente.png) repeat 0 0 / 587px 105px;
+  opacity: 0.25;
+  animation: decompression-flow 2s linear infinite;
+}
+
+@keyframes decompression-flow {
+  from { background-position: 0 0; }
+  to   { background-position: -587px 0; }
+}
+
+/* Escombros: piezas flotantes animadas */
+.trap--decompression .trap__debris {
+  position: absolute;
+  width: 17px;
+  height: 14px;
+  background: url(../assets/sprites/descompresion_escombros.png) no-repeat 0 0 / 500% 100%;
+  animation: debris-float 3s linear infinite;
+  opacity: 0.7;
+}
+
+/* 5 celdas de escombros (0–4), distribuidas por nth-child */
+.trap__debris:nth-child(2) { background-position: -25% 0; animation-delay: -0.5s; }
+.trap__debris:nth-child(3) { background-position: -50% 0; animation-delay: -1.1s; }
+.trap__debris:nth-child(4) { background-position: -75% 0; animation-delay: -1.7s; }
+.trap__debris:nth-child(5) { background-position: -100% 0; animation-delay: -2.3s; }
+.trap__debris:nth-child(6) { background-position: 0 0; animation-delay: -2.8s; }
+
+@keyframes debris-float {
+  0%   { translate: 0 0; opacity: 0.7; rotate: 0deg; }
+  25%  { opacity: 0.5; }
+  50%  { translate: calc(var(--debris-dx, -40) * 1px) -10px; rotate: 180deg; }
+  75%  { opacity: 0.6; }
+  100% { translate: calc(var(--debris-dx, -40) * 2px) 0; opacity: 0; rotate: 360deg; }
+}
+
+
+/* =====================================================================
+   TORRETA
+   Sprite-sheet 2×1: frame 1 activa, frame 2 destruida.
+   ===================================================================== */
+
+.trap--turret {
+  overflow: visible;
+  background: url(../assets/sprites/trampa_torreta.png) no-repeat 0 0 / 200% 100%;
+  transform: translate(calc(var(--x) * 1px), calc(var(--y) * 1px))
+             scaleX(calc(var(--turret-dir, -1) * -1));
+}
+
+/* Luz de apuntado */
+.trap--turret.is-idle {
+  filter: drop-shadow(0 0 4px rgb(255 43 63 / 0.2));
+}
+
+/* --- Fase: aiming (parpadeo rojo) --- */
+.trap--turret.is-aiming {
+  animation: turret-aim-blink 0.2s step-end infinite;
+}
+
+@keyframes turret-aim-blink {
+  0%, 100% { filter: drop-shadow(0 0 10px var(--color-alarm)); }
+  50%      { filter: drop-shadow(0 0 2px rgb(255 43 63 / 0.2)); }
+}
+
+/* --- Fase: fire (destello) --- */
+.trap--turret.is-fire {
+  filter: drop-shadow(0 0 12px var(--color-alarm));
+}
+
+/* --- Estado destruido (frame 2) --- */
+.trap--turret.is-destroyed {
+  background-position: -100% 0;
+  filter: none;
+  opacity: 0.6;
+}
+
+
+/* =====================================================================
    MOVIMIENTO REDUCIDO
-   Sin temblor ni chispas animadas. Los avisos se mantienen como color fijo.
+   Sin animaciones de temblor ni chispas. Los avisos se mantienen estáticos.
    ===================================================================== */
 .game.reduced-motion .trap--press.is-warning {
   animation: none;
-  /* Indicador estático: borde rojo en vez de temblor */
 }
 
 .game.reduced-motion .trap--press.is-warning .trap__block {
-  border-color: var(--color-alarm);
+  filter: drop-shadow(0 0 8px var(--color-alarm));
 }
 
-.game.reduced-motion .trap--press.is-slam .trap__block::before {
+.game.reduced-motion .trap--press.is-slam .trap__block {
   animation: none;
-  opacity: 0;
+  filter: none;
 }
 
-.game.reduced-motion .trap--laser.is-warning::after {
+.game.reduced-motion .trap--laser.is-warning .trap__beam {
   animation: none;
   opacity: 0.6;
 }
 
-.game.reduced-motion .trap--acid-drip.is-warning::after {
+.game.reduced-motion .trap--acid-drip.is-warning .trap__drop {
   animation: none;
   opacity: 1;
   scale: 1;
@@ -333,4 +542,38 @@
 .game.reduced-motion .trap--acid-drip.is-splash .trap__splash {
   animation: none;
   opacity: 0.7;
+}
+
+.game.reduced-motion .trap--sparks.is-warning {
+  animation: none;
+  opacity: 0.6;
+}
+
+.game.reduced-motion .trap--sparks.is-discharge {
+  animation: none;
+  opacity: 0.8;
+}
+
+.game.reduced-motion .trap--sweep-laser.is-warning-left .trap__beam,
+.game.reduced-motion .trap--sweep-laser.is-warning-right .trap__beam {
+  animation: none;
+  opacity: 0.6;
+}
+
+.game.reduced-motion .trap--turret.is-aiming {
+  animation: none;
+  filter: drop-shadow(0 0 8px var(--color-alarm));
+}
+
+.game.reduced-motion .trap--decompression .trap__current {
+  animation: none;
+}
+
+.game.reduced-motion .trap--decompression .trap__debris {
+  animation: none;
+  opacity: 0.4;
+}
+
+.game.reduced-motion .entity--projectile.is-enemy .entity__sprite {
+  animation: none;
 }
