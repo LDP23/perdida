@@ -70,7 +70,7 @@
   top: 31px;
   width: 33.5px;
   transform: translateX(-50%);
-  height: calc((var(--block-y) - var(--press-block-h)) * 1px - 31px);
+  height: calc((var(--block-y) - var(--press-block-h) + var(--press-piston-overlap, 3)) * 1px - 31px);
   --tile-url: url(../assets/sprites/trampa_prensa_piston.png);
   --tile-w: 33.5px;
   --tile-h: 22.5px;
@@ -202,42 +202,6 @@
 
 
 /* =====================================================================
-   CHISPAS ELÉCTRICAS
-   Sprite-sheet 4×1 con frames: idle, warning, discharge(×2).
-   ===================================================================== */
-
-.trap--sparks {
-  background: url(../assets/sprites/trampa_chispas.png) no-repeat 0 bottom / 400% auto;
-}
-
-.trap--sparks.is-idle {
-  background-position: 0 bottom;
-}
-
-.trap--sparks.is-warning {
-  background-position: calc(100% / 3) bottom;
-  animation: sparks-warn-flicker 0.12s step-end infinite;
-}
-
-@keyframes sparks-warn-flicker {
-  0%, 100% { opacity: 0.9; }
-  33%      { opacity: 0.4; }
-  66%      { opacity: 0.7; }
-}
-
-.trap--sparks.is-discharge {
-  background-position: calc(200% / 3) bottom;
-  animation: sparks-discharge-alt var(--sparks-discharge-time, 0.4s) steps(2) infinite;
-  filter: drop-shadow(0 0 8px var(--color-signal));
-}
-
-@keyframes sparks-discharge-alt {
-  0%, 100% { background-position: calc(200% / 3) bottom; }
-  50%      { background-position: 100% bottom; }
-}
-
-
-/* =====================================================================
    LÁSER DE BARRIDO
    Riel con caps + tramo, emisor móvil, rayo vertical.
    ===================================================================== */
@@ -332,32 +296,9 @@
 
 /* =====================================================================
    GOTEO DE ÁCIDO
-   Tubería con tramo repetible, gota sprite, salpicadura sprite.
+   Sin tubería: la gota cae desde el techo (y=0). Marca pulsante en la
+   superficie de aterrizaje durante warning.
    ===================================================================== */
-
-/* Boca de la tubería */
-.trap--acid-drip .trap__pipe {
-  position: absolute;
-  left: 50%;
-  top: 0;
-  width: 36px;
-  height: 61px;
-  transform: translateX(-50%);
-  background: url(../assets/sprites/trampa_tuberia.png) no-repeat 0 0 / 200% 100%;
-}
-
-/* Tramo repetible de tubería: desde el techo (y=0) hasta la boca */
-.trap--acid-drip .trap__pipe-tramo {
-  position: absolute;
-  left: 50%;
-  top: calc(var(--pipe-ceiling-h, 0) * -1px);
-  width: 36px;
-  transform: translateX(-50%);
-  height: calc(var(--pipe-ceiling-h, 0) * 1px);
-  --tile-url: url(../assets/sprites/trampa_tuberia_tramo.png);
-  --tile-w: 36px;
-  --tile-h: 10px;
-}
 
 /* Gota */
 .trap--acid-drip .trap__drop {
@@ -385,14 +326,47 @@
   filter: drop-shadow(0 0 6px var(--color-acid));
 }
 
-/* --- Fase: warning (gota crece en la boca, tubería encendida) --- */
-.trap--acid-drip.is-warning .trap__pipe {
-  background-position: 100% 0;
+/* Marca de superficie: elipse pulsante verde en el suelo donde caerá la gota */
+.trap--acid-drip .trap__surface-mark {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 41.5px;
+  height: 6px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: var(--color-acid);
+  opacity: 0;
+}
+
+/* Brillo verde en el techo durante warning */
+.trap--acid-drip .trap__ceiling-glow {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 30px;
+  height: 8px;
+  transform: translateX(-50%);
+  border-radius: 0 0 50% 50%;
+  background: var(--color-acid);
+  opacity: 0;
+}
+
+/* --- Fase: warning (gota crece colgando del techo, marca pulsa) --- */
+.trap--acid-drip.is-warning .trap__ceiling-glow {
+  opacity: 0.5;
+  animation: acid-ceiling-pulse 0.35s ease-in-out infinite alternate;
 }
 
 .trap--acid-drip.is-warning .trap__drop {
   opacity: 1;
-  animation: drip-grow 0.8s ease-in forwards;
+  transform-origin: top center;
+  animation: drip-grow 0.35s ease-in forwards;
+}
+
+.trap--acid-drip.is-warning .trap__surface-mark {
+  opacity: 0.4;
+  animation: acid-mark-pulse 0.35s ease-in-out infinite alternate;
 }
 
 @keyframes drip-grow {
@@ -400,9 +374,23 @@
   100% { scale: 1;   opacity: 1; }
 }
 
+@keyframes acid-mark-pulse {
+  0%   { opacity: 0.2; scale: 0.8; }
+  100% { opacity: 0.6; scale: 1.1; }
+}
+
+@keyframes acid-ceiling-pulse {
+  0%   { opacity: 0.3; }
+  100% { opacity: 0.6; }
+}
+
 /* --- Fase: fall (gota cayendo) --- */
 .trap--acid-drip.is-fall .trap__drop {
   opacity: 1;
+}
+
+.trap--acid-drip.is-fall .trap__surface-mark {
+  opacity: 0.5;
 }
 
 /* --- Fase: splash (salpicadura en el suelo) --- */
@@ -424,38 +412,86 @@
 
 /* =====================================================================
    DESCOMPRESIÓN
-   Corriente de viento con gradientes CSS animados (sin sprites).
+   Rayas horizontales aceleradas + chevrones hacia pullX.
+   Solo transform y opacity en las animaciones.
    ===================================================================== */
 
 .trap--decompression {
   overflow: hidden;
 }
 
-/* Corriente: rayas diagonales semi-transparentes que se desplazan hacia la brecha */
-.trap--decompression .trap__current {
+/* Contenedor de rayas horizontales */
+.trap--decompression .trap__streaks {
   position: absolute;
   inset: 0;
-  background:
-    repeating-linear-gradient(
-      -20deg,
-      transparent 0px,
-      transparent 18px,
-      rgb(180 210 255 / 0.06) 18px,
-      rgb(180 210 255 / 0.06) 20px
-    ),
-    repeating-linear-gradient(
-      -35deg,
-      transparent 0px,
-      transparent 40px,
-      rgb(200 230 255 / 0.04) 40px,
-      rgb(200 230 255 / 0.04) 42px
-    );
-  animation: decompression-flow 1.8s linear infinite;
 }
 
-@keyframes decompression-flow {
-  from { background-position: 0 0, 0 0; }
-  to   { background-position: 200px 0, 150px 0; }
+/* Rayas individuales: 2px de alto, gradiente transparente→cian con cabeza hacia pullX */
+.trap--decompression .trap__streak {
+  position: absolute;
+  height: 2px;
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    var(--color-signal) 100%
+  );
+  opacity: 0;
+  animation: streak-fly var(--streak-dur, 1.2s) var(--streak-delay, 0s) ease-in infinite;
+}
+
+/* Distribución vertical y variación con :nth-child (12 rayas por mitad) */
+.trap--decompression .trap__streak:nth-child(1)  { top: 5%;  width: 60px; --streak-dur: 1.0s; --streak-delay: 0s; }
+.trap--decompression .trap__streak:nth-child(2)  { top: 12%; width: 80px; --streak-dur: 1.3s; --streak-delay: 0.2s; }
+.trap--decompression .trap__streak:nth-child(3)  { top: 20%; width: 50px; --streak-dur: 0.9s; --streak-delay: 0.4s; }
+.trap--decompression .trap__streak:nth-child(4)  { top: 28%; width: 100px; --streak-dur: 1.1s; --streak-delay: 0.1s; }
+.trap--decompression .trap__streak:nth-child(5)  { top: 36%; width: 70px; --streak-dur: 1.4s; --streak-delay: 0.6s; }
+.trap--decompression .trap__streak:nth-child(6)  { top: 44%; width: 55px; --streak-dur: 1.0s; --streak-delay: 0.3s; }
+.trap--decompression .trap__streak:nth-child(7)  { top: 52%; width: 90px; --streak-dur: 1.2s; --streak-delay: 0.5s; }
+.trap--decompression .trap__streak:nth-child(8)  { top: 60%; width: 65px; --streak-dur: 0.8s; --streak-delay: 0.15s; }
+.trap--decompression .trap__streak:nth-child(9)  { top: 68%; width: 110px; --streak-dur: 1.3s; --streak-delay: 0.7s; }
+.trap--decompression .trap__streak:nth-child(10) { top: 76%; width: 45px; --streak-dur: 1.1s; --streak-delay: 0.25s; }
+.trap--decompression .trap__streak:nth-child(11) { top: 84%; width: 75px; --streak-dur: 0.9s; --streak-delay: 0.45s; }
+.trap--decompression .trap__streak:nth-child(12) { top: 92%; width: 120px; --streak-dur: 1.0s; --streak-delay: 0.35s; }
+
+@keyframes streak-fly {
+  0%   { opacity: 0; transform: translateX(var(--streak-start, 0px)); }
+  15%  { opacity: 0.7; }
+  85%  { opacity: 0.5; }
+  100% { opacity: 0; transform: translateX(var(--streak-end, 100px)); }
+}
+
+/* Chevrones: 3 flechas a cada lado a la altura del pecho del robot (~350px desde abajo) */
+.trap--decompression .trap__chevrons {
+  position: absolute;
+  inset: 0;
+}
+
+.trap--decompression .trap__chevron {
+  position: absolute;
+  top: 50%;
+  width: 16px;
+  height: 24px;
+  opacity: 0;
+  animation: chevron-pulse 1.2s var(--chev-delay, 0s) ease-in-out infinite;
+}
+
+.trap--decompression .trap__chevron::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-left: 3px solid var(--color-signal);
+  border-top: 3px solid var(--color-signal);
+  transform: rotate(var(--chev-angle, -45deg));
+}
+
+.trap--decompression .trap__chevron:nth-child(1) { --chev-delay: 0s; }
+.trap--decompression .trap__chevron:nth-child(2) { --chev-delay: 0.2s; }
+.trap--decompression .trap__chevron:nth-child(3) { --chev-delay: 0.4s; }
+
+@keyframes chevron-pulse {
+  0%   { opacity: 0; transform: translateX(0); }
+  30%  { opacity: 0.8; }
+  100% { opacity: 0; transform: translateX(var(--chev-travel, 30px)); }
 }
 
 
@@ -527,19 +563,19 @@
   scale: 1;
 }
 
+.game.reduced-motion .trap--acid-drip.is-warning .trap__surface-mark {
+  animation: none;
+  opacity: 0.4;
+}
+
+.game.reduced-motion .trap--acid-drip.is-warning .trap__ceiling-glow {
+  animation: none;
+  opacity: 0.4;
+}
+
 .game.reduced-motion .trap--acid-drip.is-splash .trap__splash {
   animation: none;
   opacity: 0.7;
-}
-
-.game.reduced-motion .trap--sparks.is-warning {
-  animation: none;
-  opacity: 0.6;
-}
-
-.game.reduced-motion .trap--sparks.is-discharge {
-  animation: none;
-  opacity: 0.8;
 }
 
 .game.reduced-motion .trap--sweep-laser.is-warning-left .trap__beam,
@@ -553,8 +589,13 @@
   filter: drop-shadow(0 0 8px var(--color-alarm));
 }
 
-.game.reduced-motion .trap--decompression .trap__current {
+.game.reduced-motion .trap--decompression .trap__streak {
   animation: none;
+}
+
+.game.reduced-motion .trap--decompression .trap__chevron {
+  animation: none;
+  opacity: 0.5;
 }
 
 .game.reduced-motion .entity--projectile.is-enemy .entity__sprite {

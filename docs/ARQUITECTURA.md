@@ -73,7 +73,6 @@ graph TB
         HydPress[HydraulicPress]
         IntLaser[IntermittentLaser]
         AcDrip[AcidDrip]
-        ElSparks[ElectricSparks]
         SwLaser[SweepingLaser]
         TurretTrap[Turret]
         Decomp[Decompression]
@@ -104,7 +103,6 @@ graph TB
     TrapBase --> HydPress
     TrapBase --> IntLaser
     TrapBase --> AcDrip
-    TrapBase --> ElSparks
     TrapBase --> SwLaser
     TrapBase --> TurretTrap
     TrapBase --> Decomp

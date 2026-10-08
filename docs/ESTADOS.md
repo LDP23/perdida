@@ -69,9 +69,7 @@ Cada trampa muestra un frame de su hoja según la fase actual:
 | Prensa (bloque) | frame 1 | frame 1 + tiembla | frame 1 | frame 2 (golpe) | — |
 | Láser (emisor) | frame 1 | frame 1 | frame 2 | — | — |
 | Láser (rayo) | oculto | frame 1 (hilo) | frame 2 | — | — |
-| Chispas | frame 1 | frame 2 (parpadeo) | frames 3↔4 (steps) | — | — |
 | Torreta | frame 1 | — | — | — | frame 2 (destruida) |
-| Tubería ácido | frame 1 | frame 2 | — | — | — |
 
 Los láseres (intermitente y barrido) calculan la longitud del rayo en cada paso con `findSurfaceBelow`, ajustándose dinámicamente a sólidos y plataformas.
 
@@ -105,20 +103,6 @@ stateDiagram-v2
     note right of off: Seguro (1.6 s)
     note right of warning: Seguro, hilo rojo parpadea (0.5 s)
     note right of on: PELIGROSO, rayo completo (1.2 s)
-```
-
-## Fases de las chispas eléctricas
-
-```mermaid
-stateDiagram-v2
-    [*] --> idle
-    idle --> warning: timerEnd
-    warning --> discharge: timerEnd
-    discharge --> idle: timerEnd
-
-    note right of idle: Seguro (1.6 s)
-    note right of warning: Seguro, puntos cian parpadean (0.7 s)
-    note right of discharge: PELIGROSO, descarga eléctrica (0.5 s)
 ```
 
 ## Fases del láser de barrido

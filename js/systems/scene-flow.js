@@ -3,6 +3,8 @@
  *
  * Gestiona las salidas de escena (por borde y por puerta), las transiciones con fundido
  * a negro, la muerte/reaparición, completar nivel, y la carga asíncrona de escenas.
+ * Si el montaje de una escena falla, termina la transición y muestra el error en el
+ * HUD (toast) con console.error, sin dejar la pantalla en negro.
  *
  * Fases de la transición de escena:
  * 1. fade-out: se muestra el fundido negro (duración TRANSITION.fadeOut).
@@ -107,7 +109,11 @@ export class SceneFlow {
     const loadId = ++this.#loadId;
     const scene = await loadScene(sceneData);
     if (loadId !== this.#loadId) return;
-    this.#mountScene(scene);
+    try {
+      this.#mountScene(scene);
+    } catch (err) {
+      this.#handleMountError(sceneData, err);
+    }
   }
 
   #preloadNextScene() {
@@ -164,7 +170,12 @@ export class SceneFlow {
     const loadId = ++this.#loadId;
     const scene = await loadScene(sceneData);
     if (loadId !== this.#loadId) return;
-    this.#mountScene(scene);
+    try {
+      this.#mountScene(scene);
+    } catch (err) {
+      this.#handleMountError(sceneData, err);
+      return;
+    }
     this.#preloadNextScene();
     this.#transitionPhase = 'fade-in';
   }
@@ -201,6 +212,16 @@ export class SceneFlow {
     const w = this.#getWorld();
     w.player.die();
     this.#context.input.setGameplayEnabled(false);
+  }
+
+  #handleMountError(sceneData, err) {
+    console.error(`Error al montar escena "${sceneData.id}":`, err);
+    this.#removeFade();
+    this.#transitioning = false;
+    this.#transitionPhase = null;
+    this.#transitionTimer.reset();
+    this.#context.input.setGameplayEnabled(false);
+    this.#hud.showToast(`Error al cargar ${sceneData.id}: ${err.message}`);
   }
 
   #showFade() {

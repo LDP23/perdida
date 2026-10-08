@@ -86,8 +86,8 @@ export const LEVEL_N = {
     { type: 'press', x1: 1480, x2: 1600, restBottom: 270, bottom: 395 },
     // Láser intermitente: x=centro, el rayo va de y=0 hasta findSurfaceBelow
     { type: 'laser', x: 1400 },
-    // Chispas eléctricas: x=centro, bottom=piso; width y height opcionales (defecto config)
-    { type: 'sparks', x: 1100, bottom: 472 },
+    // Goteo de ácido: x=centro, la superficie se calcula con findSurfaceBelow
+    { type: 'acid-drip', x: 668 },
     // Láser de barrido: x1,x2=recorrido del riel, riel en y=0, rayo hasta findSurfaceBelow
     { type: 'sweep-laser', x1: 1510, x2: 1880 },
     // Torreta: x,y=posición, direction=1 (der) o -1 (izq)
@@ -117,8 +117,26 @@ graph LR
 - `bottom`: borde inferior (omitido = 724, el fondo).
 - `spawn.x/y`: posición de los pies del robot (centro inferior).
 
+## Inmutabilidad
+
+Los datos de nivel son inmutables en tiempo de ejecución. `levels.js` los congela
+en profundidad con `Object.freeze` al exportarlos. Cualquier intento de mutar un
+dato (agregar, cambiar o eliminar una clave) lanza `TypeError` de inmediato en
+modo estricto (módulos ES), en vez de provocar errores crípticos más tarde.
+
+Lo que una trampa u otra entidad necesite del mundo (p.ej. los sólidos para
+calcular superficies) se le pasa como **argumento explícito** al construirla,
+no escondido dentro del dato.
+
+## Validación de trampas
+
+`tools/level-check.js` valida los datos de todas las trampas de todos los niveles
+contra el registro de claves válidas exportado por `trap-factory.js`. Detecta
+tipos desconocidos, claves sobrantes y errores de construcción sin necesidad de
+jugar hasta la escena.
+
 ## Cómo agregar un nivel
 
-1. Crear `js/levels/level2.js` con los datos de las escenas.
+1. Crear `js/levels/levelN.js` con los datos de las escenas.
 2. Importarlo en `js/levels/levels.js` y agregarlo al array `LEVELS`.
 3. No tocar ningún otro archivo.

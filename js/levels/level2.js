@@ -76,7 +76,7 @@ export const LEVEL_2 = {
         { type: 'opening-door', x1: 0, x2: 80, top: 340, bottom: 498 },
       ],
       traps: [
-        { type: 'acid-drip', x: 668, top: 265, bottom: 458 },
+        { type: 'acid-drip', x: 668 },
       ],
       movingPlatforms: [
         { from: { x: 960, y: 470 }, to: { x: 1131, y: 400 }, width: 110 },

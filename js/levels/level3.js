@@ -38,11 +38,10 @@ export const LEVEL_3 = {
         { x1: 1983, x2: 2172, top: 472 },
       ],
       fallingPlatforms: [
-        { x: 594, y: 455, width: 100 },
+        { x: 544, y: 455, width: 100 },
       ],
       traps: [
         { type: 'decompression', x1: 300, x2: 900, top: 0, bottom: 724, pullX: 594 },
-        { type: 'sparks', x: 1100, bottom: 472 },
         { type: 'sweep-laser', x1: 1510, x2: 1880 },
       ],
       enemies: [
@@ -95,12 +94,11 @@ export const LEVEL_3 = {
         { x1: 1547, x2: 2172, top: 333 },
       ],
       fallingPlatforms: [
-        { x: 487, y: 395, width: 100 },
+        { x: 437, y: 395, width: 100 },
       ],
       traps: [
         { type: 'decompression', x1: 250, x2: 720, top: 0, bottom: 724, pullX: 487 },
         { type: 'sweep-laser', x1: 1060, x2: 1400 },
-        { type: 'sparks', x: 1470, bottom: 385 },
       ],
       enemies: [
         { x: 850, y: 405, patrol: { x1: 700, x2: 1000 } },

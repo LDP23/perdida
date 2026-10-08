@@ -5,14 +5,19 @@
  * 1. Escalones trampa: pares de sólidos vecinos con desnivel de 1–10 px.
  * 2. Separación de plataformas: plataformas móviles y que caen no deben
  *    superponerse con sólidos estáticos en ningún punto de su recorrido.
+ * 3. Validación de datos de trampas: claves válidas según TRAP_REGISTRY
+ *    de trap-factory.js, y construcción exitosa de cada trampa.
  *
- * Se usa abriendo /tools/level-check.html con Live Server, o con:
- *   node --experimental-default-type=module tools/level-check.js
+ * Se abre con Live Server en /tools/level-check.html.
  *
  * Importa los datos de nivel reales para verificar el código actual.
  */
 import { LEVELS } from '../js/levels/levels.js';
-import { PLAYER, PLATFORMS } from '../js/config.js';
+import { PLAYER, PLATFORMS, PHYSICS, WORLD, SCENE } from '../js/config.js';
+import { rectsOverlap } from '../js/physics/collision.js';
+import { carryByPlatform, createBody, stepBody } from '../js/physics/physics.js';
+import { buildScene } from '../js/levels/level-loader.js';
+import { createTrap, TRAP_REGISTRY } from '../js/traps/trap-factory.js';
 
 /**
  * Busca pares de sólidos vecinos con escalones de 1–10 px.
@@ -138,8 +143,166 @@ function findPlatformOverlaps() {
   return results;
 }
 
+/**
+ * Simulación determinista: coloca al robot en el borde de cada plataforma móvil
+ * y simula el recorrido completo. Detecta regresos al punto seguro (caída al
+ * vacío o contacto con hazards) con y sin el fix (exclusión de la plataforma
+ * de los sólidos de arrastre).
+ *
+ * @returns {Array<{level: string, scene: string, platform: string, outcome: string, frame: number}>}
+ */
+function simulateMovingPlatforms() {
+  const results = [];
+  const DT = 1 / 60;
+
+  for (const level of LEVELS) {
+    for (const sceneData of level.scenes) {
+      const movingPlatforms = sceneData.movingPlatforms || [];
+      if (movingPlatforms.length === 0) continue;
+      const scene = buildScene(sceneData);
+
+      for (const mpData of movingPlatforms) {
+        const w = mpData.width;
+        const h = PLATFORMS.moving.height;
+        const speed = PLATFORMS.moving.speed;
+        const dist = Math.sqrt(
+          (mpData.to.x - mpData.from.x) ** 2 + (mpData.to.y - mpData.from.y) ** 2,
+        );
+        const totalTime = dist / speed;
+
+        const body = createBody({
+          x: mpData.from.x + w - 24,
+          y: mpData.from.y - PLAYER.height,
+          width: PLAYER.width,
+          height: PLAYER.height,
+        });
+
+        const platBody = { x: mpData.from.x, y: mpData.from.y, width: w, height: h, kind: 'solid' };
+        let prevPlatX = platBody.x;
+        let prevPlatY = platBody.y;
+        let progress = 0;
+        let direction = 1;
+        let returned = false;
+
+        for (let frame = 0; frame < 600; frame++) {
+          progress += (DT / totalTime) * direction;
+          if (progress >= 1) { progress = 1; direction = -1; }
+          if (progress <= 0) { progress = 0; break; }
+
+          prevPlatX = platBody.x;
+          prevPlatY = platBody.y;
+          platBody.x = mpData.from.x + (mpData.to.x - mpData.from.x) * progress;
+          platBody.y = mpData.from.y + (mpData.to.y - mpData.from.y) * progress;
+          const dx = platBody.x - prevPlatX;
+          const dy = platBody.y - prevPlatY;
+
+          const allSolids = [...scene.solids, platBody];
+          const carrySolids = allSolids.filter((s) => s !== platBody);
+          body.groundSolid = platBody;
+          carryByPlatform(body, dx, dy, carrySolids);
+
+          stepBody(body, allSolids, DT);
+
+          if (body.y > WORLD.height + SCENE.fallMargin) {
+            returned = true;
+            results.push({
+              level: `N${level.id}`,
+              scene: sceneData.id,
+              platform: `móvil [${mpData.from.x},${mpData.from.y}]→[${mpData.to.x},${mpData.to.y}]`,
+              outcome: `⚠ caída al vacío en frame ${frame} (y=${Math.round(body.y)})`,
+              frame,
+            });
+            break;
+          }
+
+          for (const hazard of scene.hazards) {
+            if (rectsOverlap(body, hazard)) {
+              returned = true;
+              results.push({
+                level: `N${level.id}`,
+                scene: sceneData.id,
+                platform: `móvil [${mpData.from.x},${mpData.from.y}]→[${mpData.to.x},${mpData.to.y}]`,
+                outcome: `⚠ hazard ${hazard.type} en frame ${frame} (x=${Math.round(body.x)}, y=${Math.round(body.y)})`,
+                frame,
+              });
+              break;
+            }
+          }
+          if (returned) break;
+        }
+
+        if (!returned) {
+          results.push({
+            level: `N${level.id}`,
+            scene: sceneData.id,
+            platform: `móvil [${mpData.from.x},${mpData.from.y}]→[${mpData.to.x},${mpData.to.y}]`,
+            outcome: '✅ ida y vuelta sin incidentes',
+            frame: -1,
+          });
+        }
+      }
+    }
+  }
+
+  return results;
+}
+
+/**
+ * Valida los datos de todas las trampas de todos los niveles contra el
+ * registro de claves válidas de trap-factory. Para cada trampa intenta
+ * construirla con createTrap y reporta cualquier excepción.
+ * @returns {Array<{level: string, scene: string, type: string, error: string}>}
+ */
+function validateTrapData() {
+  const results = [];
+
+  for (const level of LEVELS) {
+    for (const scene of level.scenes) {
+      const traps = scene.traps || [];
+      const builtScene = buildScene(scene);
+
+      for (const data of traps) {
+        const entry = TRAP_REGISTRY.get(data.type);
+        if (!entry) {
+          results.push({
+            level: `N${level.id}`,
+            scene: scene.id,
+            type: data.type ?? '(sin type)',
+            error: `Tipo de trampa desconocido: "${data.type}"`,
+          });
+          continue;
+        }
+        const extra = Object.keys(data).filter((k) => !entry.keys.has(k));
+        if (extra.length > 0) {
+          results.push({
+            level: `N${level.id}`,
+            scene: scene.id,
+            type: data.type,
+            error: `Claves sobrantes: ${extra.join(', ')}`,
+          });
+          continue;
+        }
+        try {
+          createTrap(data, { solids: builtScene.solids });
+        } catch (err) {
+          results.push({
+            level: `N${level.id}`,
+            scene: scene.id,
+            type: data.type,
+            error: err.message,
+          });
+        }
+      }
+    }
+  }
+
+  return results;
+}
+
 const steps = findSteps();
 const overlaps = findPlatformOverlaps();
+const simResults = simulateMovingPlatforms();
+const trapErrors = validateTrapData();
 
 if (typeof document !== 'undefined') {
   const output = document.getElementById('output');
@@ -177,6 +340,32 @@ if (typeof document !== 'undefined') {
     html += '</table>';
   }
 
+  html += '<h2>Validación de datos de trampas</h2>';
+  if (trapErrors.length === 0) {
+    html += '<p class="pass">✅ Todas las trampas de todos los niveles pasan la validación.</p>';
+  } else {
+    html += `<p class="fail">❌ Se encontraron ${trapErrors.length} error(es) en datos de trampas:</p>`;
+    html += '<table><tr><th>Nivel</th><th>Escena</th><th>Tipo</th><th>Error</th></tr>';
+    for (const t of trapErrors) {
+      html += `<tr><td>${t.level}</td><td>${t.scene}</td><td>${t.type}</td><td class="fail">${t.error}</td></tr>`;
+    }
+    html += '</table>';
+  }
+
+  html += '<h2>Simulación de plataformas móviles</h2>';
+  const simFails = simResults.filter((r) => r.frame >= 0);
+  if (simFails.length === 0) {
+    html += '<p class="pass">✅ Todas las plataformas móviles pasan la simulación sin incidentes.</p>';
+  } else {
+    html += `<p class="fail">❌ ${simFails.length} problema(s) en plataformas móviles:</p>`;
+  }
+  html += '<table><tr><th>Nivel</th><th>Escena</th><th>Plataforma</th><th>Resultado</th></tr>';
+  for (const r of simResults) {
+    const cls = r.frame >= 0 ? 'fail' : 'pass';
+    html += `<tr><td>${r.level}</td><td>${r.scene}</td><td>${r.platform}</td><td class="${cls}">${r.outcome}</td></tr>`;
+  }
+  html += '</table>';
+
   output.innerHTML = html;
 } else {
   if (steps.length === 0) {
@@ -195,5 +384,19 @@ if (typeof document !== 'undefined') {
     for (const o of overlaps) {
       console.log(`  ${o.level} ${o.scene}: ${o.platform} ↔ [${o.solid.x1}–${o.solid.x2}, top ${o.solid.top}] | ${o.clearance} px | ${o.at}`);
     }
+  }
+
+  if (trapErrors.length === 0) {
+    console.log('✅ Todas las trampas de todos los niveles pasan la validación.');
+  } else {
+    console.log(`❌ Se encontraron ${trapErrors.length} error(es) en datos de trampas:`);
+    for (const t of trapErrors) {
+      console.log(`  ${t.level} ${t.scene}: tipo "${t.type}" — ${t.error}`);
+    }
+  }
+
+  console.log('\n=== Simulación de plataformas móviles ===');
+  for (const r of simResults) {
+    console.log(`  ${r.level} ${r.scene}: ${r.platform} → ${r.outcome}`);
   }
 }

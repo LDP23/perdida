@@ -34,7 +34,24 @@
       position: relative;
       overflow: visible;
       image-rendering: pixelated;
+      transform: scale(var(--gallery-zoom, 1));
+      transform-origin: top left;
     }
+    .zoom-btn {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      z-index: 100;
+      padding: 0.5rem 1rem;
+      background: #1a3050;
+      color: #3ef0ff;
+      border: 1px solid #3ef0ff;
+      border-radius: 4px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 14px;
+    }
+    .zoom-btn:hover { background: #2a4060; }
   </style>
   <link rel="stylesheet" href="../css/base.css">
   <link rel="stylesheet" href="../css/traps.css">

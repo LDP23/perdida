@@ -246,22 +246,20 @@ export const TRAPS = Object.freeze({
     riseTime: 1.2,        // s — sube lento (peligroso, puede atrapar al descuidado)
     blockWidth: 121,      // px — ancho visible del bloque (docs/SPRITES.md: celda 202×76, bloque centrado)
     blockHeight: 67,      // px — alto visible del bloque (docs/SPRITES.md)
+    pistonOverlap: 3,     // px — solapamiento del pistón dentro del collar del bloque
   }),
   // Goteo de ácido: ciclo idle → warning → fall → splash.
-  // La duración de fall se calcula con √(2·distancia/gravedad), no es constante.
+  // Sin tubería: la gota cae desde el techo (y = 0). La superficie donde
+  // salpica se calcula con findSurfaceBelow. Solo x en los datos de escena.
   acidDrip: Object.freeze({
-    idleTime: 1.2,        // s — sin gota visible
-    warningTime: 0.8,     // s — gota crece en la tubería, sin peligro
+    idleTime: 0.5,        // s — sin gota visible
+    warningTime: 0.35,    // s — gota crece colgando del techo, sin peligro
     fallGravity: 2400,    // px/s² — aceleración de la gota
     splashTime: 0.25,     // s — salpicadura en el suelo (peligroso)
     dropWidth: 10.5,      // px — ancho de la gota (docs/SPRITES.md: 10.5×21)
     dropHeight: 21,       // px — alto de la gota
-    dropStartY: 54,       // px — offset vertical donde la gota nace (bajo la boca de la tubería)
     splashWidth: 41.5,    // px — ancho de la salpicadura (docs/SPRITES.md)
     splashHeight: 29,     // px — alto de la salpicadura
-    pipeWidth: 36,        // px — ancho de la tubería/boca (docs/SPRITES.md: 36×61)
-    pipeHeight: 61,       // px — alto de la tubería/boca
-    pipeMouthY: 50,       // px — boca: ~50 px del borde superior (docs/SPRITES.md)
   }),
   // Láser intermitente: ciclo off → warning → on.
   laser: Object.freeze({
@@ -272,17 +270,6 @@ export const TRAPS = Object.freeze({
     emitterWidth: 40,     // px — ancho del emisor (docs/SPRITES.md: 40×36)
     emitterHeight: 36,    // px — alto del emisor
     emitterMouthY: 32,    // px — boca del emisor: ~4 px por encima del borde inferior → 36-4
-  }),
-  // Chispas eléctricas: ciclo idle → warning → discharge.
-  sparks: Object.freeze({
-    idleTime: 1.6,        // s — panel apagado, sin peligro
-    warningTime: 0.7,     // s — chispas pequeñas parpadean, sin peligro
-    dischargeTime: 0.5,   // s — descarga eléctrica (peligroso)
-    width: 86,            // px — ancho de la celda del sprite (docs/SPRITES.md: 86×61)
-    height: 61,           // px — alto de la celda del sprite
-    arcLeft: 36,          // px — arcos de descarga: 36 px a la izquierda del centro (docs/SPRITES.md)
-    arcRight: 30,         // px — arcos de descarga: 30 px a la derecha del centro
-    arcHeight: 58,        // px — arcos de descarga: 58 px de alto desde el piso
   }),
   // Láser de barrido: rayo que recorre una plataforma de lado a lado.
   sweepLaser: Object.freeze({

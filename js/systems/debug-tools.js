@@ -83,6 +83,9 @@ export class DebugTools {
       tutorial: tutorialStates,
       plataformas: `${w.movingPlatforms.count}M ${w.fallingPlatforms.count}F`,
       trampas: w.traps.map((t, i) => `${i}:${t.type}·${t.phase}(${t.phaseRemaining.toFixed(1)})`).join(' ') || '—',
+      'último regreso': w.lastReturn
+        ? `${w.lastReturn.reason} @ ${w.lastReturn.scene}`
+        : '—',
     });
 
     this.#context.debugView.track('safe-point', {

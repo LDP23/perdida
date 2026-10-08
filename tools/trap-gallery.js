@@ -25,13 +25,9 @@ const TRAP_SAMPLES = [
     phases: ['off', 'warning', 'on'],
   },
   {
-    name: 'Chispas eléctricas',
-    data: { type: 'sparks', x: 100, bottom: 200 },
-    phases: ['idle', 'warning', 'discharge'],
-  },
-  {
     name: 'Goteo de ácido',
-    data: { type: 'acid-drip', x: 100, top: 60, bottom: 250 },
+    data: { type: 'acid-drip', x: 100 },
+    sceneContext: { solids: [{ x: 0, y: 250, width: 300, height: 100 }] },
     phases: ['idle', 'warning', 'fall', 'splash'],
   },
   {
@@ -51,6 +47,18 @@ const TRAP_SAMPLES = [
   },
 ];
 
+let zoomLevel = 1;
+
+const zoomBtn = document.createElement('button');
+zoomBtn.textContent = 'Zoom ×1';
+zoomBtn.className = 'zoom-btn';
+zoomBtn.addEventListener('click', () => {
+  zoomLevel = zoomLevel === 3 ? 1 : 3;
+  zoomBtn.textContent = `Zoom ×${zoomLevel}`;
+  gallery.style.setProperty('--gallery-zoom', zoomLevel);
+});
+document.body.insertBefore(zoomBtn, gallery);
+
 for (const sample of TRAP_SAMPLES) {
   const section = document.createElement('div');
   section.className = 'trap-type';
@@ -67,7 +75,7 @@ for (const sample of TRAP_SAMPLES) {
     const container = document.createElement('div');
     container.className = 'trap-container';
 
-    const trap = createTrap(sample.data);
+    const trap = createTrap(sample.data, sample.sceneContext);
 
     if (phaseName === 'destroyed' && trap.type === 'turret') {
       advanceTrapToPhase(trap, 'idle');
@@ -78,9 +86,8 @@ for (const sample of TRAP_SAMPLES) {
     }
 
     const zone = trap.zone;
-    const displayScale = 1;
-    container.style.width = `${zone.width * displayScale}px`;
-    container.style.height = `${zone.height * displayScale}px`;
+    container.style.width = `${zone.width}px`;
+    container.style.height = `${zone.height}px`;
 
     if (zone.height > 400) {
       container.style.height = '300px';

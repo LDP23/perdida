@@ -73,6 +73,32 @@ a la vez puede empujar al cuerpo en la dirección incorrecta.
 
 Estas restricciones se verifican con `tools/physics-check.html`.
 
+## Arrastre de plataforma y aplastamiento
+
+### Arrastre (carryByPlatform)
+
+Cuando el robot está parado sobre una plataforma móvil (`body.groundSolid === mp.body`),
+`PlatformSystem` lo arrastra con `carryByPlatform(body, dx, dy, solids)`. Los sólidos
+que recibe **excluyen la plataforma que carga al robot** para evitar que `moveAxis`
+confunda el paso vertical de la plataforma con una colisión y empuje al robot fuera.
+
+Si una pared frena al robot durante el arrastre, el robot se detiene en la pared
+(resolución normal de `moveAxis`) y la plataforma sigue de largo. El robot puede
+caer si se queda sin apoyo. **Esto no es aplastamiento.**
+
+### Aplastamiento real
+
+Aplastamiento = el robot queda superpuesto con sólidos por **dos lados opuestos**
+(izquierda+derecha o arriba+abajo) después de resolver el movimiento. Solo entonces
+se lo devuelve al punto seguro con motivo `crush`.
+
+### Motivo del último regreso
+
+El panel de depuración muestra `último regreso: <motivo> @ <escena>`:
+- `hazard` — tocó una zona de peligro (ácido, pinchos, etc.).
+- `fall` — cayó debajo del borde inferior de la escena + fallMargin.
+- `crush` — aplastado por una plataforma móvil contra un sólido.
+
 ## Fuerza externa (externalVx)
 
 `body.externalVx` es una velocidad horizontal (px/s) que se suma al desplazamiento

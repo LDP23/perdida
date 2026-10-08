@@ -48,6 +48,7 @@ export class HazardSystem {
           w.player.takeHit(BATTERY.hitCost);
           this.#events.emit('player:hazard');
         }
+        w.lastReturn = { reason: 'hazard', scene: w.scene.id };
         w.player.placeAt(w.safePoint.point);
         return true;
       }
@@ -62,6 +63,7 @@ export class HazardSystem {
         w.player.takeHit(BATTERY.hitCost);
         this.#events.emit('player:hazard');
       }
+      w.lastReturn = { reason: 'fall', scene: w.scene.id };
       w.player.placeAt(w.safePoint.point);
     }
   }

@@ -44,9 +44,6 @@ export class TrapView {
         createElement('trap__impact', this.#element);
         break;
 
-      case 'sparks':
-        break;
-
       case 'sweep-laser':
         createElement('trap__rail-left', this.#element);
         createElement('trap__rail trap-tile-x', this.#element);
@@ -56,14 +53,14 @@ export class TrapView {
         break;
 
       case 'acid-drip':
-        createElement('trap__pipe', this.#element);
-        createElement('trap__pipe-tramo trap-tile-y', this.#element);
+        createElement('trap__ceiling-glow', this.#element);
         createElement('trap__drop', this.#element);
         createElement('trap__splash', this.#element);
+        createElement('trap__surface-mark', this.#element);
         break;
 
       case 'decompression':
-        createElement('trap__current', this.#element);
+        this.#buildDecompression(trap);
         break;
 
       case 'turret':
@@ -98,5 +95,43 @@ export class TrapView {
 
   destroy() {
     this.#element.remove();
+  }
+
+  #buildDecompression(trap) {
+    const streaksContainer = createElement('trap__streaks', this.#element);
+    const zone = trap.zone;
+    const pullX = trap.viewData['--pull-x'];
+    const zoneLeft = 0;
+    const zoneRight = zone.width;
+    const pullRel = pullX;
+
+    for (let i = 0; i < 12; i++) {
+      const el = createElement('trap__streak', streaksContainer);
+      const fromLeft = i < 6;
+      if (fromLeft) {
+        el.style.setProperty('--streak-start', `${zoneLeft}px`);
+        el.style.setProperty('--streak-end', `${pullRel}px`);
+      } else {
+        el.style.setProperty('--streak-start', `${zoneRight}px`);
+        el.style.setProperty('--streak-end', `${pullRel}px`);
+        el.style.transform = 'scaleX(-1)';
+      }
+    }
+
+    const chevronsContainer = createElement('trap__chevrons', this.#element);
+    const edgeLeft = 40;
+    const edgeRight = zone.width - 40;
+    for (let i = 0; i < 3; i++) {
+      const chL = createElement('trap__chevron', chevronsContainer);
+      chL.style.left = `${edgeLeft + i * 25}px`;
+      chL.style.setProperty('--chev-travel', `${pullRel - edgeLeft - i * 25}px`);
+      chL.style.setProperty('--chev-angle', '-45deg');
+    }
+    for (let i = 0; i < 3; i++) {
+      const chR = createElement('trap__chevron', chevronsContainer);
+      chR.style.left = `${edgeRight - i * 25}px`;
+      chR.style.setProperty('--chev-travel', `${pullRel - edgeRight + i * 25}px`);
+      chR.style.setProperty('--chev-angle', '135deg');
+    }
   }
 }

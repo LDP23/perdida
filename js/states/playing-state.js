@@ -192,6 +192,7 @@ export class PlayingState {
 
   #mountScene(scene) {
     this.#world?.dispose();
+    this.#world = null;
     this.#world = new SceneWorld(scene, {
       layers: this.#context.layers,
       events: this.#context.events,

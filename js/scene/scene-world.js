@@ -6,7 +6,7 @@
  * Los sistemas acceden a las entidades a través de getWorld() que devuelve esta instancia.
  *
  * Usado por: PlayingState (crea una instancia por escena mediante mountScene).
- * Depende de: todas las entidades, todas las vistas, Tutorial, dom-utils.
+ * Depende de: todas las entidades, todas las vistas, Tutorial, dom-utils, trap-factory.
  */
 import { Enemy } from '../entities/enemy.js';
 import { EntityCollection } from '../entities/entity-collection.js';
@@ -54,6 +54,8 @@ export class SceneWorld {
   dynamicHazards = [];
   /** @type {Rect[]} — sólidos dinámicos de las trampas (bloque en reposo), reemplazado cada frame */
   dynamicSolids = [];
+  /** @type {{reason: string, scene: string}|null} — último regreso al punto seguro (para depuración) */
+  lastReturn = null;
   safePoint;
   tutorial = null;
   tutorialView = null;
@@ -69,8 +71,9 @@ export class SceneWorld {
     this.playerView = new PlayerView(layers.entities);
     this.projectiles = new EntityCollection(layers.entities, 'projectile');
 
+    const sceneContext = { solids: scene.solids };
     for (const data of scene.traps) {
-      const trap = createTrap(data);
+      const trap = createTrap(data, sceneContext);
       this.traps.push(trap);
       this.trapViews.push(new TrapView(layers.entities, trap));
       if (trap.type === 'turret') {

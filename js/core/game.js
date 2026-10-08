@@ -131,7 +131,7 @@ export class Game {
     s.setProperty('--enemy-fade-time', `${ENEMY.fadeTime}s`);
     s.setProperty('--press-block-w', TRAPS.press.blockWidth);
     s.setProperty('--press-block-h', TRAPS.press.blockHeight);
-    s.setProperty('--sparks-discharge-time', `${TRAPS.sparks.dischargeTime}s`);
+    s.setProperty('--press-piston-overlap', TRAPS.press.pistonOverlap);
 
     this.#disposeDevice = setupDeviceClass(refs.game);
     this.#resizeObserver = new ResizeObserver(([entry]) => this.#onResize(entry.contentRect));

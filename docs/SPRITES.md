@@ -30,7 +30,6 @@ Convenciones de esta tabla:
 
 | Archivo | Archivo (px) | Celdas | Celda en el mundo | Uso y anclas |
 |---|---|---|---|---|
-| `trampa_chispas.png` | 688 × 122 | 4 × 1 | 86 × 61 | 1 reposo · 2 aviso (arco chico) · 3–4 descarga. Caja centrada y apoyada en el borde inferior (el piso). Los arcos de la descarga ocupan desde 36 px a la izquierda hasta 30 px a la derecha del centro, y hasta **58 px** de alto. |
 | `trampa_laser_emisor.png` | 160 × 72 | 2 × 1 | 40 × 36 | 1 apagado · 2 encendido. Cuelga desde arriba (borde superior = techo). El rayo sale del centro horizontal, unos 4 px por encima del borde inferior. |
 | `trampa_laser_rayo.png` | 72 × 32 | 2 × 1 | 18 × 16 | Columna 1 aviso (hilo fino) · columna 2 encendido. **Repetible en vertical.** El núcleo del rayo está centrado. |
 | `trampa_laser_impacto.png` | 79 × 64 | 1 | 39.5 × 32 | Destello donde el rayo toca una superficie. Centrado en el rayo, apoyado sobre la superficie. |
@@ -38,8 +37,6 @@ Convenciones de esta tabla:
 | `trampa_prensa_piston.png` | 67 × 45 | 1 | 33.5 × 22.5 | Tramo del pistón. **Repetible en vertical**, desde el soporte hasta el bloque. |
 | `trampa_prensa_bloque.png` | 808 × 152 | 2 × 1 | 202 × 76 | 1 normal · 2 golpe (con escombros a los lados). Bloque visible de 121 × 67, centrado y apoyado en el borde inferior. |
 | `trampa_torreta.png` | 388 × 168 | 2 × 1 | 97 × 84 | 1 activa · 2 destruida. **Mira a la izquierda.** La placa de pared toca el borde derecho de la celda. La boca del cañón queda 95.5 px a la izquierda del borde derecho y 38.8 px sobre el borde inferior. |
-| `trampa_tuberia.png` | 144 × 122 | 2 × 1 | 36 × 61 | 1 seca · 2 goteando. Alineada arriba. La boca termina a ~50 px del borde superior (frame 1). |
-| `trampa_tuberia_tramo.png` | 72 × 20 | 1 | 36 × 10 | Tramo de tubo. **Repetible en vertical**, desde el techo hasta la boca. |
 | `trampa_acido_gota.png` | 21 × 42 | 1 | 10.5 × 21 | La gota mientras cae. |
 | `trampa_acido_salpicadura.png` | 83 × 58 | 1 | 41.5 × 29 | Salpicadura centrada, apoyada sobre la superficie. |
 | `trampa_riel_izq.png` / `trampa_riel_der.png` | 67 × 35 | 1 | 33.5 × 17.5 | Extremos del riel del láser de barrido. |

@@ -28,8 +28,10 @@ Solo HTML, CSS y JavaScript puro: sin frameworks, sin librerías, sin `<canvas>`
 7. ✅ Documentación: JSDoc en español en todos los módulos JS, encabezados descriptivos en CSS, comentarios de estructura en index.html, docs/ con 6 documentos de arquitectura (Mermaid).
 7.1. ✅ Sistema de trampas y trampas del nivel 1: clase base Trap (ciclo de fases + Timer), prensa hidráulica (N1E2), láser intermitente (N1E3), TrapSystem, TrapView, css/traps.css.
 8. ✅ Nivel 2 y sus trampas.
-9. ✅ Nivel 3: chispas eléctricas, láser de barrido, torreta (shootable), descompresión (externalVx), 3 escenas, ojos decorativos, tema bridge.
+9. ✅ Nivel 3: láser de barrido, torreta (shootable), descompresión (externalVx), 3 escenas, ojos decorativos, tema bridge.
 9.1. ✅ Sprites de trampas y plataformas: findSurfaceBelow, láseres desde el techo, border-image para plataformas, sprites para todas las trampas, safePointExclusions, correcciones N3, decorations.css.
+9.1.2. ✅ Correcciones: fix plataforma móvil (excluir plataforma de sólidos de arrastre, detección de aplastamiento real), eliminación de chispas eléctricas, rediseño de goteo de ácido (sin tubería, desde techo, marca de superficie), rediseño visual de descompresión (rayas + chevrones + franja destino), fix pistón de prensa (solapamiento con collar), galería con zoom ×3.
+9.1.3. ✅ Correcciones: fix N2E2 pantalla negra (surfaceY como argumento, no mutación del dato), datos de nivel congelados (deepFreeze), red de seguridad al montar escena (error visible, nunca pantalla negra), descompresión sin franja destino, validación de trampas en level-check.
 9.2. Consola del capitán, cápsula de escape y victoria.
 10. Táctil, responsive y pulido.
 
@@ -46,7 +48,7 @@ css/tutorial.css           carteles del tutorial: appear/dismiss, teclado vs tá
 css/platforms.css          plataformas: móvil y que cae con sprites via border-image (cortes laterales), temblor, fundido
 css/screens.css            pantallas de menú: visibilidad por data-state/data-overlay/data-sub, glitch, estrellas, estática TV, CRT off; nivel completado; fundido de transición
 css/decorations.css        decoraciones del mundo: pit-shadow, opening-door, eyes; separadas de screens.css
-css/traps.css              trampas con sprites: prensa (soporte+pistón+bloque), láser (emisor+rayo+impacto), chispas (4 frames), barrido (riel+emisor+rayo), ácido (tubería+gota+splash), torreta (2 frames), descompresión (corriente+escombros); .trap-tile-y/.trap-tile-x para piezas repetibles; reduced-motion
+css/traps.css              trampas con sprites: prensa (soporte+pistón+bloque), láser (emisor+rayo+impacto), barrido (riel+emisor+rayo), ácido (gota+splash+marca de superficie), torreta (2 frames), descompresión (rayas+chevrones); .trap-tile-y/.trap-tile-x para piezas repetibles; reduced-motion
 css/debug.css              modo depuración (solo visible con .game.is-debug); safe-point, hazard, trigger, platform, trap
 js/main.js                 arranque: new Game(document).start()
 js/config.js               TODAS las constantes de jugabilidad
@@ -76,8 +78,8 @@ js/entities/safe-point.js  SafePointTracker: grounded + ambos pies + lejos de ha
 js/entities/enemy.js       Enemy: patrulla/persecución/zarpazo, interfaz shootable, estados patrol→chase→windup→strike→recover (+hurt, dying, dead)
 js/entities/training-dummy.js  TrainingDummy: hitbox TRAINING_DUMMY (100×90), hitCount, onShot (interfaz shootable)
 js/levels/level1.js        datos de las 3 escenas del nivel 1: solids, hazards, crewIds, energyCells, enemies, exit, movingPlatforms, fallingPlatforms, decorations, traps
-js/levels/level3.js        datos de las 3 escenas del nivel 3: descompresión, chispas, barrido, torreta, ojos decorativos, tema bridge
-js/levels/levels.js        LEVELS = [LEVEL_1, LEVEL_2, LEVEL_3]: único lugar que conoce todos los niveles
+js/levels/level3.js        datos de las 3 escenas del nivel 3: descompresión, barrido, torreta, ojos decorativos, tema bridge
+js/levels/levels.js        LEVELS = [LEVEL_1, LEVEL_2, LEVEL_3]: único lugar que conoce todos los niveles; deepFreeze profundo
 js/levels/level-loader.js  datos -> escena del motor; convierte hazards, exit (sin pared derecha si edge), door (rectFromSpan), plataformas, decoraciones, traps
 js/levels/crew-logs.js     CREW_LOGS[9]: id, sceneId, name, role, log; VICTORY_MESSAGE
 js/core/session.js         GameSession: score, lives, foundCrewIds; snapshotLevelStart/restoreLevelStart; emite session:* events
@@ -85,11 +87,10 @@ js/states/menu-state.js    menú principal: nueva partida, subpantallas, récord
 js/traps/trap.js           Trap (base): ciclo de fases con Timer, phaseOffset, getters phase/phaseProgress/dangerRects/zone
 js/traps/hydraulic-press.js  HydraulicPress: fases idle→warning→slam→hold→rise, bloque interpola entre restBottom y bottom, viewData --block-y
 js/traps/intermittent-laser.js  IntermittentLaser: fases off→warning→on, rayo dinámico con updateWithSolids/findSurfaceBelow
-js/traps/electric-sparks.js  ElectricSparks: fases idle→warning→discharge, descarga desde el piso hacia arriba
 js/traps/sweeping-laser.js SweepingLaser: rayo que barre de lado a lado, fases warning-left→sweep-right→pause-right→warning-right→sweep-left→pause-left
 js/traps/turret.js         Turret: trampa + shootable, fases idle→aiming→fire→cooldown, emite turret:fire y turret:destroyed, health disparos
 js/traps/decompression.js  Decompression: fuerza externa que arrastra hacia pullX, pullFor(body) devuelve velocidad, dangerRects vacío
-js/traps/trap-factory.js   createTrap(data): mapa type→clase (press, laser, acid-drip, sparks, sweep-laser, turret, decompression)
+js/traps/trap-factory.js   createTrap(data, sceneContext?): mapa type→clase (press, laser, acid-drip, sweep-laser, turret, decompression), validación de claves, TRAP_REGISTRY exportado
 js/scene/scene-world.js    SceneWorld: construye todas las entidades, trampas y vistas de una escena, getAllSolids(), dispose(). Sin reglas de juego, sin suscripciones.
 js/systems/screen-shake.js ScreenShake: sacudida por player:hurt (único listener), Timer, respeta screenShake
 js/systems/platform-system.js PlatformSystem: beforePlayer (mover + arrastrar rider), afterPlayer (pisadas)
@@ -123,8 +124,8 @@ js/view/debug-view.js      showScene, track(id, rect, kind), report({clave: valo
 tools/process_assets.py    conversión de assets originales (ya aplicada)
 tools/physics-check.html   verificador de física: simula saltos a 30/120/144 FPS y compara requisitos
 tools/physics-check.js     lógica del verificador, importa Player y physics reales
-tools/level-check.html     verificador de niveles: escalones trampa + separación de plataformas
-tools/level-check.js       lógica del verificador, importa niveles, PLAYER y PLATFORMS
+tools/level-check.html     verificador de niveles: escalones trampa + separación de plataformas + validación de trampas
+tools/level-check.js       lógica del verificador, importa niveles, PLAYER, PLATFORMS, trap-factory (TRAP_REGISTRY)
 tools/trap-gallery.html    galería visual de trampas: cada tipo en cada fase, congelada
 tools/trap-gallery.js      lógica de la galería, importa trap-factory y TrapView
 ```
@@ -146,7 +147,8 @@ Agregar un sistema nuevo = crear archivo en `js/systems/`, agregarlo al arreglo 
 - Cero duplicación: si algo se repite, se extrae (clase base de trampas, `rectsOverlap`, un temporizador de ciclos).
 - Sin números mágicos: jugabilidad en `config.js` (objetos `Object.freeze`); medidas visuales como variables CSS.
 - `PlayingState` solo orquesta; toda regla de juego nueva va en un sistema; los sistemas se comunican por el `world` o por eventos, nunca llamándose entre sí.
-- Niveles = datos. Agregar o cambiar una escena no debe tocar el motor.
+- Niveles = datos inmutables. Agregar o cambiar una escena no debe tocar el motor. Los datos de nivel nunca se mutan en tiempo de ejecución (`Object.freeze` profundo en `levels.js`); lo que una trampa necesita del mundo se le pasa como argumento explícito (sceneContext).
+- Un fallo al montar una escena siempre termina la transición y muestra el error en el HUD (toast), nunca deja pantalla negra. `scene-flow.js` envuelve el montaje en try/catch.
 - Lógica y dibujo separados: las entidades no tocan el DOM. Las vistas solo escriben variables CSS de
   geometría (`--x --y --w --h`) y clases de estado (`is-*`). Única excepción: `--scene-image`.
 - `data-ref` para JavaScript, clases para CSS. Nunca seleccionar elementos por clase desde JS.
@@ -175,30 +177,32 @@ Agregar un sistema nuevo = crear archivo en `js/systems/`, agregarlo al arreglo 
 - Trampas que necesitan crear entidades emiten eventos: `turret:fire` → CombatSystem crea el proyectil enemy; `turret:destroyed` → CombatSystem suma puntos.
 - Proyectiles con `owner`: `'player'` impacta shootables, `'enemy'` impacta al robot con `takeHit` (sin empuje).
 - `body.externalVx`: velocidad horizontal externa (px/s) sumada al desplazamiento en `stepBody` sin tocar `vx`. TrapSystem asigna la suma de los `pullFor` de las trampas de descompresión. Con `externalVx = 0` el resultado es idéntico al motor original.
-- Formato de datos de chispas: `{ type: 'sparks', x, bottom, width?, height?, phaseOffset? }`.
+- Formato de datos de goteo de ácido: `{ type: 'acid-drip', x, phaseOffset? }`. La superficie se calcula con `findSurfaceBelow`; la zona va desde y=0 hasta la superficie. Sin tubería.
 - Formato de datos de láser de barrido: `{ type: 'sweep-laser', x1, x2, phaseOffset? }`. El riel se coloca en y=0; el rayo baja hasta la primera superficie (`findSurfaceBelow`).
 - Formato de datos de torreta: `{ type: 'turret', x, y, direction, phaseOffset? }`.
 - Formato de datos de descompresión: `{ type: 'decompression', x1, x2, top, bottom, pullX }`.
 - Decoración `eyes`: `{ type: 'eyes', x, y }`. Ojos rojos con parpadeo lento, CSS puro.
 - Tema `bridge`: `--color-level-accent: #ff4455` (rojo estelar).
-- Orden de actualización por paso: (1) mover plataformas, (2) arrastrar rider con `carryByPlatform`, (3) paso normal del robot (`player.update` con todos los sólidos + plataformas activas).
+- Orden de actualización por paso: (1) mover plataformas, (2) arrastrar rider con `carryByPlatform` (excluyendo la plataforma que lo carga de los sólidos de colisión), (3) paso normal del robot (`player.update` con todos los sólidos + plataformas activas).
 - `body.groundSolid`: referencia al sólido sobre el que descansa el cuerpo. Se usa para detectar plataformas y arrastrar al rider.
+- Aplastamiento de plataforma: si tras el arrastre el robot queda con sólidos en dos lados opuestos (izq+der o arriba+abajo), se lo devuelve al punto seguro con motivo `crush`. El panel de depuración muestra `último regreso: <motivo> @ <escena>`.
+- `TRAPS.press.pistonOverlap`: 3 px de solapamiento del pistón con el collar del bloque para evitar huecos visuales.
 - Transiciones de escena: fundido a negro con `.scene-fade` (clase `is-showing`/`is-hiding`), duraciones `TRANSITION.fadeOut`/`fadeIn`. Máquina de fases con `Timer` (no `setTimeout`): `fade-out → loading → fade-in → fade-in-wait`. Se detiene durante la pausa.
 - `GameSession.snapshotLevelStart()` / `restoreLevelStart()`: al morir se restaura al inicio del nivel y se pierde un intento; al reiniciar desde pausa se restaura sin perder intento.
 - Estados del enemigo: `patrol → chase → windup → strike → recover`, más `hurt`, `dying`, `dead`. No usa `StateMachine` (diseñada para UI con pila), sino estado simple con `Timer`. Prioridad visual (de mayor a menor): `dead > dying > hurt > strike > windup > walking > idle`.
 - `EntityCollection` con fábrica de vista: el tercer parámetro opcional `viewFactory(layer, entity)` permite crear vistas especializadas (`EnemyView`, `TrainingDummyView`, `PlatformView`). `syncCustom(fn)` itera pares {entity, view} para vistas que no siguen la interfaz `sync(body, flags)`. La lista de shootables es también un `EntityCollection`: las entidades muertas se eliminan automáticamente.
 - `Player.canBeHurt`: getter que centraliza `!isInvulnerable && !isDying && !isDead && !isRespawning`. Se usa en `takeHit`, `takeHitWithOrigin`, y en `PlayingState` para guardas de daño, peligros y caídas.
 - Herramienta de depuración: con depuración activa, las teclas `Digit1`…`Digit9` cargan la escena con ese número del nivel actual (atajos `scene1`…`scene9` en `KEY_BINDINGS`).
-- Sprites de trampas: cada trampa usa sprites de `assets/sprites/trampa_*.png`. Las medidas del sprite están en `config.js` (no números mágicos en CSS/JS). CSS `.trap-tile-y` / `.trap-tile-x` para piezas que se repiten en un eje (pistón, rayo, tubería, riel, corriente). Plataformas usan `border-image` con cortes laterales para ancho variable.
+- Sprites de trampas: cada trampa usa sprites de `assets/sprites/trampa_*.png`. Las medidas del sprite están en `config.js` (no números mágicos en CSS/JS). CSS `.trap-tile-y` / `.trap-tile-x` para piezas que se repiten en un eje (pistón, rayo, riel). Plataformas usan `border-image` con cortes laterales para ancho variable.
 - Láseres dinámicos: `findSurfaceBelow(x, fromY, solids, width)` en `collision.js` busca el primer sólido debajo. Los láseres (intermitente y barrido) usan `updateWithSolids(dt, solids)` para recalcular la longitud del rayo cada frame. TrapSystem pasa `getAllSolids()` a las trampas que lo implementan.
 - `safePointExclusions`: getter en la clase base `Trap` (default: `[this.zone]`). SweepingLaser lo sobreescribe con el rayo actual ensanchado. SafePointTracker consulta todas las trampas cada frame.
 - Caídas y peligros: siempre reposicionan al robot en el punto seguro. El daño solo se aplica si `canBeHurt` es true (invulnerabilidad post-golpe no impide el reposicionamiento).
 - Nada de `setTimeout`/`setInterval` para la lógica del juego: usar `Timer` actualizado en `update`. Un `setTimeout` sigue corriendo durante la pausa y puede dispararse después de reiniciar o salir al menú.
-- Piezas permanentes vs efímeras en TrapView: las piezas que son parte fija de la trampa (soporte, tubería, riel, emisor) deben estar siempre visibles. Solo las piezas que aparecen/desaparecen por fase (rayo, gota, salpicadura, bloque de golpe) cambian con `is-*`. Si un sprite tiene 2 frames (apagado/encendido), el frame 1 es el reposo y se muestra con `background-position: 0 0`.
+- Piezas permanentes vs efímeras en TrapView: las piezas que son parte fija de la trampa (soporte, riel, emisor) deben estar siempre visibles. Solo las piezas que aparecen/desaparecen por fase (rayo, gota, salpicadura, bloque de golpe) cambian con `is-*`. Si un sprite tiene 2 frames (apagado/encendido), el frame 1 es el reposo y se muestra con `background-position: 0 0`.
 - Variables `--frame-col`/`--frame-row` registradas con `@property` como `inherits: true`, para que las animaciones definidas en un padre (`.sprite-sheet`) lleguen a los hijos (`.trap__sprite`).
 - Zonas de trampas que cuelgan del techo (prensa, tubería) empiezan en y=0. La zona se extiende desde el techo hasta el punto más bajo que alcanza la trampa. El soporte/tubería se posiciona en top=0 del contenedor de la trampa; el tramo repetible se extiende con `top` negativo hasta el techo de la escena.
 - Separación mínima plataforma-sólido: `PLATFORMS.wallClearance` (4 px). `tools/level-check.js` lo verifica.
-- Descompresión: efecto CSS puro con `repeating-linear-gradient` animado (sin sprites). No usa `debrisCount`.
+- Descompresión: efecto CSS puro (sin sprites). Rayas horizontales (12 por zona, gradiente hacia pullX), chevrones (3 por borde, animación secuencial hacia pullX). Solo `transform`/`opacity` en animaciones. Reduced-motion: chevrones estáticos, sin rayas.
 - `tools/trap-gallery.html`: galería visual de trampas, muestra cada tipo en cada fase congelada. Usa las clases reales de js/traps/ y TrapView.
 
 ## Física: restricciones verificadas (NO romper)
