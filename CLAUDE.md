@@ -33,7 +33,7 @@ Solo HTML, CSS y JavaScript puro: sin frameworks, sin librerías, sin `<canvas>`
 9.1.2. ✅ Correcciones: fix plataforma móvil (excluir plataforma de sólidos de arrastre, detección de aplastamiento real), eliminación de chispas eléctricas, rediseño de goteo de ácido (sin tubería, desde techo, marca de superficie), rediseño visual de descompresión (rayas + chevrones + franja destino), fix pistón de prensa (solapamiento con collar), galería con zoom ×3.
 9.1.3. ✅ Correcciones: fix N2E2 pantalla negra (surfaceY como argumento, no mutación del dato), datos de nivel congelados (deepFreeze), red de seguridad al montar escena (error visible, nunca pantalla negra), descompresión sin franja destino, validación de trampas en level-check.
 9.2. ✅ Consola del capitán, cápsula de escape y victoria: EscapeSystem, CaptainPanel, VictoryState, alerta con countdown, cápsula de escape, opción timedEscape.
-10. Táctil, responsive y pulido.
+10. ✅ Táctil, responsive y pulido: auditoría de código completa, controles táctiles (js/input/touch-controls.js, css/touch.css), responsive (cámara escala al viewport), eliminación de código muerto y duplicado.
 
 ## Arquitectura (qué hace cada archivo)
 
@@ -49,6 +49,7 @@ css/platforms.css          plataformas: móvil y que cae con sprites via border-
 css/screens.css            pantallas de menú: visibilidad por data-state/data-overlay/data-sub, glitch, estrellas, estática TV, CRT off; nivel completado; fundido de transición
 css/decorations.css        decoraciones del mundo: pit-shadow, opening-door, eyes; separadas de screens.css
 css/traps.css              trampas con sprites: prensa (soporte+pistón+bloque), láser (emisor+rayo+impacto), barrido (riel+emisor+rayo), ácido (gota+splash+marca de superficie), torreta (2 frames), descompresión (rayas+chevrones); .trap-tile-y/.trap-tile-x para piezas repetibles; reduced-motion
+css/touch.css              controles táctiles: D-pad izquierdo, botones de acción derecho, pausa; solo visibles con is-touch en gameplay; semitransparentes, 48px mínimo, multitouch
 css/debug.css              modo depuración (solo visible con .game.is-debug); safe-point, hazard, trigger, platform, trap
 js/main.js                 arranque: new Game(document).start()
 js/config.js               TODAS las constantes de jugabilidad
@@ -78,18 +79,22 @@ js/entities/safe-point.js  SafePointTracker: grounded + ambos pies + lejos de ha
 js/entities/enemy.js       Enemy: patrulla/persecución/zarpazo, interfaz shootable, estados patrol→chase→windup→strike→recover (+hurt, dying, dead)
 js/entities/training-dummy.js  TrainingDummy: hitbox TRAINING_DUMMY (100×90), hitCount, onShot (interfaz shootable)
 js/levels/level1.js        datos de las 3 escenas del nivel 1: solids, hazards, crewIds, energyCells, enemies, exit, movingPlatforms, fallingPlatforms, decorations, traps
+js/levels/level2.js        datos de las 3 escenas del nivel 2: ácido, prensa, láser, plataformas, puerta, tema lab
 js/levels/level3.js        datos de las 3 escenas del nivel 3: descompresión, barrido, torreta, ojos decorativos, tema bridge
 js/levels/levels.js        LEVELS = [LEVEL_1, LEVEL_2, LEVEL_3]: único lugar que conoce todos los niveles; deepFreeze profundo
 js/levels/level-loader.js  datos -> escena del motor; convierte hazards, exit (sin pared derecha si edge), door (rectFromSpan), plataformas, decoraciones, traps
 js/levels/crew-logs.js     CREW_LOGS[9]: id, sceneId, name, role, log; VICTORY_MESSAGE
 js/core/session.js         GameSession: score, lives, foundCrewIds; snapshotLevelStart/restoreLevelStart; emite session:* events
+js/input/touch-controls.js TouchControls: botones táctiles (D-pad + acciones + pausa), multitouch con touch ID, alimenta Input.press/release
 js/states/menu-state.js    menú principal: nueva partida, subpantallas, récord
+js/states/story-state.js   pantalla narrativa entre niveles: texto con aparición secuencial, imagen de fondo, continuar con Enter o esperar
 js/traps/trap.js           Trap (base): ciclo de fases con Timer, phaseOffset, getters phase/phaseProgress/dangerRects/zone
 js/traps/hydraulic-press.js  HydraulicPress: fases idle→warning→slam→hold→rise, bloque interpola entre restBottom y bottom, viewData --block-y
 js/traps/intermittent-laser.js  IntermittentLaser: fases off→warning→on, rayo dinámico con updateWithSolids/findSurfaceBelow
 js/traps/sweeping-laser.js SweepingLaser: rayo que barre de lado a lado, fases warning-left→sweep-right→pause-right→warning-right→sweep-left→pause-left
 js/traps/turret.js         Turret: trampa + shootable, fases idle→aiming→fire→cooldown, emite turret:fire y turret:destroyed, health disparos
 js/traps/decompression.js  Decompression: fuerza externa que arrastra hacia pullX, pullFor(body) devuelve velocidad, dangerRects vacío
+js/traps/acid-drip.js      AcidDrip: fases idle→warning→fall→splash, gota cae con gravedad desde el techo, surfaceY con findSurfaceBelow
 js/traps/trap-factory.js   createTrap(data, sceneContext?): mapa type→clase (press, laser, acid-drip, sweep-laser, turret, decompression), validación de claves, TRAP_REGISTRY exportado
 js/scene/scene-world.js    SceneWorld: construye todas las entidades, trampas y vistas de una escena, getAllSolids(), dispose(). Sin reglas de juego, sin suscripciones.
 js/systems/screen-shake.js ScreenShake: sacudida por player:hurt (único listener), Timer, respeta screenShake
@@ -118,7 +123,7 @@ js/view/entity-view.js     EntityView(layer, modifier, {width,height}).sync(body
 js/view/player-view.js     PlayerView: traduce Player.visualState a una clase is-*, aplica robot-sprite al sprite, has-hurt-aura
 js/view/enemy-view.js      EnemyView: traduce Enemy.visualState a clase is-*, aplica creature-sprite + sprite-sheet, is-fading
 js/view/training-dummy-view.js  TrainingDummyView: sprite de imagen (centrado, mayor que hitbox, alineado al piso) + etiqueta de impactos
-js/view/trap-view.js       TrapView: clase de tipo + fase (is-*), geometría de zona, viewData, estructura DOM con sprites (soporte/pistón/bloque, emisor/rayo/impacto, riel, tubería/gota/splash, corriente/escombros)
+js/view/trap-view.js       TrapView: clase de tipo + fase (is-*), geometría de zona, viewData, estructura DOM con sprites (soporte/pistón/bloque, emisor/rayo/impacto, riel, gota/splash/marca, rayas/chevrones)
 js/view/platform-view.js   PlatformView: posiciona con --x/--y, clases is-* según visualState
 js/view/hud-view.js        HudView: dibuja HUD, solo toca DOM cuando un valor cambia
 js/view/tutorial-view.js   TutorialView: crea carteles en capa tutorial, alterna is-visible/is-dismissed
@@ -138,7 +143,7 @@ Carpeta `js/traps/`: clase base `Trap` + una subclase por tipo + fábrica `creat
 
 Sistemas reciben `{ context, getWorld, session, hud }` en el constructor. `getWorld()` devuelve el `SceneWorld` actual (nunca guardar la referencia).
 Contrato: `constructor(deps)`, `update(deltaTime)` (si lo necesita), `dispose()` (libera suscripciones y temporizadores).
-Orden de update en PlayingState: screenShake → sceneFlow.updateTransition → pausa → pickupSystem.updatePanel → debugTools.handleInput → muerte/respawn → platformSystem.beforePlayer → player → platformSystem.afterPlayer → trapSystem → combatSystem → pickupSystem → hazardSystem → sceneFlow.checkExits → tutorial → HUD → cámara.
+Orden de update en PlayingState: screenShake → sceneFlow.updateTransition → pausa → escapeSystem.updatePanel → pickupSystem.updatePanel → debugTools.handleInput → muerte/respawn → escapeSystem.checkInteraction → platformSystem.beforePlayer → player → platformSystem.afterPlayer → trapSystem → combatSystem → pickupSystem → hazardSystem → escapeSystem.update → sceneFlow.checkExits → tutorial → HUD → cámara.
 Agregar un sistema nuevo = crear archivo en `js/systems/`, agregarlo al arreglo `#systems` en `PlayingState.enter()` y en el orden de update.
 
 ## Convenciones obligatorias
@@ -233,3 +238,9 @@ Caer de un borde y saltar en el aire consume el doble salto (evita cruzar el fos
 
 Fondo `--color-void` y `--color-deep` · robot `--color-signal` (cian) · alarmas `--color-alarm` (rojo) ·
 nivel 1 `--color-amber` · ácido `--color-acid`. Fuentes: `--font-terminal` (VT323) y `--font-display` (Silkscreen).
+
+## Responsive y controles táctiles
+
+- Escalado: `Camera.resize()` calcula `scale = viewportHeight / WORLD.height`. `ResizeObserver` en el viewport recalcula al redimensionar. El mundo se escala con `transform: scale(var(--world-scale))` — todo (HUD, paneles, entidades) escala junto.
+- Controles táctiles: `TouchControls` crea D-pad (←↑→↓) + botones de acción (SALTO, ATAQUE) + pausa. Llama `Input.press(action)` / `Input.release(action)` — mismo sistema que el teclado. Multitouch con touch ID por botón. Solo visibles con `is-touch` en `.game[data-state="playing"]`.
+- Meta viewport con `maximum-scale=1, user-scalable=no, viewport-fit=cover`.

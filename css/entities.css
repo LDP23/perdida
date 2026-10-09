@@ -605,6 +605,9 @@
 
 /* ============================================================
    CONSOLA DEL CAPITÁN
+   Rectángulo oscuro con borde cian brillante y glow pulsante.
+   Indicador "↑ ACCEDER" flota arriba cuando el robot está cerca
+   (is-active). Al usarla (is-used) la pantalla se apaga.
    ============================================================ */
 .captain-console {
   position: absolute;
@@ -663,6 +666,9 @@
 
 /* ============================================================
    CÁPSULA DE ESCAPE
+   Portal luminoso cian que aparece al activar la alerta.
+   Gradiente vertical + borde semitransparente + glow pulsante.
+   Al tocarlo el robot escapa y se muestra la pantalla de victoria.
    ============================================================ */
 .escape-pod {
   position: absolute;

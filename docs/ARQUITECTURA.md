@@ -24,6 +24,12 @@ graph TB
         StateMachine[StateMachine]
         EventBus[EventBus]
         Settings[Settings]
+        Session[GameSession]
+        Timer[Timer]
+    end
+
+    subgraph "Input (js/input)"
+        TouchControls[TouchControls]
     end
 
     subgraph "Física (js/physics)"
@@ -37,7 +43,12 @@ graph TB
         Projectile[Projectile]
         Pickup[Pickup]
         Platform[Platform]
+        MovingPlatform[MovingPlatform]
+        FallingPlatform[FallingPlatform]
         Battery[Battery]
+        SafePoint[SafePointTracker]
+        TrainingDummy[TrainingDummy]
+        EntityCollection[EntityCollection]
     end
 
     subgraph "Escena (js/scene)"
@@ -50,15 +61,29 @@ graph TB
         PickupSystem[PickupSystem]
         HazardSystem[HazardSystem]
         SceneFlow[SceneFlow]
+        TrapSystem[TrapSystem]
         ScreenShake[ScreenShake]
+        EscapeSystem[EscapeSystem]
         DebugTools[DebugTools]
     end
 
     subgraph "Estados (js/states)"
         PlayingState[PlayingState]
         MenuState[MenuState]
+        StoryState[StoryState]
         PausedState[PausedState]
+        LevelCompleteState[LevelCompleteState]
+        VictoryState[VictoryState]
         GameOverState[GameOverState]
+        OffState[OffState]
+    end
+
+    subgraph "UI (js/ui)"
+        Hud[Hud]
+        Tutorial[Tutorial]
+        MenuNavigator[MenuNavigator]
+        CaptainPanel[CaptainPanel]
+        CrewLogPanel[CrewLogPanel]
     end
 
     subgraph "Vistas (js/view)"
@@ -66,6 +91,11 @@ graph TB
         PlayerView[PlayerView]
         EnemyView[EnemyView]
         HudView[HudView]
+        TrapView[TrapView]
+        PlatformView[PlatformView]
+        EntityView[EntityView]
+        DebugView[DebugView]
+        TutorialView[TutorialView]
     end
 
     subgraph "Trampas (js/traps)"
@@ -80,8 +110,11 @@ graph TB
 
     subgraph "Niveles (js/levels)"
         Level1[level1.js]
+        Level2[level2.js]
         Level3[level3.js]
+        Levels[levels.js]
         LevelLoader[level-loader.js]
+        CrewLogs[crew-logs.js]
     end
 
     main --> Game
@@ -89,17 +122,31 @@ graph TB
     Game --> Input
     Game --> Camera
     Game --> StateMachine
+    Game --> TouchControls
+    TouchControls --> Input
     StateMachine --> PlayingState
     StateMachine --> MenuState
+    StateMachine --> StoryState
+    StateMachine --> PausedState
+    StateMachine --> LevelCompleteState
+    StateMachine --> VictoryState
+    StateMachine --> GameOverState
+    StateMachine --> OffState
     PlayingState --> SceneWorld
     PlayingState --> CombatSystem
     PlayingState --> PlatformSystem
+    PlayingState --> TrapSystem
+    PlayingState --> EscapeSystem
+    PlayingState --> Session
     SceneWorld --> Player
     SceneWorld --> Enemy
+    SceneWorld --> LevelLoader
     Player --> Physics
     Player --> Battery
-    LevelLoader --> Level1
-    LevelLoader --> Level3
+    Levels --> Level1
+    Levels --> Level2
+    Levels --> Level3
+    LevelLoader --> Levels
     TrapBase --> HydPress
     TrapBase --> IntLaser
     TrapBase --> AcDrip

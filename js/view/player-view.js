@@ -18,6 +18,12 @@ const VISUAL_CLASSES = [
   'is-respawning', 'is-muzzle-flash',
 ];
 
+/**
+ * Vista del robot: sincroniza el estado visual del Player con clases CSS.
+ *
+ * Ciclo de vida: SceneWorld la crea al montar la escena; PlayingState llama
+ * sync() cada frame en render(); destroy() limpia el DOM.
+ */
 export class PlayerView {
   #view;
   #element;

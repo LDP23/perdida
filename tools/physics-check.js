@@ -18,6 +18,7 @@ import { PLAYER, LOOP, TRAPS } from '../js/config.js';
 import { EventBus } from '../js/core/event-bus.js';
 import { Player } from '../js/entities/player.js';
 
+/** Distancias horizontales (en px) de los huecos que el robot debe cruzar o no cruzar */
 const GAPS = Object.freeze({
   pinchosN1E1: 228,
   acidoN2E1: 233,

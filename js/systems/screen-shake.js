@@ -32,6 +32,10 @@ export class ScreenShake {
     });
   }
 
+  /**
+   * Avanza el temporizador de sacudida y quita la clase al expirar.
+   * @param {number} deltaTime — segundos desde el último frame.
+   */
   update(deltaTime) {
     this.#timer.update(deltaTime);
     if (!this.#timer.active) {
@@ -39,11 +43,13 @@ export class ScreenShake {
     }
   }
 
+  /** Libera la suscripción al evento y detiene la sacudida. */
   dispose() {
     this.#unsub();
     this.#stop();
   }
 
+  /** Inicia la sacudida si la preferencia lo permite, reiniciando la animación CSS. */
   #trigger() {
     if (!this.#settings.get('screenShake')) return;
     this.#gameEl.classList.remove('is-shaking');

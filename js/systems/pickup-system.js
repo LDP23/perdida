@@ -50,7 +50,12 @@ export class PickupSystem {
     );
   }
 
-  // Devuelve true si el panel consume el frame
+  /**
+   * Avanza el panel de ID si está abierto.
+   * @param {number} deltaTime — segundos desde el último frame.
+   * @param {Input} input — sistema de entrada.
+   * @returns {boolean} true si el panel consume el frame.
+   */
   updatePanel(deltaTime, input) {
     if (!this.#panelPaused) return false;
     this.#crewPanel.update(deltaTime, input);
@@ -58,6 +63,10 @@ export class PickupSystem {
     return this.#panelPaused;
   }
 
+  /**
+   * Avanza la animación de pickups y revisa colisiones con el robot.
+   * @param {number} deltaTime — segundos desde el último frame.
+   */
   update(deltaTime) {
     const w = this.#getWorld();
     w.energyCells.update((p) => p.update(deltaTime));
@@ -65,11 +74,13 @@ export class PickupSystem {
     this.#checkPickups(w);
   }
 
+  /** Libera suscripciones y destruye el panel de IDs. */
   dispose() {
     for (const unsub of this.#unsubs) unsub();
     this.#crewPanel.destroy();
   }
 
+  /** Verifica colisión de cada pickup con el robot y aplica el efecto correspondiente. */
   #checkPickups(w) {
     const check = (pickup) => {
       if (pickup.isCollected || pickup.isDead) return;

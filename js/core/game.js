@@ -10,6 +10,7 @@
  * Participa en: orquesta el arranque y la destrucción del juego completo.
  */
 import { DEBUG, ENEMY, ENEMY_SPRITE, ESCAPE, PICKUP, PLATFORMS, PLAYER, PLAYER_FEEDBACK, ROBOT_SPRITE, SHOOT, TRAINING_DUMMY, TRANSITION, TRAPS } from '../config.js';
+import { TouchControls } from '../input/touch-controls.js';
 import { GameOverState } from '../states/game-over-state.js';
 import { LevelCompleteState } from '../states/level-complete-state.js';
 import { MenuState } from '../states/menu-state.js';
@@ -55,6 +56,7 @@ export class Game {
   #loop;
   #resizeObserver;
   #disposeDevice;
+  #touchControls;
 
   /**
    * @param {Document|HTMLElement} [scope=document] — raíz DOM donde buscar los data-ref.
@@ -138,6 +140,10 @@ export class Game {
     s.setProperty('--alert-shake-amplitude', ESCAPE.shakeAmplitude);
 
     this.#disposeDevice = setupDeviceClass(refs.game);
+
+    // Controles tactiles: se crean siempre pero CSS los muestra solo con is-touch.
+    this.#touchControls = new TouchControls(refs.game, this.#input);
+
     this.#resizeObserver = new ResizeObserver(([entry]) => this.#onResize(entry.contentRect));
     this.#resizeObserver.observe(refs.viewport);
     this.#onResize(refs.viewport.getBoundingClientRect());
@@ -163,6 +169,7 @@ export class Game {
     this.#resizeObserver.disconnect();
     this.#input.dispose();
     this.#events.clear();
+    this.#touchControls.dispose();
     this.#disposeDevice();
     this.#debugView.dispose();
   }

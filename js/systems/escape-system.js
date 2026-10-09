@@ -61,6 +61,13 @@ export class EscapeSystem {
   #fadeEl = null;
   #fadeTimer = new Timer();
 
+  /**
+   * @param {Object} deps — dependencias inyectadas por PlayingState.
+   * @param {Object} deps.context — contexto compartido del juego.
+   * @param {Function} deps.getWorld — devuelve el SceneWorld actual.
+   * @param {GameSession} deps.session — sesión de juego (vidas, puntos, IDs).
+   * @param {Hud} deps.hud — datos del HUD (para mostrar toasts).
+   */
   constructor({ context, getWorld, session, hud }) {
     this.#context = context;
     this.#getWorld = getWorld;
@@ -79,7 +86,7 @@ export class EscapeSystem {
    * en vez de pausar el juego.
    * @returns {boolean} true si el panel consume el frame.
    */
-  updatePanel(dt, input) {
+  updatePanel(/** @type {number} */ dt, /** @type {Input} */ input) {
     if (!this.#captainPanel.isOpen) return false;
     this.#captainPanel.update(dt, input);
     if (!this.#captainPanel.isOpen) {
@@ -93,7 +100,7 @@ export class EscapeSystem {
    * de salto para abrir el panel. Se llama ANTES de player.update para que
    * el salto no se ejecute.
    */
-  checkInteraction(input) {
+  checkInteraction(/** @type {Input} */ input) {
     if (!this.#hasConsole || this.#consoleUsed || this.#alertActive || this.#transitioning) {
       this.#setIndicator(false);
       return;
@@ -136,6 +143,7 @@ export class EscapeSystem {
     this.#checkEscapePod(w);
   }
 
+  /** Libera suscripciones, panel, elementos DOM y temporizadores. */
   dispose() {
     for (const unsub of this.#unsubs) unsub();
     this.#captainPanel.destroy();
@@ -153,6 +161,7 @@ export class EscapeSystem {
   //  Escena
   // =================================================================
 
+  /** Reinicia el estado y configura la consola si la escena tiene captainConsole. */
   #onSceneMounted() {
     this.#removeConsole();
     this.#removeAlert();
@@ -184,6 +193,7 @@ export class EscapeSystem {
   //  Consola DOM
   // =================================================================
 
+  /** Crea el elemento DOM de la consola con pantalla verde e indicador de interacción. */
   #createConsole(cx, surfaceY) {
     const cw = ESCAPE.consoleWidth;
     const ch = ESCAPE.consoleHeight;
@@ -229,6 +239,7 @@ export class EscapeSystem {
     this.#captainPanel.open();
   }
 
+  /** Recoge el ID del capitán, muestra toast, activa la alerta y reactiva el input. */
   #onPanelClosed() {
     this.#consoleUsed = true;
     this.#consoleEl?.classList.add('is-used');
@@ -247,6 +258,7 @@ export class EscapeSystem {
   //  Alerta
   // =================================================================
 
+  /** Activa la alerta: fija el punto seguro, crea overlay rojo y cápsula de escape. */
   #activateAlert() {
     this.#alertActive = true;
     this.#countdownRemaining = ESCAPE.countdownSeconds;
@@ -258,6 +270,7 @@ export class EscapeSystem {
     this.#createEscapePod(w);
   }
 
+  /** Crea el DOM de la alerta: overlay rojo pulsante, texto de evacuación y countdown. */
   #createAlertOverlay() {
     const el = document.createElement('div');
     el.className = 'escape-alert';
@@ -300,6 +313,11 @@ export class EscapeSystem {
     this.#countdownEl.textContent = this.#formatTime(Math.max(0, this.#countdownRemaining));
   }
 
+  /**
+   * Formatea segundos como "m:ss" para el display del countdown.
+   * @param {number} seconds
+   * @returns {string}
+   */
   #formatTime(seconds) {
     const s = Math.ceil(seconds);
     const min = Math.floor(s / 60);
@@ -307,6 +325,7 @@ export class EscapeSystem {
     return `${min}:${String(sec).padStart(2, '0')}`;
   }
 
+  /** Penaliza al robot (daño + reposición) y reinicia el countdown. */
   #onCountdownExpired(w) {
     if (w.player.canBeHurt) {
       w.player.takeHit(BATTERY.hitCost);
@@ -322,6 +341,7 @@ export class EscapeSystem {
   //  Cápsula de escape
   // =================================================================
 
+  /** Crea el elemento DOM de la cápsula y define la zona de contacto para la victoria. */
   #createEscapePod(w) {
     const podData = w.scene.escapePod;
     if (!podData) return;
@@ -353,6 +373,7 @@ export class EscapeSystem {
     this.#podZone = null;
   }
 
+  /** Verifica si el robot toca la cápsula; si sí, inicia la transición a victoria. */
   #checkEscapePod(w) {
     if (!this.#podZone || this.#transitioning) return;
     if (w.player.isDying || w.player.isDead || w.player.isRespawning) return;
@@ -364,6 +385,7 @@ export class EscapeSystem {
   //  Transición a victoria
   // =================================================================
 
+  /** Inicia el fundido a negro y bloquea el input antes de cambiar a VictoryState. */
   #startVictoryTransition() {
     this.#transitioning = true;
     this.#context.input.setGameplayEnabled(false);

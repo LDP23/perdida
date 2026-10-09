@@ -11,8 +11,9 @@ y el CSS controla la visibilidad según los atributos `data-state` y `data-overl
 ```mermaid
 stateDiagram-v2
     [*] --> menu: Arranque
-    menu --> playing: Nueva partida
+    menu --> story: Nueva partida
     menu --> off: Salir
+    story --> playing: Continuar
 
     playing --> paused: Escape (push)
     paused --> playing: Continuar (pop)
@@ -23,9 +24,11 @@ stateDiagram-v2
     level_complete --> playing: Continuar (change)
     level_complete --> menu: Salir al menú (change)
 
+    playing --> victory: Cápsula de escape (change)
     playing --> game_over: Sin intentos (change)
     game_over --> playing: Reiniciar (change)
     game_over --> menu: Salir al menú (change)
+    victory --> menu: Volver al menú (change)
 
     off --> menu: Encender (change)
 ```
@@ -139,6 +142,22 @@ stateDiagram-v2
     note right of aiming: Luz roja parpadea (0.9 s)
     note right of fire: Emite turret:fire (0.1 s)
     note right of cooldown: Enfriamiento (0.8 s)
+```
+
+## Fases del goteo de ácido
+
+```mermaid
+stateDiagram-v2
+    [*] --> idle
+    idle --> warning: timerEnd
+    warning --> fall: timerEnd
+    fall --> splash: gota toca superficie
+    splash --> idle: timerEnd
+
+    note right of idle: Sin gota visible (0.5 s)
+    note right of warning: Gota crece en el techo (0.35 s)
+    note right of fall: PELIGROSO, gota cae con gravedad (2400 px/s²)
+    note right of splash: PELIGROSO, salpicadura en el piso (0.25 s)
 ```
 
 Cuando la torreta recibe suficientes impactos (health = 2), queda destruida: sin fases, sin peligro, sin ser disparable.

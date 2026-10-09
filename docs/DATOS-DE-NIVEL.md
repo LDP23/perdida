@@ -135,6 +135,39 @@ contra el registro de claves válidas exportado por `trap-factory.js`. Detecta
 tipos desconocidos, claves sobrantes y errores de construcción sin necesidad de
 jugar hasta la escena.
 
+## Consola del capitán y cápsula de escape
+
+La última escena del último nivel puede incluir la secuencia de escape:
+
+```javascript
+{
+  // Consola del capitán: el robot interactúa para activar la alerta
+  captainConsole: { x: 1860 },
+
+  // Cápsula de escape: aparece al activar la alerta
+  escapePod: { x: 260 },
+}
+```
+
+- `captainConsole.x`: centro horizontal de la consola. La superficie se calcula con `findSurfaceBelow`.
+- `escapePod.x`: centro horizontal de la cápsula de escape.
+
+## Historia entre niveles
+
+Cada nivel puede tener un bloque `story` con título y líneas narrativas que se muestran antes de empezar:
+
+```javascript
+{
+  story: {
+    title: 'Nivel 1 — Carga',
+    lines: [
+      'Primera línea de la historia.',
+      'Segunda línea.',
+    ],
+  },
+}
+```
+
 ## Cómo agregar un nivel
 
 1. Crear `js/levels/levelN.js` con los datos de las escenas.

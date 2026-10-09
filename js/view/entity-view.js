@@ -19,6 +19,11 @@ export class EntityView {
   #element;
   #sprite;
 
+  /**
+   * @param {HTMLElement} layer — capa del DOM donde se inserta la entidad.
+   * @param {string} modifier — sufijo BEM para la clase (entity--<modifier>).
+   * @param {{width: number, height: number}} size — tamaño de la hitbox en px del mundo.
+   */
   constructor(layer, modifier, { width, height }) {
     this.#element = createElement(`entity entity--${modifier}`, layer);
     this.#sprite = createElement('entity__sprite', this.#element);
@@ -28,7 +33,11 @@ export class EntityView {
   get element() { return this.#element; }
   get sprite() { return this.#sprite; }
 
-  // flags: { 'is-facing-left': true, ... } -> clases CSS que activan estilos/animaciones.
+  /**
+   * Actualiza la posición del elemento y las clases de estado.
+   * @param {{x: number, y: number}} body — cuerpo con posición en px del mundo.
+   * @param {Object.<string, boolean>} [flags={}] — clases CSS a activar/desactivar.
+   */
   sync(body, flags = {}) {
     setPosition(this.#element, body.x, body.y);
     for (const [className, enabled] of Object.entries(flags)) {

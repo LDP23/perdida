@@ -49,5 +49,6 @@ export class TrapSystem {
     w.player.body.externalVx = externalVx;
   }
 
+  /** No requiere limpieza: las trampas viven en SceneWorld. */
   dispose() {}
 }

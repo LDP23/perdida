@@ -115,11 +115,6 @@
   pointer-events: none;
 }
 
-/* Ocultar HUD fuera de playing */
-.game:not([data-state="playing"]) .hud {
-  display: none;
-}
-
 /* === Botones de menú === */
 .menu-buttons {
   display: flex;

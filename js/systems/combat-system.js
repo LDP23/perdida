@@ -63,6 +63,10 @@ export class CombatSystem {
     );
   }
 
+  /**
+   * Avanza enemigos, proyectiles y dummies; luego verifica impactos.
+   * @param {number} deltaTime — segundos desde el último frame.
+   */
   update(deltaTime) {
     const w = this.#getWorld();
     const solids = w.getAllSolids();
@@ -75,10 +79,15 @@ export class CombatSystem {
     this.#checkEnemyDamage(w);
   }
 
+  /** Libera todas las suscripciones a eventos. */
   dispose() {
     for (const unsub of this.#unsubs) unsub();
   }
 
+  /**
+   * Verifica impactos de proyectiles: los del player contra shootables,
+   * los enemy contra el robot.
+   */
   #checkProjectileHits(w) {
     w.projectiles.forEach((proj) => {
       if (proj.isDead) return;
@@ -100,6 +109,10 @@ export class CombatSystem {
     });
   }
 
+  /**
+   * Verifica daño de enemigos al robot: primero el zarpazo (strikeRect),
+   * luego el contacto directo (body). Aplica empuje desde el centro del enemigo.
+   */
   #checkEnemyDamage(w) {
     if (!w.player.canBeHurt) return;
     w.enemies.forEach((enemy) => {

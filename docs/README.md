@@ -18,6 +18,7 @@ Solo HTML, CSS y JavaScript puro: sin frameworks, sin librerías, sin `<canvas>`
 | [EVENTOS.md](EVENTOS.md) | Sistema de eventos (pub/sub) y lista de eventos |
 | [DATOS-DE-NIVEL.md](DATOS-DE-NIVEL.md) | Formato de datos de escena y cómo agregar niveles |
 | [FISICA.md](FISICA.md) | Gravedad, colisiones AABB, saltos y restricciones |
+| [SPRITES.md](SPRITES.md) | Referencia de tamaños, frames y anclas de sprites |
 
 ## Cómo probar
 
@@ -28,4 +29,6 @@ Solo HTML, CSS y JavaScript puro: sin frameworks, sin librerías, sin `<canvas>`
 ## Herramientas
 
 - `tools/physics-check.html`: verificador de física (simula saltos a 30/120/144 FPS).
+- `tools/level-check.html`: verificador de niveles (escalones trampa, separación de plataformas, validación de trampas).
+- `tools/trap-gallery.html`: galería visual de trampas en cada fase.
 - `tools/process_assets.py`: conversión de assets originales (ya aplicada una vez).

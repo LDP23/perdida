@@ -40,6 +40,11 @@ export class PlatformSystem {
     this.#events = context.events;
   }
 
+  /**
+   * Mueve plataformas y arrastra al robot si está parado encima.
+   * Detecta aplastamiento y devuelve al punto seguro si ocurre.
+   * @param {number} deltaTime — segundos desde el último frame.
+   */
   beforePlayer(deltaTime) {
     const w = this.#getWorld();
     w.movingPlatforms.forEach((mp) => mp.update(deltaTime));

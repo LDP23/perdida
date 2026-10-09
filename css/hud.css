@@ -75,7 +75,6 @@
 }
 
 .hud__battery-bar.is-low {
-  --bar-color: var(--color-alarm);
   background:
     repeating-linear-gradient(
       90deg,
@@ -178,4 +177,17 @@
 
 .hud__toast.is-visible {
   opacity: 1;
+}
+
+/* --- Responsive: pantallas chicas --- */
+@media (max-width: 500px) {
+  .hud { font-size: 0.9rem; }
+  .hud__battery-bar { width: 70px; height: 10px; }
+  .hud__score { font-size: 14px; }
+  .hud__level { font-size: 13px; }
+}
+
+/* Con controles tactiles, subir el toast para que no tape los botones */
+.game.is-touch .hud__toast {
+  bottom: calc(env(safe-area-inset-bottom, 10px) + 200px);
 }

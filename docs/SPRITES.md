@@ -49,6 +49,13 @@ Convenciones de esta tabla:
 | `plataforma_movil.png` | 240 × 35 | 120 × 17.5 | Plataforma móvil, con el propulsor debajo. El borde superior de la imagen coincide con el borde superior de la plataforma. Para otros anchos se usa `border-image` con cortes laterales de 13 px del archivo (6.5 px del mundo): los extremos no se deforman. |
 | `plataforma_cae.png` | 240 × 22 | 120 × 11 | Plataforma que cae (solo la placa, sin propulsor). Misma regla de `border-image`. |
 
+## Coleccionables
+
+| Archivo | Archivo (px) | En el mundo | Uso |
+|---|---|---|---|
+| `celda_energia.png` | — | 48 × 48 | Celda de energía. Recarga batería al recogerla. Animación de flotación y brillo CSS. |
+| `id_tripulante.png` | — | 48 × 48 | ID de tripulante. Coleccionable de la historia. Animación de flotación y brillo CSS. |
+
 ## Descompresión
 
 La descompresión no usa sprites: el efecto de corriente de viento se dibuja con gradientes CSS animados.

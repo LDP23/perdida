@@ -27,6 +27,7 @@ flowchart LR
         SceneFlow2[SceneFlow]
         PickupSystem2[PickupSystem]
         DebugTools2[DebugTools]
+        EscapeSystem2[EscapeSystem]
         Tutorial
     end
 
@@ -43,6 +44,7 @@ flowchart LR
     Bus -->|player:battery-empty| SceneFlow2
     Bus -->|scene:mounted| PickupSystem2
     Bus -->|scene:mounted| DebugTools2
+    Bus -->|scene:mounted| EscapeSystem2
     Bus -->|player:jump| Tutorial
 ```
 
@@ -63,7 +65,7 @@ flowchart LR
 | `enemy:destroyed` | — | CombatSystem | CombatSystem (puntos) |
 | `turret:fire` | `{x, y, direction}` | Turret | CombatSystem |
 | `turret:destroyed` | `{x, y}` | Turret | CombatSystem (puntos) |
-| `scene:mounted` | — | PlayingState | PickupSystem, DebugTools |
+| `scene:mounted` | — | PlayingState | PickupSystem, DebugTools, EscapeSystem |
 | `debug:jump-scene` | `{index}` | DebugTools | SceneFlow |
 | `session:score` | `{score}` | GameSession | — |
 | `session:life-lost` | `{lives}` | GameSession | — |
